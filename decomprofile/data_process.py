@@ -75,7 +75,7 @@ class DataProcess(object):
         self.fov_image = fov_image
         self.fov_noise_map = fov_noise_map
         
-        self.psf_id_4_fitting = 0 #The psf id in the PSF_list that would be used in the fitting.
+        self.psf_id_for_fitting = 0 #The psf id in the PSF_list that would be used in the fitting.
         if zp is None:
             print("Zeropoint value is not provided, use 27.0 to calculate magnitude.")
             self.zp = 27.0
@@ -98,6 +98,8 @@ class DataProcess(object):
         if if_plot == None:
             if_plot = self.if_plot
         
+        if if_plot == True:
+            print("Plot target cut out zoom in:")
         target_stamp, target_cut_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
                                           kernel = cut_kernel, radius=radius,
                                           return_center=True, if_plot=if_plot)
@@ -124,31 +126,28 @@ class DataProcess(object):
         from decomprofile.tools.measure_tools import detect_obj, mask_obj
         apertures = detect_obj(target_stamp, if_plot=True, **kwargs)
         if create_mask == True:
+            select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
             if sys.version_info.major > 2:
-                select_idx = input('Input directly the a obj idx to mask, use space between each id:\n')
-                select_idx = select_idx.split(' ')
                 select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
             else:
-                select_idx = raw_input('Input directly the a obj idx to mask, use space between each id:\n')
-                select_idx = select_idx.split(' ')
                 select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
             apertures_ = [apertures[i] for i in select_idx]
             apertures = [apertures[i] for i in range(len(apertures)) if i not in select_idx]
             mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
             for i in range(len(mask_list)):
                 target_mask *= mask_list[i]
+        self.apertures = apertures
+        self.target_stamp = target_stamp
+        self.target_mask = target_mask
         if if_plot:
             fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(14, 10))
             ax1.imshow(target_stamp, origin='lower', norm=LogNorm())
             ax1.set_title('Cutout target')
-            ax2.imshow(noise_map, origin='lower', norm=LogNorm())
+            ax2.imshow(self.noise_map, origin='lower', norm=LogNorm())
             ax2.set_title('Noise map')
             ax3.imshow(target_stamp * target_mask, origin='lower', norm=LogNorm())
             ax3.set_title('data * mask')
             plt.show()  
-        self.apertures = apertures
-        self.target_stamp = target_stamp
-        self.target_mask = target_mask
     
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', user_option= False):
         """
@@ -198,13 +197,11 @@ class DataProcess(object):
                           np.round(measure_FWHM(cut_image ,radius = int(radius/5)),3),
                           'flux:', round(np.sum(cut_image),1) )
                     plt_fits(cut_image)
+                select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
+                select_idx = select_idx.split(" ")
                 if sys.version_info.major > 2:
-                    select_idx = input('Input directly the a obj idx to mask, use space between each id:\n')
-                    select_idx = select_idx.split(" ")
                     select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
                 else:
-                    select_idx = raw_input('Input directly the a obj idx to mask, use space between each id:\n')
-                    select_idx = select_idx.split(" ")
                     select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]                    
                 self.PSF_pos_list = [PSF_locs[i] for i in select_idx]
             else:
@@ -233,7 +230,7 @@ class DataProcess(object):
                       c_psf_list=PSF_pos_list, **kargs)
     
     def checkout(self):
-        checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_4_fitting']
+        checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_for_fitting']
         ct = 0
         for name in checklist:
             if not hasattr(self, name):

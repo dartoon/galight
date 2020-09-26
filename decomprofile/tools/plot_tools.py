@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.io.fits as pyfits
 from matplotlib.colors import LogNorm
-from decomprofile.tools_data.measure_tools import SB_profile
+from decomprofile.tools.measure_tools import SB_profile
 import copy, matplotlib
 from matplotlib.ticker import ScalarFormatter
 

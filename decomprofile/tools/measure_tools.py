@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator
 import copy
 import matplotlib
 from photutils import make_source_mask
-from decomprofile.tools_data.astro_tools import plt_fits 
+from decomprofile.tools.astro_tools import plt_fits 
 my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
 import photutils
@@ -70,7 +70,7 @@ def search_local_max(image, radius=120, view=False, **kwargs):
     --------
         A list of positions of 'PSF'
     """
-    from decomprofile.tools_data.cutout_tools import cutout
+    from decomprofile.tools.cutout_tools import cutout
     PSFx, PSFy =find_loc_max(image, **kwargs)
     PSF_locs = []
     ct = 0
@@ -145,7 +145,7 @@ def flux_in_region(image,region,mode='exact'):
     tot_flux= np.sum(mask.data * data)
     return tot_flux
 
-from decomprofile.tools_data.cutout_tools import pix_region
+from decomprofile.tools.cutout_tools import pix_region
 
 def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=None, if_plot=False,
                  fits_plot=False, mask_image=None):
@@ -336,6 +336,7 @@ def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None ,
     return fig
 
 def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
+    print("Estimating the background light ... ... ...")
     from astropy.stats import SigmaClip
     from photutils import Background2D, SExtractorBackground  
     sigma_clip = SigmaClip(sigma=3., maxiters=10)
@@ -346,7 +347,10 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
         mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
     mask_1 = (np.isnan(img))
     mask = mask_0 + mask_1
-    bkg = Background2D(img, (50, 50), filter_size=(3, 3),
+    box_s = int(len(img)/40)
+    if box_s < 10:
+        box_s = 10
+    bkg = Background2D(img, (box_s, box_s), filter_size=(3, 3),
                        sigma_clip=sigma_clip, bkg_estimator=bkg_estimator,
                        mask=mask)
     from matplotlib.colors import LogNorm

@@ -22,7 +22,7 @@ class FittingProcess(object):
         - define the way to fitting: PSO and MCMC
         - save all the useful fitting materials, if assign save_pkl
     """
-    def __init__(self, fitting_specify_class, savename = 'result', zp = 27.0):
+    def __init__(self, fitting_specify_class, savename = 'result'):
         self.fitting_specify_class = fitting_specify_class
         self.fitting_seq = fitting_specify_class.fitting_seq
         self.savename = savename
@@ -40,8 +40,8 @@ class FittingProcess(object):
             fitting_kwargs_list.append([algorithm_list[i], setting])
         self.fitting_kwargs_list = fitting_kwargs_list
     
-    def run(self):
-        self.fitting_kwargs(algorithm_list = ['PSO', 'MCMC'], setting_list = [None, None])
+    def run(self, algorithm_list = ['PSO', 'MCMC'], setting_list = [None, None]):
+        self.fitting_kwargs(algorithm_list = algorithm_list, setting_list = setting_list)
         fitting_specify_class = self.fitting_specify_class
         start_time = time.time()
         chain_list = self.fitting_seq.fit_sequence(self.fitting_kwargs_list)
@@ -266,20 +266,22 @@ class FittingProcess(object):
     def translate_result(self):
         import lenstronomy.Util.param_util as param_util
         from decomprofile.tools.measure_tools import model_flux_cal
-        self.final_galaxy_result = copy.deepcopy(self.source_result)
-        flux_sersic_model = model_flux_cal(self.final_galaxy_result)
-        for i in range(len(self.final_galaxy_result)):
-            source = self.final_galaxy_result[i]
+        self.final_result_galaxy = copy.deepcopy(self.source_result)
+        flux_sersic_model = model_flux_cal(self.final_result_galaxy)
+        for i in range(len(self.final_result_galaxy)):
+            source = self.final_result_galaxy[i]
             source['phi_G'], source['q'] = param_util.ellipticity2phi_q(source['e1'], source['e2'])
             source['flux_sersic_model'] = flux_sersic_model[i]
             source['flux_within_frame'] = np.sum(self.image_host_list[i])
             source['magnitude'] = -2.5*np.log10(source['flux_within_frame']) + self.zp
-            self.final_galaxy_result[i] = source
-        self.final_ps_result = copy.deepcopy(self.ps_result)
-        for i in range(len(self.final_ps_result)):
-            ps = self.final_ps_result[i]
+            self.final_result_galaxy[i] = source
+        
+        self.final_result_ps = copy.deepcopy(self.ps_result)
+        for i in range(len(self.final_result_ps)):
+            ps = self.final_result_ps[i]
             ps['flux_within_frame'] = np.sum(self.image_ps_list[i])
-            ps['magnitude'] = -2.5*np.log10(ps['flux_within_frame']) + self.zp      
+            ps['magnitude'] = -2.5*np.log10(ps['flux_within_frame']) + self.zp  
+            self.final_result_ps[i] = ps
             
     def mcmc_result_range(self, chain=None, param=None):
         if chain is None:
@@ -291,7 +293,6 @@ class FittingProcess(object):
         print("Low {0:.3f}, Mid {1:.3f}, High: {2:.3f}".format(np.percentile(chain[:, checkid],16),
                                                                 np.percentile(chain[:, checkid],50), 
                                                                 np.percentile(chain[:, checkid],84)) )
-        #TODO: Add q and theta range 
         
 
     def dump_result(self):
@@ -304,14 +305,14 @@ class FittingProcess(object):
 def fitting_setting_temp(algorithm, fill_value_list = None):
     if algorithm == 'PSO':
         if fill_value_list is None:
-            # setting = {'sigma_scale': 0.8, 'n_particles': 150, 'n_iterations': 150}
-            setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
+            setting = {'sigma_scale': 0.8, 'n_particles': 100, 'n_iterations': 150}
+            #setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
         else:
             setting = {'sigma_scale': fill_value_list[0], 'n_particles': fill_value_list[1], 'n_iterations': fill_value_list[2]}
     elif algorithm == 'MCMC':     
         if fill_value_list is None:        
+            setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
             # setting = {'n_burn': 100, 'n_run': 200, 'walkerRatio': 10, 'sigma_scale': .1}
-            setting = {'n_burn': 50, 'n_run': 100, 'walkerRatio': 10, 'sigma_scale': .1}
         else:
             setting = {'n_burn': fill_value_list[0], 'n_run': fill_value_list[1],
                        'walkerRatio': fill_value_list[2], 'sigma_scale': fill_value_list[3]}

@@ -32,7 +32,7 @@ class FittingSpeficy(object):
         kwargs_data['noise_map'] = self.data_process_class.noise_map
         
         if psf_data is None:
-            psf_data = self.data_process_class.PSF_list[self.data_process_class.psf_id_4_fitting]
+            psf_data = self.data_process_class.PSF_list[self.data_process_class.psf_id_for_fitting]
         kwargs_psf = {'psf_type': 'PIXEL', 'kernel_point_source': psf_data}
         kwargs_numerics = {'supersampling_factor': supersampling_factor, 'supersampling_convolution': False} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
@@ -105,7 +105,6 @@ class FittingSpeficy(object):
             for i in range(len(x)):
                 flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])
             _id = np.flipud(np.argsort(flux_))
-            print("_id", _id)
             arr_x = np.array(x)
             arr_y = np.array(y)
             ps_x = -1 * ((arr_x - self.numPix/2) * self.deltaPix)
