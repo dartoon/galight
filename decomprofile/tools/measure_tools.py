@@ -603,3 +603,18 @@ def model_flux_cal(params_list, model_list = None):
     light = LightModel(model_list)
     flux = light.total_flux(params_list)
     return flux
+
+def plot_data_apertures(image, apertures):
+    plt.figure(figsize=(8,6))
+    # fig, ax = plt.subplots(figsize=(8,6))
+    plt.title('Data and apertures used to fit')
+    vmin = 1.e-3
+    vmax = 2.1 
+    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
+    np.random.seed(seed = 3)
+    for i in range(len(apertures)):
+        aperture = apertures[i]
+        aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+                      lw=3.5, label = 'aperture {0}'.format(i))
+    plt.legend()
+    plt.show()

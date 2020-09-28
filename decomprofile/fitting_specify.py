@@ -254,4 +254,5 @@ def ps_params_generator(centers, flux_list, deltaPix = 1):
     ps_params = [kwargs_ps_init, kwargs_ps_sigma, fixed_ps, kwargs_lower_ps, kwargs_upper_ps]
     return ps_params
     
-#TODO: Test if double PSF. i.e., dual AGN
+#TODO: Quickly setting if want to fit one component as Disk and Bar.
+#TODO: Quickly Fix Reff
