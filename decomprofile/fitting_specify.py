@@ -23,6 +23,7 @@ class FittingSpeficy(object):
         self.deltaPix = data_process_class.deltaPix
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
+        self.apertures = data_process_class.apertures
     
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None):
         import lenstronomy.Util.simulation_util as sim_util
@@ -107,8 +108,8 @@ class FittingSpeficy(object):
             _id = np.flipud(np.argsort(flux_))
             arr_x = np.array(x)
             arr_y = np.array(y)
-            ps_x = -1 * ((arr_x - self.numPix/2) * self.deltaPix)
-            ps_y = (arr_y - self.numPix/2) * self.deltaPix
+            ps_x = - 1 * ((arr_x - int(self.numPix/2) ) * self.deltaPix)
+            ps_y = (arr_y - int(self.numPix/2) ) * self.deltaPix
             center_list = []
             flux_list = []
             for i in range(len(self.point_source_list)):
@@ -120,6 +121,11 @@ class FittingSpeficy(object):
         else:
             ps_params = ps_params            
         kwargs_params['point_source_model'] = ps_params
+        
+        center_list = np.array(center_list)
+        center_pix_pos = center_list / self.deltaPix
+        center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
+        self.center_pix_pos = center_pix_pos + int(self.numPix/2)
         
         self.kwargs_params = kwargs_params
         self.source_params = source_params

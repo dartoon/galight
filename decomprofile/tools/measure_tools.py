@@ -618,3 +618,23 @@ def plot_data_apertures(image, apertures):
                       lw=3.5, label = 'aperture {0}'.format(i))
     plt.legend()
     plt.show()
+
+def plot_data_apertures_point(image, apertures, ps_center_list):
+    plt.figure(figsize=(8,6))
+    # fig, ax = plt.subplots(figsize=(8,6))
+    plt.title('Data and apertures used to fit')
+    # vmin = 1.e-3
+    # vmax = 2.1 
+    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm())#, vmin=vmin, vmax=vmax)
+    for i in range(len(ps_center_list)):
+        plt.scatter(ps_center_list[i][0], ps_center_list[i][1], 
+                    color=(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+                    s=180, marker=".",label = 'PS {0}'.format(i))
+    np.random.seed(seed = 3)
+    for i in range(len(apertures)):
+        aperture = apertures[i]
+        aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+                      lw=3.5, label = 'comp {0}'.format(i))
+    plt.legend()
+    plt.show()
+
