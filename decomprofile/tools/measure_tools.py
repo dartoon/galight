@@ -607,7 +607,7 @@ def model_flux_cal(params_list, model_list = None):
 def plot_data_apertures(image, apertures):
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
-    plt.title('Data and apertures used to fit')
+    plt.title('Data and apertures sets')
     vmin = 1.e-3
     vmax = 2.1 
     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
@@ -622,7 +622,7 @@ def plot_data_apertures(image, apertures):
 def plot_data_apertures_point(image, apertures, ps_center_list):
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
-    plt.title('Data and apertures used to fit')
+    plt.title('Data and components used to fit')
     # vmin = 1.e-3
     # vmax = 2.1 
     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm())#, vmin=vmin, vmax=vmax)

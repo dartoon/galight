@@ -154,7 +154,11 @@ class FittingSpeficy(object):
         self.lightModel = lightModel
         self.imageModel = imageModel
         self.pointSource = pointSource
-    
+        
+    def plot_fitting_sets(self):
+        from decomprofile.tools.measure_tools import plot_data_apertures, plot_data_apertures_point
+        plot_data_apertures_point(self.kwargs_data['image_data'], self.apertures, self.center_pix_pos)
+
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
                           point_source_num = 1, fix_center_list = None, source_params = None,
@@ -168,7 +172,7 @@ class FittingSpeficy(object):
         self.sepc_kwargs_params(source_params = None, fix_n_list = fix_n_list, ps_params = None,
                                 neighborhood_size = neighborhood_size, threshold = threshold)
         self.sepc_imageModel()
-        print("The settings for the fitting is done. Ready to pass to FittingProcess. \n\tHowever, please update self.settings manullay if needed.")
+        print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     
     def build_fitting_seq(self):
         from lenstronomy.Workflow.fitting_sequence import FittingSequence
