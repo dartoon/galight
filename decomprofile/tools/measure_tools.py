@@ -339,7 +339,14 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
     print("Estimating the background light ... ... ...")
     from astropy.stats import SigmaClip
     from photutils import Background2D, SExtractorBackground  
-    sigma_clip = SigmaClip(sigma=3., maxiters=10)
+    try:
+        sigma_clip = SigmaClip(sigma=3., maxiters=10)
+    except (TypeError):
+        sigma_clip = SigmaClip(sigma=3., iters=10)
+#    if version.parse(astropy.__version__) >= version.parse("0.4"):
+#       sigma_clip = SigmaClip(sigma=3., maxiters=10)
+#    else:
+#        sigma_clip = SigmaClip(sigma=3., iters=10)
     bkg_estimator = SExtractorBackground()
     if version.parse(photutils.__version__) > version.parse("0.7"):
         mask_0 = make_source_mask(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
@@ -626,6 +633,7 @@ def plot_data_apertures_point(image, apertures, ps_center_list):
     # vmin = 1.e-3
     # vmax = 2.1 
     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm())#, vmin=vmin, vmax=vmax)
+    np.random.seed(seed = 4)
     for i in range(len(ps_center_list)):
         plt.scatter(ps_center_list[i][0], ps_center_list[i][1], 
                     color=(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),

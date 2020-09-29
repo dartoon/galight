@@ -61,13 +61,6 @@ class FittingProcess(object):
                                         kwargs_numerics=fitting_specify_class.kwargs_numerics)    
         image_reconstructed, error_map, _, _ = imageLinearFit.image_linear_solve(kwargs_source=source_result,
                                                                                  kwargs_ps=ps_result)
-        from lenstronomy.Plots.model_plot import ModelPlot
-        # this is the linear inversion. The kwargs will be updated afterwards
-        modelPlot = ModelPlot(fitting_specify_class.kwargs_data_joint['multi_band_list'],
-                              fitting_specify_class.kwargs_model, kwargs_result,
-                              arrow_size=0.02, cmap_string="gist_heat", 
-                              likelihood_mask_list=fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
-
         imageModel = fitting_specify_class.imageModel
         image_host_list = []  #The linear_solver before and after LensModelPlot could have different result for very faint sources.
         for i in range(len(source_result)):
@@ -118,7 +111,6 @@ class FittingProcess(object):
         self.kwargs_result = kwargs_result
         self.ps_result = ps_result
         self.source_result = source_result
-        self.modelPlot = modelPlot
         self.imageLinearFit = imageLinearFit
         self.reduced_Chisq =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
         self.image_host_list = image_host_list
@@ -153,18 +145,25 @@ class FittingProcess(object):
             plt.close()
 
     def model_plot(self, save_plot = False, show_plot = True):
+        from lenstronomy.Plots.model_plot import ModelPlot
+        # this is the linear inversion. The kwargs will be updated afterwards
+        modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
+                              self.fitting_specify_class.kwargs_model, self.kwargs_result,
+                              arrow_size=0.02, cmap_string="gist_heat", 
+                              likelihood_mask_list=self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
+        
         f, axes = plt.subplots(3, 3, figsize=(16, 16), sharex=False, sharey=False)
-        self.modelPlot.data_plot(ax=axes[0,0], text="Data")
-        self.modelPlot.model_plot(ax=axes[0,1])
-        self.modelPlot.normalized_residual_plot(ax=axes[0,2], v_min=-6, v_max=6)
+        modelPlot.data_plot(ax=axes[0,0], text="Data")
+        modelPlot.model_plot(ax=axes[0,1])
+        modelPlot.normalized_residual_plot(ax=axes[0,2], v_min=-6, v_max=6)
         
-        self.modelPlot.decomposition_plot(ax=axes[1,0], text='Host galaxy', source_add=True, unconvolved=True)
-        self.modelPlot.decomposition_plot(ax=axes[1,1], text='Host galaxy convolved', source_add=True)
-        self.modelPlot.decomposition_plot(ax=axes[1,2], text='All components convolved', source_add=True, lens_light_add=True, point_source_add=True)
+        modelPlot.decomposition_plot(ax=axes[1,0], text='Host galaxy', source_add=True, unconvolved=True)
+        modelPlot.decomposition_plot(ax=axes[1,1], text='Host galaxy convolved', source_add=True)
+        modelPlot.decomposition_plot(ax=axes[1,2], text='All components convolved', source_add=True, lens_light_add=True, point_source_add=True)
         
-        self.modelPlot.subtract_from_data_plot(ax=axes[2,0], text='Data - Point Source', point_source_add=True)
-        self.modelPlot.subtract_from_data_plot(ax=axes[2,1], text='Data - host galaxy', source_add=True)
-        self.modelPlot.subtract_from_data_plot(ax=axes[2,2], text='Data - host galaxy - Point Source', source_add=True, point_source_add=True)
+        modelPlot.subtract_from_data_plot(ax=axes[2,0], text='Data - Point Source', point_source_add=True)
+        modelPlot.subtract_from_data_plot(ax=axes[2,1], text='Data - host galaxy', source_add=True)
+        modelPlot.subtract_from_data_plot(ax=axes[2,2], text='Data - host galaxy - Point Source', source_add=True, point_source_add=True)
         f.tight_layout()
         if save_plot == True:
             plt.savefig('{0}_model.pdf'.format(self.savename))  
@@ -300,7 +299,7 @@ class FittingProcess(object):
         dump_class = copy.deepcopy(self)
         if hasattr(dump_class.fitting_specify_class, 'data_process_class'):
             del dump_class.fitting_specify_class.data_process_class
-        pickle.dump(dump_class, open(savename+'.pkl', 'wb'))     
+        pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
 def fitting_setting_temp(algorithm, fill_value_list = None):
     if algorithm == 'PSO':

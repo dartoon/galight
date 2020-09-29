@@ -156,8 +156,9 @@ class FittingSpeficy(object):
         self.pointSource = pointSource
         
     def plot_fitting_sets(self):
-        from decomprofile.tools.measure_tools import plot_data_apertures, plot_data_apertures_point
-        plot_data_apertures_point(self.kwargs_data['image_data'], self.apertures, self.center_pix_pos)
+        from decomprofile.tools.measure_tools import plot_data_apertures_point
+        plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], 
+                                  self.apertures, self.center_pix_pos)
 
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
