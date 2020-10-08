@@ -2,6 +2,7 @@
 
 import os
 import sys
+from setuptools import find_packages
 
 try:
     from setuptools import setup
@@ -30,7 +31,7 @@ setup(
     author_email='xuheng.ding@ipmu.jp',
     url='https://github.com/dartoon/decomprofile',
     packages=[
-        'decomprofile',
+        'decomprofile','decomprofile.tools'
     ],
     package_dir={'decomprofile': 'decomprofile'},
     include_package_data=True,
