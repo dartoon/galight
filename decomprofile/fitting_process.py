@@ -206,7 +206,7 @@ class FittingProcess(object):
         for i in range(len(ps_list)):
             ps_image = ps_image+ps_list[i]
         galaxy_list = self.image_host_list
-        galaxy_image = np.zeros_like(galaxy_list[0])
+        galaxy_image = np.zeros_like(data)
         for i in range(len(galaxy_list)):
             galaxy_image = galaxy_image+galaxy_list[i]
         model = ps_image + galaxy_image
@@ -255,8 +255,9 @@ class FittingProcess(object):
     def plot_all(self):
         self.run_diag()
         self.model_plot()
-        self.plot_params_corner()
-        self.plot_flux_corner()  
+        if self.fitting_kwargs_list[-1][0] == 'MCMC':
+            self.plot_params_corner()
+            self.plot_flux_corner()  
         if self.image_ps_list != []:
             self.plot_final_qso_fit()
         else:

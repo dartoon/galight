@@ -90,7 +90,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
             flux_list_2d[i] = flux_list_2d[i] * mask
         if i == 0:
             im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=norm,
-                                  vmax = flux_list_2d[0].max())
+                                  vmax = flux_list_2d[0].max(), vmin = 1.e-4)
             clim=im_i.properties()['clim'] #To uniform the color bar scale.
             ax_l[i].set_ylabel(target_ID, fontsize=15, weight='bold')
         else:

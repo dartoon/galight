@@ -47,7 +47,7 @@ class FittingSpeficy(object):
         point_source_list = ['UNLENSED'] * point_source_num
         kwargs_model = { 'point_source_model_list': point_source_list
                 }
-        if extend_source_model is not None:
+        if extend_source_model != None and extend_source_model != []:
             light_model_list = extend_source_model
             kwargs_model['source_light_model_list'] = light_model_list
         else:
