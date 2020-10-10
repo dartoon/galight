@@ -108,7 +108,7 @@ class DataProcess(object):
                                               kernel = cut_kernel, radius=radius,
                                               return_center=True, if_plot=if_plot)
         else:
-            target_stamp = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
+            target_stamp = cutout(image = self.fov_image, center = self.target_pos, radius=radius)
         
         if self.fov_noise_map is not None:
             self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
