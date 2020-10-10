@@ -123,7 +123,7 @@ class FittingSpeficy(object):
         kwargs_params['point_source_model'] = ps_params
         
         center_list = np.array(center_list)
-        center_pix_pos = center_list / self.deltaPix
+        center_pix_pos = center_list
         center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
         self.center_pix_pos = center_pix_pos + int(self.numPix/2)
         self.kwargs_params = kwargs_params
