@@ -82,7 +82,7 @@ class DataProcess(object):
         else:
             self.zp = zp
 
-    def generate_target_materials(self, cut_kernel = 'center_gaussian',  radius=60, 
+    def generate_target_materials(self, cut_kernel = None,  radius=60, 
                                   bkg_std = None, create_mask = False, if_plot=None, **kwargs):
         """
         Produce the materials that would be used for the fitting.
@@ -91,7 +91,10 @@ class DataProcess(object):
         --------
             radius: int or float
             The radius of aperture to cutout the target
-            
+            cut_kernel: None or 'center_gaussian' or 'center_bright'
+                if is None, directly cut.
+                if is 'center_gaussian', fit central as Gaussian to cut the Gaussian center.
+                if is 'center_bright', cut the brightest pixel in the center
             bkg_std: The blash of blash
             
         """
@@ -100,16 +103,19 @@ class DataProcess(object):
         
         if if_plot == True:
             print("Plot target cut out zoom in:")
-        target_stamp, target_cut_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
-                                          kernel = cut_kernel, radius=radius,
-                                          return_center=True, if_plot=if_plot)
+        if cut_kernel is not None:
+            target_stamp, self.target_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
+                                              kernel = cut_kernel, radius=radius,
+                                              return_center=True, if_plot=if_plot)
+        else:
+            target_stamp = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
         
         if self.fov_noise_map is not None:
-            self.noise_map = cutout(image = self.fov_noise_map, center = target_cut_pos, radius=radius)
+            self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
         else:
             if bkg_std == None:
                 from decomprofile.tools.measure_tools import esti_bgkstd
-                target_2xlarger_stamp = cutout(image=self.fov_image, center= target_cut_pos, radius=radius*2)
+                target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
                 self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
             exptime = deepcopy(self.exptime)
             if exptime is None:
@@ -118,7 +124,7 @@ class DataProcess(object):
                 else:
                     raise ValueError("No Exposure time information in the header, should input a value.")
             if isinstance(exptime, np.ndarray):
-                exptime_stamp = cutout(image=self.exptime, center= target_cut_pos, radius=radius)
+                exptime_stamp = cutout(image=self.exptime, center= self.target_pos, radius=radius)
             noise_map = np.sqrt(abs(target_stamp/exptime_stamp) + self.bkg_std**2)
             self.noise_map = noise_map
         

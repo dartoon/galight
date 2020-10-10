@@ -108,8 +108,8 @@ class FittingSpeficy(object):
             _id = np.flipud(np.argsort(flux_))
             arr_x = np.array(x)
             arr_y = np.array(y)
-            ps_x = - 1 * ((arr_x - int(self.numPix/2) ) * self.deltaPix)
-            ps_y = (arr_y - int(self.numPix/2) ) * self.deltaPix
+            ps_x = - 1 * ((arr_x - int(self.numPix/2) ) )
+            ps_y = (arr_y - int(self.numPix/2) )
             center_list = []
             flux_list = []
             for i in range(len(self.point_source_list)):
@@ -126,7 +126,6 @@ class FittingSpeficy(object):
         center_pix_pos = center_list / self.deltaPix
         center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
         self.center_pix_pos = center_pix_pos + int(self.numPix/2)
-        
         self.kwargs_params = kwargs_params
         self.source_params = source_params
         self.ps_params = ps_params
@@ -265,5 +264,4 @@ def ps_params_generator(centers, flux_list, deltaPix = 1):
     ps_params = [kwargs_ps_init, kwargs_ps_sigma, fixed_ps, kwargs_lower_ps, kwargs_upper_ps]
     return ps_params
     
-#TODO: Quickly setting if want to fit one component as Disk and Bar.
 #TODO: Quickly Fix Reff
