@@ -197,12 +197,14 @@ class FittingProcess(object):
         else:
             plt.close()
             
-    def plot_final_qso_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False):
+    def plot_final_qso_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
         from decomprofile.tools.plot_tools import total_compare
         data = self.fitting_specify_class.kwargs_data['image_data']
         noise = self.fitting_specify_class.kwargs_data['noise_map']
         ps_list = self.image_ps_list
         ps_image = np.zeros_like(ps_list[0])
+        if target_ID is None:
+            target_ID = 'target_ID'
         for i in range(len(ps_list)):
             ps_image = ps_image+ps_list[i]
         galaxy_list = self.image_host_list
