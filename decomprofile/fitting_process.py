@@ -227,12 +227,14 @@ class FittingProcess(object):
             savename = self.savename
             fig.savefig(savename+"_qso_final_plot.pdf")   
 
-    def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False):
+    def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
         from decomprofile.tools.plot_tools import total_compare
         data = self.fitting_specify_class.kwargs_data['image_data']
         noise = self.fitting_specify_class.kwargs_data['noise_map']
         galaxy_list = self.image_host_list
         galaxy_image = np.zeros_like(galaxy_list[0])
+        if target_ID is None:
+            target_ID = 'target_ID'
         for i in range(len(galaxy_list)):
             galaxy_image = galaxy_image+galaxy_list[i]
         model = galaxy_image
@@ -243,7 +245,8 @@ class FittingProcess(object):
         label_list_1d = ['data', 'model ({0} galaxy(s))'.format(len(galaxy_list))]
         fig = total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d, deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
-                      mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0])
+                      mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
+                      target_ID = target_ID)
         if show_plot == True:
             plt.show()
         else:
