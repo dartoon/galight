@@ -7,6 +7,7 @@ Created on Mon Sep 14 12:16:43 2020
 """
 
 import numpy as np
+import copy
 
 class FittingSpeficy(object):
     """
@@ -23,7 +24,7 @@ class FittingSpeficy(object):
         self.deltaPix = data_process_class.deltaPix
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
-        self.apertures = data_process_class.apertures
+        self.apertures = copy.deepcopy(data_process_class.apertures)
     
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None):
         import lenstronomy.Util.simulation_util as sim_util
@@ -89,7 +90,7 @@ class FittingSpeficy(object):
         if self.light_model_list != []:
             if source_params is None:
                 source_params = source_params_generator(frame_size = self.numPix, 
-                                                        apertures = self.data_process_class.apertures,
+                                                        apertures = self.apertures,
                                                         deltaPix = self.deltaPix,
                                                         fix_n_list = fix_n_list)
             else:
@@ -100,8 +101,13 @@ class FittingSpeficy(object):
             from decomprofile.tools.measure_tools import find_loc_max
             x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
             if len(x) < len(self.point_source_list):
-                raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
-                                 the ps_params must input manually or change the neighborhood_size and threshold values")
+                import warnings
+                warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus,\
+                                 all the initial PS set the same initial parameters.")
+                # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
+                #                  the ps_params must input manually or change the neighborhood_size and threshold values")
+                x = x * len(self.point_source_list)
+                y = y * len(self.point_source_list)
             flux_ = []
             for i in range(len(x)):
                 flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])
@@ -168,7 +174,7 @@ class FittingSpeficy(object):
                           point_source_num = 1, fix_center_list = None, source_params = None,
                           fix_n_list = None, ps_params = None, neighborhood_size = 4, threshold = 5):
         if extend_source_model is None:
-            extend_source_model = ['SERSIC_ELLIPSE'] * len(self.data_process_class.apertures)
+            extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data)
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)

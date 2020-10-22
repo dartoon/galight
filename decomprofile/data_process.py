@@ -61,6 +61,9 @@ class DataProcess(object):
                 self.target_pos = wcs.all_world2pix([[target_pos[0], target_pos[1]]], 1)[0]
             else:
                 raise ValueError("'pos_type' is should be either 'pixel' or 'wcs'.")
+            self.target_pos = np.int0(self.target_pos)
+        else:
+            raise ValueError("'target_pos' must be assigned.")
 
         self.exptime = exptime
         self.if_plot = if_plot    

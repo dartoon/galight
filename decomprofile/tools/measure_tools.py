@@ -646,3 +646,63 @@ def plot_data_apertures_point(image, apertures, ps_center_list):
     plt.legend()
     plt.show()
 
+def twoD_Gaussian(box_size, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
+    """
+    Function to define a 2-D Gaussian
+    
+    Parameter
+    --------
+        amplitude: amplitude of the 2D gaussian
+        xo, yo: x, y position
+        sigma_x, sigma_y: sigma on x, y
+        theta: orientation
+        offset: A offset (baseline, i.e., background)
+    Return
+    --------
+        A 2-D gaussian profile, but use ravel to strech into 1D
+    Reference: https://stackoverflow.com/questions/21566379/fitting-a-2d-gaussian-function-using-scipy-optimize-curve-fit-valueerror-and-m
+    """
+    x = np.linspace(0, box_size-1, box_size)
+    y = np.linspace(0, box_size-1, box_size)
+    x, y = np.meshgrid(x, y)
+    xo = float(xo)
+    yo = float(yo)    
+    a = (np.cos(theta)**2)/(2*sigma_x**2) + (np.sin(theta)**2)/(2*sigma_y**2)
+    b = -(np.sin(2*theta))/(4*sigma_x**2) + (np.sin(2*theta))/(4*sigma_y**2)
+    c = (np.sin(theta)**2)/(2*sigma_x**2) + (np.cos(theta)**2)/(2*sigma_y**2)
+    g = offset + amplitude*np.exp( - (a*((x-xo)**2) + 2*b*(x-xo)*(y-yo) 
+                            + c*((y-yo)**2)))
+    return g.ravel()
+
+def fit_data_twoD_Gaussian(data, popt_ini = None, if_plot= False):
+    """
+    Fit the data as twoD_Gaussian() and return parameters
+    
+    Parameter
+    --------
+        data: the data should be put in the center.
+    Return
+    --------
+        Parameters in twoD_Gaussian, i.e., amplitude, xo, yo, sigma_x, sigma_y, theta, offset
+    """ 
+    import scipy.optimize as opt
+    # x = np.linspace(0, len(data)-1, len(data))
+    # y = np.linspace(0, len(data)-1, len(data))
+    # x, y = np.meshgrid(x, y)
+    # xy = (x, y)
+    if popt_ini == None:
+        popt_ini = (data.max(),len(data)/2,len(data)/2,2,2,0,0.1)
+    box_size = len(data)
+    popt, pcov = opt.curve_fit(twoD_Gaussian, box_size, data.ravel(), p0=popt_ini)
+    popt[3], popt[4] = abs(popt[3]), abs(popt[4])
+    data_fitted = twoD_Gaussian(box_size, *popt)
+    if if_plot == True:
+        fig, ax = plt.subplots(1, 1)
+        ax.imshow(data, cmap=my_cmap, origin='bottom') #norm = LogNorm(),
+        x = np.linspace(0, box_size-1, box_size)
+        y = np.linspace(0, box_size-1, box_size)
+        x, y = np.meshgrid(x, y)        
+        ax.contour(x, y, data_fitted.reshape(len(data), len(data)), 8, colors='w')
+        plt.show()
+    return popt
+    
