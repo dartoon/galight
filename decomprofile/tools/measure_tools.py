@@ -705,4 +705,35 @@ def fit_data_twoD_Gaussian(data, popt_ini = None, if_plot= False):
         ax.contour(x, y, data_fitted.reshape(len(data), len(data)), 8, colors='w')
         plt.show()
     return popt
-    
+
+def oneD_gaussian(x, mean, amplitude, standard_deviation):
+    return amplitude * np.exp( - ((x - mean) / standard_deviation) ** 2)
+
+
+def fit_data_oneD_gaussian(data, ifplot = False):
+    """
+    Fit data as 1D gaussion
+    """   
+    bin_heights, bin_borders = np.histogram(data, bins='auto')
+    bin_widths = np.diff(bin_borders)
+    bin_centers = bin_borders[:-1] + bin_widths / 2
+    plt.bar(bin_centers, bin_heights, width=bin_widths, label='histogram')
+    from scipy.optimize import curve_fit
+    popt, pcov = curve_fit(oneD_gaussian, bin_centers, bin_heights, p0=[0., bin_heights.max(), 0.01])
+    x_interval_for_fit = np.linspace(bin_borders[0], bin_borders[-1], 10000)
+    gauss_grid = oneD_gaussian(x_interval_for_fit, *popt)
+    plt.plot(x_interval_for_fit, gauss_grid, label='fit',c='red')
+    fit_center_idx = np.where(gauss_grid==gauss_grid.max())[0][0]   
+    line = np.linspace(0,10000,10)
+    peak_loc = x_interval_for_fit[fit_center_idx]
+    plt.plot(peak_loc*np.ones_like(line), line, 'black')
+    plt.plot(peak_loc*np.ones_like(line) + popt[2], line, 'black')
+    plt.plot(peak_loc*np.ones_like(line) - popt[2], line, 'black')
+    plt.ylim((0, bin_heights.max()*5./4.))
+    plt.legend()
+    if ifplot == True:
+        plt.show()
+    else:
+        plt.close()
+    return peak_loc, popt[2]
+

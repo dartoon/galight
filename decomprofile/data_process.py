@@ -85,7 +85,7 @@ class DataProcess(object):
         else:
             self.zp = zp
 
-    def generate_target_materials(self, cut_kernel = None,  radius=60, 
+    def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
                                   bkg_std = None, create_mask = False, if_plot=None, **kwargs):
         """
         Produce the materials that would be used for the fitting.
@@ -103,7 +103,21 @@ class DataProcess(object):
         """
         if if_plot == None:
             if_plot = self.if_plot
-        
+            
+        if radius == None:
+            if radius_list == None:
+                radius_list = [30, 35, 40, 45, 50, 60, 70]
+            for rad in radius_list:
+                from decomprofile.tools.measure_tools import fit_data_oneD_gaussian
+                _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=rad)
+                edge_data = np.concatenate([_cut_data[0,:],_cut_data[-1,:],_cut_data[:,0], _cut_data[:,-1]])
+                gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
+                up_limit = gauss_mean + 2 * gauss_1sig
+                percent = np.sum(edge_data>up_limit)/float(len(edge_data))
+                if percent<0.03:
+                    break
+            radius = rad
+                
         if if_plot == True:
             print("Plot target cut out zoom in:")
         if cut_kernel is not None:
@@ -133,7 +147,7 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from decomprofile.tools.measure_tools import detect_obj, mask_obj
-        apertures = detect_obj(target_stamp, if_plot=True, **kwargs)
+        apertures = detect_obj(target_stamp, if_plot=self.if_plot, **kwargs)
         if create_mask == True:
             select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
             if sys.version_info.major > 2:
