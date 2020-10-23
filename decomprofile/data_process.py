@@ -147,7 +147,7 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from decomprofile.tools.measure_tools import detect_obj, mask_obj
-        apertures = detect_obj(target_stamp, if_plot=self.if_plot, **kwargs)
+        apertures = detect_obj(target_stamp, if_plot=create_mask, **kwargs)
         if create_mask == True:
             select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
             if sys.version_info.major > 2:
