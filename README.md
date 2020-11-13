@@ -26,3 +26,4 @@ Requirements
 ------------
 packages including:
 ``lenstronomy <https://github.com/sibirrer/lenstronomy>``_
+`Gilman et al. 2020 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.491.6077G/abstract>`_
