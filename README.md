@@ -13,7 +13,7 @@ Demonstration:
 The notebooks of demonstrating how to use ``decomprofile`` can be found in:
 https://github.com/dartoon/decomprofile_notebooks
 
-The data used in the example notebook can be found `here <https://drive.google.com/file/d/1ZO9-HzV8K60ijYWK98jGoSoZHjIGW5Lc/view?usp=sharing>`_:
+The data used in the example notebook can be found `here` <https://drive.google.com/file/d/1ZO9-HzV8K60ijYWK98jGoSoZHjIGW5Lc/view?usp=sharing>
 
 
 Installation
@@ -25,5 +25,4 @@ Installation
 Requirements
 ------------
 packages including:
-``lenstronomy <https://github.com/sibirrer/lenstronomy>``_
-`Gilman et al. 2020 <https://ui.adsabs.harvard.edu/abs/2020MNRAS.491.6077G/abstract>`_
+``lenstronomy`` <https://github.com/sibirrer/lenstronomy>
