@@ -85,14 +85,16 @@ class FittingSpeficy(object):
             kwargs_likelihood['check_positive_flux'] = True #penalty is any component's flux is 'negative'.
         self.kwargs_likelihood = kwargs_likelihood
         
-    def sepc_kwargs_params(self, source_params = None, fix_n_list = None, ps_params = None, neighborhood_size = 4, threshold = 5):
+    def sepc_kwargs_params(self, source_params = None, fix_n_list = None, fix_Re_list = None, ps_params = None, 
+                           neighborhood_size = 4, threshold = 5):
         kwargs_params = {}
         if self.light_model_list != []:
             if source_params is None:
                 source_params = source_params_generator(frame_size = self.numPix, 
                                                         apertures = self.apertures,
                                                         deltaPix = self.deltaPix,
-                                                        fix_n_list = fix_n_list)
+                                                        fix_n_list = fix_n_list,
+                                                        fix_Re_list = fix_Re_list)
             else:
                 source_params = source_params
             kwargs_params['source_model'] = source_params
@@ -172,15 +174,15 @@ class FittingSpeficy(object):
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
                           point_source_num = 1, fix_center_list = None, source_params = None,
-                          fix_n_list = None, ps_params = None, neighborhood_size = 4, threshold = 5):
+                          fix_n_list = None, fix_Re_list = None, ps_params = None, neighborhood_size = 4, threshold = 5):
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data)
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
         self.sepc_kwargs_likelihood()
-        self.sepc_kwargs_params(source_params = None, fix_n_list = fix_n_list, ps_params = None,
-                                neighborhood_size = neighborhood_size, threshold = threshold)
+        self.sepc_kwargs_params(source_params = None, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
+                                ps_params = None, neighborhood_size = neighborhood_size, threshold = threshold)
         self.sepc_imageModel()
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     
@@ -191,7 +193,7 @@ class FittingSpeficy(object):
                                       self.kwargs_params)
         # return fitting_seq, self.imageModel
     
-def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None):
+def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None):
     """
     Quickly generate a source parameters for the fitting
     
@@ -244,12 +246,23 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
                 kwargs_source_init.append({'R_sersic': Reff, 'n_sersic': fix_n_value,
                                            'e1': e1, 'e2': e2, 'center_x': c_x, 'center_y': c_y})
             else:
-                fixed_source.append({})  # we fix the Sersic index to n=1 (exponential)
+                fixed_source.append({})  
                 kwargs_source_init.append({'R_sersic': Reff, 'n_sersic': 2., 'e1': e1, 'e2': e2, 'center_x': c_x, 'center_y': c_y})
-
         else:
-            fixed_source.append({})  # we fix the Sersic index to n=1 (exponential)
+            fixed_source.append({})  
             kwargs_source_init.append({'R_sersic': Reff, 'n_sersic': 2., 'e1': e1, 'e2': e2, 'center_x': c_x, 'center_y': c_y})
+       
+        if fix_Re_list is not None:
+            fix_Re_list = np.array(fix_Re_list)
+            if i in fix_Re_list[:,0]:
+                fix_Re_value = (fix_Re_list[:,1])[fix_Re_list[:,0]==i]
+                if len(fix_Re_value) != 1:
+                    raise ValueError("fix_Re are not assigned correctly - {0} component have two assigned values.".format(i))
+                else:
+                    fix_Re_value = fix_Re_value[0] #extract the fix Re value from the list
+                fixed_source[-1]['R_sersic'] = fix_Re_value
+                kwargs_source_init[-1]['R_sersic'] = fix_Re_value
+        
         kwargs_source_sigma.append({'n_sersic': 0.3, 'R_sersic': 0.5*deltaPix, 'e1': 0.1, 'e2': 0.1, 'center_x': 0.1*deltaPix, 'center_y': 0.1*deltaPix})
         kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
         kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
@@ -274,4 +287,3 @@ def ps_params_generator(centers, flux_list, deltaPix = 1):
     ps_params = [kwargs_ps_init, kwargs_ps_sigma, fixed_ps, kwargs_lower_ps, kwargs_upper_ps]
     return ps_params
     
-#TODO: Quickly Fix Reff
