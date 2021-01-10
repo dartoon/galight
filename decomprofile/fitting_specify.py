@@ -102,6 +102,8 @@ class FittingSpeficy(object):
         if ps_params is None:
             from decomprofile.tools.measure_tools import find_loc_max
             x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
+            if x == []:
+                x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
             if len(x) < len(self.point_source_list):
                 import warnings
                 warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus,\
@@ -110,6 +112,8 @@ class FittingSpeficy(object):
                 #                  the ps_params must input manually or change the neighborhood_size and threshold values")
                 x = x * len(self.point_source_list)
                 y = y * len(self.point_source_list)
+            if x ==[]:
+                x, y = [self.numPix/2], [self.numPix/2]                
             flux_ = []
             for i in range(len(x)):
                 flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])

@@ -220,7 +220,8 @@ class FittingProcess(object):
         label_list_1d = ['data', 'model', 'Point Source', '{0} galaxy(s)'.format(len(galaxy_list))]
         fig = total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d, deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
-                      mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0])
+                      mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
+                      target_ID = target_ID)
         if show_plot == True:
             plt.show()
         else:
