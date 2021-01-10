@@ -255,6 +255,16 @@ class DataProcess(object):
     def checkout(self):
         checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_for_fitting']
         ct = 0
+        if len(self.PSF_list[self.psf_id_for_fitting]) != 0 and self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
+            print("The PSF is not a box size, will cut it to a box size automatically.")
+            cut = int((self.PSF_list[self.psf_id_for_fitting].shape[0] - self.PSF_list[self.psf_id_for_fitting].shape[1])/2)
+            if cut>0:
+                self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][cut:-cut,:]
+            elif cut<0:
+                self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][:,-cut:cut]
+            self.PSF_list[self.psf_id_for_fitting] /= self.PSF_list[self.psf_id_for_fitting].sum()
+            if self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
+                raise ValueError("PSF shape is not a square.")
         for name in checklist:
             if not hasattr(self, name):
                 print('The keyword of {0} is missing.'.format(name))
