@@ -611,7 +611,7 @@ def model_flux_cal(params_list, model_list = None):
     flux = light.total_flux(params_list)
     return flux
 
-def plot_data_apertures(image, apertures):
+def plot_data_apertures(image, apertures, if_plot=True):
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
     plt.title('Data and apertures sets')
@@ -624,9 +624,12 @@ def plot_data_apertures(image, apertures):
         aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
                       lw=3.5, label = 'aperture {0}'.format(i))
     plt.legend()
-    plt.show()
+    if if_plot == True:
+        plt.show()
+    else:
+        plt.close()
 
-def plot_data_apertures_point(image, apertures, ps_center_list):
+def plot_data_apertures_point(image, apertures, ps_center_list, savename = None, show_plot=True):
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
     plt.title('Data and components used to fit')
@@ -644,7 +647,12 @@ def plot_data_apertures_point(image, apertures, ps_center_list):
         aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
                       lw=3.5, label = 'comp {0}'.format(i))
     plt.legend()
-    plt.show()
+    if savename is not None:
+        plt.savefig(savename)
+    if show_plot == True:
+        plt.show()
+    else:
+        plt.close()
 
 def twoD_Gaussian(box_size, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
     """
