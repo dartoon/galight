@@ -222,13 +222,13 @@ class FittingProcess(object):
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID)
+        if save_plot == True:
+            savename = self.savename
+            fig.savefig(savename+"_qso_final_plot.pdf")   
         if show_plot == True:
             plt.show()
         else:
             plt.close()
-        if save_plot == True:
-            savename = self.savename
-            fig.savefig(savename+"_qso_final_plot.pdf")   
 
     def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
         from decomprofile.tools.plot_tools import total_compare
@@ -250,13 +250,13 @@ class FittingProcess(object):
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID)
+        if save_plot == True:
+            savename = self.savename
+            fig.savefig(savename+"_qso_final_plot.pdf")   
         if show_plot == True:
             plt.show()
         else:
             plt.close()
-        if save_plot == True:
-            savename = self.savename
-            fig.savefig(savename+"_qso_final_plot.pdf")   
     
     def plot_all(self):
         self.run_diag()
