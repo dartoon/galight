@@ -76,10 +76,11 @@ class FittingSpeficy(object):
         
         self.kwargs_constraints = kwargs_constraints 
        
-    def sepc_kwargs_likelihood(self):
+    def sepc_kwargs_likelihood(self, condition=None):
         kwargs_likelihood = {'check_bounds': True,  #Set the bonds, if exceed, reutrn "penalty"
-                     'image_likelihood_mask_list': [self.data_process_class.target_mask]
-             }
+                             'image_likelihood_mask_list': [self.data_process_class.target_mask],
+                             'custom_logL_addition': condition
+                             }
         if self.light_model_list != []:
             kwargs_likelihood['source_marg'] = False #In likelihood_module.LikelihoodModule -- whether to fully invert the covariance matrix for marginalization
             kwargs_likelihood['check_positive_flux'] = True #penalty is any component's flux is 'negative'.
@@ -178,13 +179,14 @@ class FittingSpeficy(object):
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
                           point_source_num = 1, fix_center_list = None, source_params = None,
-                          fix_n_list = None, fix_Re_list = None, ps_params = None, neighborhood_size = 4, threshold = 5):
+                          fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
+                          neighborhood_size = 4, threshold = 5):
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data)
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
-        self.sepc_kwargs_likelihood()
+        self.sepc_kwargs_likelihood(condition)
         self.sepc_kwargs_params(source_params = None, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
                                 ps_params = None, neighborhood_size = neighborhood_size, threshold = threshold)
         self.sepc_imageModel()

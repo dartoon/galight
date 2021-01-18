@@ -306,6 +306,8 @@ class FittingProcess(object):
         dump_class = copy.deepcopy(self)
         if hasattr(dump_class.fitting_specify_class, 'data_process_class'):
             del dump_class.fitting_specify_class.data_process_class
+            dump_class.prior = str(dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition'])
+            del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
 def fitting_setting_temp(algorithm, fill_value_list = None):
