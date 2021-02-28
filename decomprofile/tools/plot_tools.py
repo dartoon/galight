@@ -286,6 +286,7 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         ax_rt.set_ylabel('$\mu$(mag, pixel$^{-2}$)', fontsize=12)
         ax_rt.invert_yaxis()
     elif if_annuli == True:
+        max_y = 0
         for i in range(len(label_SB_list)):
             center = len(flux_SB_list[i])/2, len(flux_SB_list[i])/2
             if label_SB_list[i] == 'data':
@@ -297,9 +298,12 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                 r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
                                            radius=radi,grids = 30, mask_image=mask_image, if_annuli = if_annuli)
                 ax_rt.plot(r_grids, r_SB, '-', label=label_SB_list[i])
+            if max_y < np.max(r_SB):
+                max_y = np.max(r_SB)
         ax_rt.set_ylabel('$SB_{annuli}$(counts, pixel$^{-2}$)', fontsize=12)
+        ax_rt.set_yscale('log')
+        ax_rt.set_ylim([10**(-3), max_y])
     ax_rt.set_xlabel('pixel', fontsize=15)
-    
     ax_rt.set_xscale('log')
     ax_rt.set_xticks([2,4,6,10,15,20,30,50,100,150])
     ax_rt.xaxis.set_major_formatter(ScalarFormatter())

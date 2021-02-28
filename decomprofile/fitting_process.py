@@ -72,8 +72,8 @@ class FittingProcess(object):
             
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
             from lenstronomy.Sampling.parameters import Param
-            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_source=fitting_specify_class.source_params[2],
-                          kwargs_fixed_ps=fitting_specify_class.ps_params[2], **fitting_specify_class.kwargs_constraints)
+            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_source=fitting_specify_class.kwargs_params['source_model'][2],
+                          kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2], **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
             if len(fitting_specify_class.point_source_list) >0 :
                 qso_labels_new = ["Quasar_{0} flux".format(i) for i in range(len(fitting_specify_class.point_source_list))]

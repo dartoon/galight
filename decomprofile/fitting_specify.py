@@ -100,21 +100,20 @@ class FittingSpeficy(object):
                 source_params = source_params
             kwargs_params['source_model'] = source_params
             
-        if ps_params is None:
+        if ps_params is None and len(self.point_source_list) > 0:
             from decomprofile.tools.measure_tools import find_loc_max
             x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
             if x == []:
                 x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
             if len(x) < len(self.point_source_list):
                 import warnings
-                warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus,\
-                                 all the initial PS set the same initial parameters.")
+                warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
                 # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
                 #                  the ps_params must input manually or change the neighborhood_size and threshold values")
+                if x ==[]:
+                    x, y = [self.numPix/2], [self.numPix/2]                
                 x = x * len(self.point_source_list)
                 y = y * len(self.point_source_list)
-            if x ==[]:
-                x, y = [self.numPix/2], [self.numPix/2]                
             flux_ = []
             for i in range(len(x)):
                 flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])
@@ -135,17 +134,26 @@ class FittingSpeficy(object):
             ps_params = ps_params            
         kwargs_params['point_source_model'] = ps_params
         
-        if center_list == []:
-            center_pix_pos = []
-        else:
-            center_list = np.array(center_list)
-            center_pix_pos = center_list
-            center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
+        # if center_list == []:
+        #     center_pix_pos = []
+        # else:
+        #     center_list = np.array(center_list)
+        #     center_pix_pos = center_list
+        #     center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
+        #     center_pix_pos = center_pix_pos + int(self.numPix/2)
+            
+        center_pix_pos = []
+        if len(self.point_source_list) > 0:
+            for i in range(len(ps_params[0])):
+                x = -1 * ps_params[0][i]['ra_image'][0]/self.deltaPix
+                y = ps_params[0][i]['dec_image'][0]/self.deltaPix
+                center_pix_pos.append([x, y])
+            center_pix_pos = np.array(center_pix_pos)
             center_pix_pos = center_pix_pos + int(self.numPix/2)
         self.center_pix_pos = center_pix_pos
         self.kwargs_params = kwargs_params
-        self.source_params = source_params
-        self.ps_params = ps_params
+        # self.source_params = source_params
+        # self.ps_params = ps_params
         
     def sepc_imageModel(self):
         from lenstronomy.ImSim.image_model import ImageModel
@@ -178,7 +186,8 @@ class FittingSpeficy(object):
 
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
-                          point_source_num = 1, fix_center_list = None, source_params = None,
+                          point_source_num = 1, point_source_pos = None, 
+                          fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5):
         if extend_source_model is None:
@@ -187,8 +196,8 @@ class FittingSpeficy(object):
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
         self.sepc_kwargs_likelihood(condition)
-        self.sepc_kwargs_params(source_params = None, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
-                                ps_params = None, neighborhood_size = neighborhood_size, threshold = threshold)
+        self.sepc_kwargs_params(source_params = source_params, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
+                                ps_params = ps_params, neighborhood_size = neighborhood_size, threshold = threshold)
         self.sepc_imageModel()
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     

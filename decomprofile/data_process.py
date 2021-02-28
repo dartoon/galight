@@ -191,7 +191,7 @@ class DataProcess(object):
         if PSF_pos_list is None:
             from decomprofile.tools.measure_tools import search_local_max, measure_FWHM
             init_PSF_locs_ = search_local_max(self.fov_image)
-            init_PSF_locs, FWHMs, fluxs = [], [], []
+            init_PSF_locs, FWHMs, fluxs, PSF_cutouts = [], [], [], []
             for i in range(len(init_PSF_locs_)):
                 cut_image = cut_center_auto(self.fov_image, center = init_PSF_locs_[i],
                                             radius=radius)
@@ -200,35 +200,50 @@ class DataProcess(object):
                     init_PSF_locs.append(init_PSF_locs_[i])
                     FWHMs.append(np.mean(_fwhms))
                     fluxs.append(np.sum(cut_image))
+                    PSF_cutouts.append(cut_image)
             init_PSF_locs = np.array(init_PSF_locs)
             FWHMs = np.array(FWHMs)
             fluxs = np.array(fluxs)
+            PSF_cutouts = np.array(PSF_cutouts)
             if hasattr(self, 'target_stamp'):
                 target_flux = np.sum(self.target_stamp)
-                select_bool = (FWHMs<np.median(FWHMs)*1.5)*(fluxs<target_flux*10)*(fluxs>target_flux/2)
+                dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
+                select_bool = (FWHMs<np.median(FWHMs)*1.5)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
             else:
                 select_bool = (FWHMs<np.median(FWHMs)*1.5)
             PSF_locs = init_PSF_locs[select_bool]    
             FWHMs = FWHMs[select_bool]
             fluxs = fluxs[select_bool]
-            if user_option == True:
-                for i in range(len(PSF_locs)):
-                    cut_image = cut_center_auto(self.fov_image, center = PSF_locs[i],
-                                                kernel = 'center_gaussian', radius=radius)
-                    print('PSF location:', PSF_locs[i])
-                    print('id:', i, 'FWHMs:', 
-                          np.round(measure_FWHM(cut_image ,radius = int(radius/5)),3),
-                          'flux:', round(np.sum(cut_image),1) )
-                    plt_fits(cut_image)
-                select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
-                select_idx = select_idx.split(" ")
-                if sys.version_info.major > 2:
-                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
-                else:
-                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]                    
-                self.PSF_pos_list = [PSF_locs[i] for i in select_idx]
+            PSF_cutouts = PSF_cutouts[select_bool]
+            if user_option == False:
+                select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
+                self.PSF_pos_list = [PSF_locs[i] for i in select_idx]            
             else:
-                select_idx = [np.where(FWHMs == FWHMs.min())[0][0] ]
+                _row = int(len(PSF_cutouts) / 5) + 1
+                fig, (axs) = plt.subplots(_row, 5, figsize=(15, 3 + 3 * (_row-1)))
+                import matplotlib as mat
+                mat.rcParams['font.family'] = 'STIXGeneral'
+                for i in range(len(PSF_cutouts)):
+                    _i = int(i / 5)
+                    _j = int(i % 5)
+                    axs[_i][_j].imshow(PSF_cutouts[i], origin='lower', norm=LogNorm())
+                    frame_size = len(PSF_cutouts[i])
+                    plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.87, "PSF ini_ID = {0}".format(i),
+                             fontsize=17, weight='bold', color='black')
+                    plttext.set_bbox(dict(facecolor='white', alpha=0.5))
+                    plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.05, "FWHM = {0}".format(round(FWHMs[i],3) ),
+                             fontsize=17, weight='bold', color='black')
+                    plttext.set_bbox(dict(facecolor='white', alpha=0.5))
+                plt.show()
+                select_idx = str(input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n'))
+                if  select_idx == '':
+                    select_idx = [i for i in range(len(PSF_cutouts))]
+                else:
+                    select_idx = select_idx.split(" ")       
+                    if sys.version_info.major > 2:
+                        select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+                    else:
+                        select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]                    
                 self.PSF_pos_list = [PSF_locs[i] for i in select_idx]                
         else:
             if pos_type == 'pixel':
