@@ -39,16 +39,16 @@ def coordinate_arrows(ax, d, color='black', arrow_size=0.02):
              =color, ec=color, linewidth=1.2)
     ax.text(xx_dec_t * deltaPix, yy_dec_t * deltaPix, "N", color=color, fontsize=12, ha='center')
     
-def scale_bar(ax, d, dist=1/0.13, text='1"', color='black', flipped=False):
+def scale_bar(ax, d, dist=1/0.13, text='1"', color='black', flipped=False, fontsize=15):
     if flipped:
         p0 = d - d / 15. - dist
         p1 = d / 15.
         ax.plot([p0, p0 + dist], [p1, p1], linewidth=2, color=color)
-        ax.text(p0 + dist / 2., p1 + 0.02 * d, text, fontsize=15, color=color, ha='center')
+        ax.text(p0 + dist / 2., p1 + 0.02 * d, text, fontsize=fontsize, color=color, ha='center')
     else:
         p0 = d / 15.
         ax.plot([p0, p0 + dist], [p0, p0], linewidth=2, color=color)
-        ax.text(p0 + dist / 2., p0 + 0.02 * d, text, fontsize=15, color=color, ha='center')
+        ax.text(p0 + dist / 2., p0 + 0.02 * d, text, fontsize=fontsize, color=color, ha='center')
 
 
 def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
