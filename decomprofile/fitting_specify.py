@@ -87,7 +87,7 @@ class FittingSpeficy(object):
         self.kwargs_likelihood = kwargs_likelihood
         
     def sepc_kwargs_params(self, source_params = None, fix_n_list = None, fix_Re_list = None, ps_params = None, 
-                           neighborhood_size = 4, threshold = 5):
+                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False):
         kwargs_params = {}
         if self.light_model_list != []:
             if source_params is None:
@@ -95,7 +95,8 @@ class FittingSpeficy(object):
                                                         apertures = self.apertures,
                                                         deltaPix = self.deltaPix,
                                                         fix_n_list = fix_n_list,
-                                                        fix_Re_list = fix_Re_list)
+                                                        fix_Re_list = fix_Re_list,
+                                                        apertures_center_focus = apertures_center_focus)
             else:
                 source_params = source_params
             kwargs_params['source_model'] = source_params
@@ -189,7 +190,7 @@ class FittingSpeficy(object):
                           point_source_num = 1, point_source_pos = None, 
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
-                          neighborhood_size = 4, threshold = 5):
+                          neighborhood_size = 4, threshold = 5, apertures_center_focus = False):
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data)
@@ -197,7 +198,8 @@ class FittingSpeficy(object):
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
         self.sepc_kwargs_likelihood(condition)
         self.sepc_kwargs_params(source_params = source_params, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
-                                ps_params = ps_params, neighborhood_size = neighborhood_size, threshold = threshold)
+                                ps_params = ps_params, neighborhood_size = neighborhood_size, threshold = threshold,
+                                apertures_center_focus = apertures_center_focus)
         self.sepc_imageModel()
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     
@@ -208,7 +210,8 @@ class FittingSpeficy(object):
                                       self.kwargs_params)
         # return fitting_seq, self.imageModel
     
-def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None):
+def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None,
+                            apertures_center_focus = False):
     """
     Quickly generate a source parameters for the fitting
     
@@ -279,8 +282,12 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
                 kwargs_source_init[-1]['R_sersic'] = fix_Re_value
         
         kwargs_source_sigma.append({'n_sersic': 0.3, 'R_sersic': 0.5*deltaPix, 'e1': 0.1, 'e2': 0.1, 'center_x': 0.1*deltaPix, 'center_y': 0.1*deltaPix})
-        kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
-        kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
+        if apertures_center_focus == False:
+            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
+            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
+        elif apertures_center_focus == True:
+            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-2*deltaPix, 'center_y': c_y-2*deltaPix})
+            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+2*deltaPix, 'center_y': c_y+2*deltaPix})        
     source_params = [kwargs_source_init, kwargs_source_sigma, fixed_source, kwargs_lower_source, kwargs_upper_source]
     return source_params
 
