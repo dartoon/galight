@@ -7,6 +7,8 @@ matplotlib
 sklearn
 numba>=0.43.1
 lenstronomy>=1.5.0
+photutils>=0.7.2
+regions>=0.4
 future
 dynesty
 pymultinest
