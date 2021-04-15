@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Decompose galaxy light profile'
+project = u'decomprofile'
 copyright = u'2020, Xuheng Ding'
 
 # The version info for the project you're documenting, acts as replacement for

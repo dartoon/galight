@@ -1,5 +1,5 @@
 =============================
-decomprofile
+decomprofile - Decompse the galaxy light profile
 =============================
 
 .. image:: https://badge.fury.io/py/decomprofile.png
