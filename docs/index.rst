@@ -13,6 +13,7 @@ Contents:
 
    installation
    usage
+   decomprofile
    contributing
    authors
    history
