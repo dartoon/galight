@@ -8,7 +8,7 @@ To use **decomprofile** in your project::
 
 To check the current version of **decmoprofile**::
 
-	print(decmopforile.__version__)
+	print(decomprofile.__version__)
 
 
 Getting started

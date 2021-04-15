@@ -22,6 +22,8 @@ from decomprofile.tools.astro_tools import plt_fits, read_pixel_scale
 import sys
 from packaging import version
 
+__all__ = ['DataProcess']
+
 class DataProcess(object):
     """
     A class to Process the data, including the following feature:
