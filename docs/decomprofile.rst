@@ -1,29 +1,12 @@
 decomprofile package
 ====================
 
-Submodules
+Subpackages
 -----------
 
-decomprofile.data\_process module
---------------------------------
+.. toctree::
 
-.. automodule:: decomprofile.data_process
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-decomprofile.fitting\_specify module
---------------------------------
-
-.. automodule:: decomprofile.fitting_specify
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-decomprofile.fitting\_process module
---------------------------------
-
-.. automodule:: decomprofile.fitting_process
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    decomprofile.data_process
+    decomprofile.fitting_specify
+    decomprofile.fitting_process
+    decomprofile.tools
