@@ -20,7 +20,7 @@ Installation
 
 Requirements
 ------------
-Running ``decomprofile`` require the following packages to be installed.
+Running ``decomprofile`` requires the following packages to be installed.
 
  * ``lenstronomy`` `https://github.com/sibirrer/lenstronomy <https://github.com/sibirrer/lenstronomy>`_
  * ``astropy``  `https://github.com/astropy/astropy <https://github.com/astropy/astropy>`_
