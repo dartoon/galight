@@ -235,6 +235,10 @@ class DataProcess(object):
                     plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.05, "FWHM = {0}".format(round(FWHMs[i],3) ),
                              fontsize=17, weight='bold', color='black')
                     plttext.set_bbox(dict(facecolor='white', alpha=0.5))
+                    axs[_i][_j].axes.xaxis.set_visible(False)
+                    axs[_i][_j].axes.yaxis.set_visible(False)
+                for i in range( 5 - len(PSF_cutouts)%5 ):
+                    axs[-1][-(i+1)].axis('off')
                 plt.show()
                 select_idx = str(input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n'))
                 if  select_idx == '':
