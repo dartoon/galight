@@ -9,7 +9,7 @@ Created on Mon Sep 14 12:16:43 2020
 import numpy as np
 import copy
 
-class FittingSpeficy(object):
+class FittingSpecify(object):
     """
     A class to generate the direct materials for the 'FittingSequence', including:
         - kwargs_data_joint: data materils
@@ -26,7 +26,7 @@ class FittingSpeficy(object):
         self.zp = data_process_class.zp
         self.apertures = copy.deepcopy(data_process_class.apertures)
     
-    def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None):
+    def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
                                                      inverse=True)
@@ -35,7 +35,10 @@ class FittingSpeficy(object):
         
         if psf_data is None:
             psf_data = self.data_process_class.PSF_list[self.data_process_class.psf_id_for_fitting]
-        kwargs_psf = {'psf_type': 'PIXEL', 'kernel_point_source': psf_data}
+        kwargs_psf = {'psf_type': 'PIXEL', 'kernel_point_source': psf_data,'pixel_size': self.deltaPix}
+        if psf_error_map is not None:
+            kwargs_psf['psf_error_map']  = psf_error_map
+        
         kwargs_numerics = {'supersampling_factor': supersampling_factor, 'supersampling_convolution': False} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
         multi_band_list = [image_band]
@@ -50,7 +53,7 @@ class FittingSpeficy(object):
                 }
         if extend_source_model != None and extend_source_model != []:
             light_model_list = extend_source_model
-            kwargs_model['source_light_model_list'] = light_model_list
+            kwargs_model['lens_light_model_list'] = light_model_list
         else:
             light_model_list = []
         self.point_source_list = point_source_list
@@ -66,13 +69,13 @@ class FittingSpeficy(object):
             fix_center_list: list 
             if not None, describe how to fix the center [[0,0]] for example.
             
-            Define how to 'joint_source_with_point_source':
+            Define how to 'joint_lens_light_with_point_source':
                 for example [[0, 1]], joint first extend source with second ps.
         """
         kwargs_constraints = {'num_point_source_list': [1] * len(self.point_source_list)  #kwargs_constraints also generated here
                               }
         if fix_center_list is not None:
-            kwargs_constraints['joint_source_with_point_source'] =  fix_center_list
+            kwargs_constraints['joint_lens_light_with_point_source'] =  fix_center_list
         
         self.kwargs_constraints = kwargs_constraints 
        
@@ -99,7 +102,7 @@ class FittingSpeficy(object):
                                                         apertures_center_focus = apertures_center_focus)
             else:
                 source_params = source_params
-            kwargs_params['source_model'] = source_params
+            kwargs_params['lens_light_model'] = source_params
             
         if ps_params is None and len(self.point_source_list) > 0:
             from decomprofile.tools.measure_tools import find_loc_max
@@ -187,13 +190,14 @@ class FittingSpeficy(object):
 
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
-                          point_source_num = 1, point_source_pos = None, 
+                          point_source_num = 0, #point_source_pos = None, 
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
-                          neighborhood_size = 4, threshold = 5, apertures_center_focus = False):
+                          neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
+                          psf_error_map = None):
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
-        self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data)
+        self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data, psf_error_map = psf_error_map)
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
         self.sepc_kwargs_likelihood(condition)

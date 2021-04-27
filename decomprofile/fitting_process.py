@@ -15,7 +15,8 @@ import pickle
 import copy
 import matplotlib as matt
 matt.rcParams['font.family'] = 'STIXGeneral'
-
+from lenstronomy.Plots.model_plot import ModelPlot
+from decomprofile.tools.plot_tools import total_compare
 class FittingProcess(object):
     """
     A class to perform the fitting task:
@@ -47,7 +48,7 @@ class FittingProcess(object):
         chain_list = self.fitting_seq.fit_sequence(self.fitting_kwargs_list)
         kwargs_result = self.fitting_seq.best_fit()
         ps_result = kwargs_result['kwargs_ps']
-        source_result = kwargs_result['kwargs_source']
+        source_result = kwargs_result['kwargs_lens_light']
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
             self.sampler_type, self.samples_mcmc, self.param_mcmc, self.dist_mcmc  = chain_list[-1]    
         end_time = time.time()
@@ -72,8 +73,17 @@ class FittingProcess(object):
             
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
             from lenstronomy.Sampling.parameters import Param
-            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_source=fitting_specify_class.kwargs_params['source_model'][2],
-                          kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2], **fitting_specify_class.kwargs_constraints)
+            try:
+                kwargs_fixed_source = fitting_specify_class.kwargs_params['lens_light_model'][2]
+            except:
+                kwargs_fixed_source = None
+
+            try:
+                kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2]
+            except:
+                kwargs_fixed_ps = None
+            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_source=kwargs_fixed_source,
+                          kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
             if len(fitting_specify_class.point_source_list) >0 :
                 qso_labels_new = ["Quasar_{0} flux".format(i) for i in range(len(fitting_specify_class.point_source_list))]
@@ -88,7 +98,7 @@ class FittingProcess(object):
             print("Start transfering the Params to fluxs...")
             for i in range(trans_steps[0], trans_steps[1]):
                 kwargs_out = param.args2kwargs(self.samples_mcmc[i])
-                kwargs_light_source_out = kwargs_out['kwargs_source']
+                kwargs_light_source_out = kwargs_out['kwargs_lens_light']
                 kwargs_ps_out =  kwargs_out['kwargs_ps']
                 image_reconstructed, _, _, _ = imageLinearFit.image_linear_solve(kwargs_source=kwargs_light_source_out,
                                                                                       kwargs_ps=kwargs_ps_out)
@@ -145,7 +155,6 @@ class FittingProcess(object):
             plt.close()
 
     def model_plot(self, save_plot = False, show_plot = True):
-        from lenstronomy.Plots.model_plot import ModelPlot
         # this is the linear inversion. The kwargs will be updated afterwards
         modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
                               self.fitting_specify_class.kwargs_model, self.kwargs_result,
@@ -157,13 +166,13 @@ class FittingProcess(object):
         modelPlot.model_plot(ax=axes[0,1])
         modelPlot.normalized_residual_plot(ax=axes[0,2], v_min=-6, v_max=6)
         
-        modelPlot.decomposition_plot(ax=axes[1,0], text='Host galaxy', source_add=True, unconvolved=True)
-        modelPlot.decomposition_plot(ax=axes[1,1], text='Host galaxy convolved', source_add=True)
+        modelPlot.decomposition_plot(ax=axes[1,0], text='Host galaxy', lens_light_add=True, unconvolved=True)
+        modelPlot.decomposition_plot(ax=axes[1,1], text='Host galaxy convolved', lens_light_add=True)
         modelPlot.decomposition_plot(ax=axes[1,2], text='All components convolved', source_add=True, lens_light_add=True, point_source_add=True)
         
         modelPlot.subtract_from_data_plot(ax=axes[2,0], text='Data - Point Source', point_source_add=True)
-        modelPlot.subtract_from_data_plot(ax=axes[2,1], text='Data - host galaxy', source_add=True)
-        modelPlot.subtract_from_data_plot(ax=axes[2,2], text='Data - host galaxy - Point Source', source_add=True, point_source_add=True)
+        modelPlot.subtract_from_data_plot(ax=axes[2,1], text='Data - host galaxy', lens_light_add=True)
+        modelPlot.subtract_from_data_plot(ax=axes[2,2], text='Data - host galaxy - Point Source', lens_light_add=True, point_source_add=True)
         f.tight_layout()
         if save_plot == True:
             plt.savefig('{0}_model.pdf'.format(self.savename))  
@@ -198,9 +207,18 @@ class FittingProcess(object):
             plt.close()
             
     def plot_final_qso_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
-        from decomprofile.tools.plot_tools import total_compare
+
         data = self.fitting_specify_class.kwargs_data['image_data']
-        noise = self.fitting_specify_class.kwargs_data['noise_map']
+        if 'psf_error_map' in self.fitting_specify_class.kwargs_psf.keys():
+            modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
+                                  self.fitting_specify_class.kwargs_model, self.kwargs_result,
+                                  arrow_size=0.02, cmap_string="gist_heat", 
+                                  likelihood_mask_list=self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
+            _, psf_error_map, _, _ = modelPlot._imageModel.image_linear_solve(inv_bool=True, **self.kwargs_result)
+            noise = np.sqrt(self.fitting_specify_class.kwargs_data['noise_map']**2+np.abs(psf_error_map[0]))
+        else:
+            noise = self.fitting_specify_class.kwargs_data['noise_map']
+        
         ps_list = self.image_ps_list
         ps_image = np.zeros_like(ps_list[0])
         if target_ID is None:
@@ -231,7 +249,6 @@ class FittingProcess(object):
             plt.close()
 
     def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
-        from decomprofile.tools.plot_tools import total_compare
         data = self.fitting_specify_class.kwargs_data['image_data']
         noise = self.fitting_specify_class.kwargs_data['noise_map']
         galaxy_list = self.image_host_list

@@ -78,7 +78,6 @@ class DataProcess(object):
             fov_image = fov_image-bkglight
         self.fov_image = fov_image
         self.fov_noise_map = fov_noise_map
-        
         self.psf_id_for_fitting = 0 #The psf id in the PSF_list that would be used in the fitting.
         if zp is None:
             print("Zeropoint value is not provided, use 27.0 to calculate magnitude.")

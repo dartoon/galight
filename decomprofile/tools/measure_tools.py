@@ -80,7 +80,7 @@ def search_local_max(image, radius=120, view=False, **kwargs):
         if np.sum(cut_img==0)  > len(cut_img)**2/20:
             continue
         PSF_locs.append([PSFx[i], PSFy[i]])
-        if view ==True:
+        if view == True:
             print("plot for position: [{0}, {1}]".format(PSFx[i], PSFy[i]), "idx:", ct)
             print("total flux:", cut_img.sum())
             print("measure FWHM:", np.round(measure_FWHM(cut_img),3))
