@@ -59,7 +59,7 @@ def find_loc_max(image, neighborhood_size = 8, threshold = 5):
 
 def search_local_max(image, radius=120, view=False, **kwargs):
     """
-    Search all the maxs. The edges position with a lot of zeros would be excluded.
+    Use 'find_loc_max()' to search all the maxs. The edges position with a lot of zeros would be excluded.
     
     Parameter
     --------

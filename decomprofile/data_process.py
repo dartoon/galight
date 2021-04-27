@@ -135,15 +135,15 @@ class DataProcess(object):
                 from decomprofile.tools.measure_tools import esti_bgkstd
                 target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
                 self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
-            exptime = deepcopy(self.exptime)
-            if exptime is None:
+            _exptime = deepcopy(self.exptime)
+            if _exptime is None:
                 if 'EXPTIME' in self.header.keys():
-                    exptime = self.header['EXPTIME']
+                    _exptime = self.header['EXPTIME']
                 else:
                     raise ValueError("No Exposure time information in the header, should input a value.")
-            if isinstance(exptime, np.ndarray):
-                exptime_stamp = cutout(image=self.exptime, center= self.target_pos, radius=radius)
-            noise_map = np.sqrt(abs(target_stamp/exptime_stamp) + self.bkg_std**2)
+            if isinstance(_exptime, np.ndarray):
+                _exptime = cutout(image=self.exptime, center= self.target_pos, radius=radius)
+            noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
             self.noise_map = noise_map
         
         target_mask = np.ones_like(target_stamp)
