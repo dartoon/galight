@@ -31,29 +31,41 @@ class DataProcess(object):
         - search all the avaiable PSF in the field.
         - creat mask for the objects.
         - measure the target surface brightness profile, PSF FWHM, background.
-    """
-    def __init__(self, fov_image=None, target_pos = None, pos_type = 'pixel', header=None, exptime = None, fov_noise_map = None,
-                 rm_bkglight = False, if_plot = False, zp = None, **kwargs):
-        """
-        Parameter
-        --------
-            data_image: 2D array
-            The field of view image of the data.
+    Parameter
+    --------
+        fov_image: 2D array.
+        The field of view image of the data.
+        
+        target_pos: list or tuple or array, length = 2.
+        The position of the target.
+        
+        pos_type: string.
+        'pixel' or 'wcs'
+        Define the position of the target, i.e., if the position is in 'pixel' or 'wcs'.
             
-            target_pos: list or tuple or array, length = 2
-            The position of the target.
-            
-            pos_type: string, 'pixel' or 'wcs'
-            Define the position of the target, i.e., if the position is in 'pixel' or 'wcs'.
+        header: io.fits.header.Header.
+        The header information given by the fits file. 
+        Note: should including the exposure time and WCS information.
+        
+        exptime: float / 2D array.
+        The exposure time of the data in (s) a the exptime_map
+        
+        fov_noise_map: 2D array.
+        The field of view noise map, should have same shape as the 'fov_image'.
+        
+        rm_bkglight: bool. 
+        If 'True', the FOV background light will be modeled and removed. 
+        
+        if_plot: bool.
+        If 'True', the plots will made during the data processing.
+        
+        zp: float.
+        The zeropoint of the telescope. To calcualte the magnitude. If not provided will assign as 27.0
                 
-            header: io.fits.header
-            The header information given by the fits file. 
-            Note: should including the exposure time and WCS information.
-            
-            exptime: float or 2D array
-            The exposure time of the data in (s) a the exptime_map
-            
-        """
+    """
+    def __init__(self, fov_image=None, target_pos = None, pos_type = 'pixel', header=None, 
+                 exptime = None, fov_noise_map = None,rm_bkglight = False, if_plot = False, 
+                 zp = None, **kwargs):
         if target_pos is not None:
             if pos_type == 'pixel':
                 self.target_pos = target_pos
@@ -88,18 +100,30 @@ class DataProcess(object):
     def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
                                   bkg_std = None, create_mask = False, if_plot=None, **kwargs):
         """
-        Produce the materials that would be used for the fitting.
+        Prepare the fitting materials to used for the fitting, including the image cutout, noise map and masks (optional).
         
         Parameter
         --------
-            radius: int or float
-            The radius of aperture to cutout the target
-            cut_kernel: None or 'center_gaussian' or 'center_bright'
-                if is None, directly cut.
-                if is 'center_gaussian', fit central as Gaussian to cut the Gaussian center.
-                if is 'center_bright', cut the brightest pixel in the center
-            bkg_std: The blash of blash
+            cut_kernel: string or 'None'.
+            args will be input as kernel into decomprofile.tools.cutout_tools.cut_center_auto()
             
+            radius: int or float
+            The radius to cutout the image data. The final framesize will be 2*radius+1
+            
+            cut_kernel: None or 'center_gaussian' or 'center_bright'.
+                - if 'None', directly cut.
+                - if 'center_gaussian', fit central as 2D Gaussian and cut at the Gaussian center.
+                - if 'center_bright', cut the brightest pixel in the center
+                
+            bkg_std: float
+            To input the background noise level.
+            
+            create_mask: bool.
+            'True' if masks are needed to input.
+
+            if_plot: bool.
+            If 'True', the plots will made during the cut out.
+                        
         """
         if if_plot == None:
             if_plot = self.if_plot
@@ -174,14 +198,21 @@ class DataProcess(object):
     
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', user_option= False):
         """
-        The purpose of this def
+        Find all the available PSF candidates in the field of view.
         
         Parameter
         --------
-            radius: int/float
-            The radius of the cutout frames of the PSF. i.e., size = 2*radius + 1
+            radius: int/float.
+            The radius of the cutout frames of the PSF. PSF size = 2*radius + 1
             
-            user_option: bool
+            PSF_pos_list: None or list of position.
+            Input a list if PSF star position has decided.
+            
+            pos_type: string.
+            'pixel' or 'wcs'
+            Define the position of the target
+            
+            user_option: bool.
             only meaningful when PSF_pos_list = None. 
             
         Return
@@ -259,10 +290,16 @@ class DataProcess(object):
                                           kernel = 'center_gaussian', radius=radius) for i in range(len(self.PSF_pos_list))]
 
     def profiles_compare(self, **kargs):
+        """
+        Use decomprofile.tools.measure_tools.profiles_compare to plot the profiles of data and PSFs (when prepared).
+        """    
         from decomprofile.tools.measure_tools import profiles_compare    
         profiles_compare([self.target_stamp] + self.PSF_list, **kargs)
         
     def plot_overview(self, **kargs):
+        """
+        Use decomprofile.tools.cutout_tools.plot_overview to plot image overview.
+        """
         from decomprofile.tools.cutout_tools import plot_overview
         if hasattr(self, 'PSF_pos_list'):
             PSF_pos_list = self.PSF_pos_list
@@ -272,6 +309,9 @@ class DataProcess(object):
                       c_psf_list=PSF_pos_list, **kargs)
     
     def checkout(self):
+        """
+        Check out if everything is prepared to pass to decomprofile.fitting_process().
+        """        
         checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_for_fitting']
         ct = 0
         if len(self.PSF_list[self.psf_id_for_fitting]) != 0 and self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
