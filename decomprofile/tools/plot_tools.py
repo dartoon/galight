@@ -56,20 +56,26 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                   mask_image=None, if_annuli=False,
                   arrows=False, show_plot = True):
     """
-    The purpose of this def
+    Make quick plots to compare the flux profiles in a list and show the normalized residual.
     
     Parameter
     --------
-        flux_list: a list of 2D flux array:
+        flux_list_2d: a list of 2D flux array, that will use plt.imshow() to plot and show.
             [data, pointsource_list, galaxy_model_list, normalized residual]
             
-        label_list: a list of lable to show:
+        label_list_2d: a list of lables for flux_list_2d.
             ['data', 'model', 'point source(s)', 'galaxy(s)']
+            
+        flux_list_1d:  a list of 2D flux array, that will be plot as 1D profile in the very right panel.
         
-    Return
-    --------
-        A sth sth
-    #TODO: test mask 
+        label_list_1d: flux_list_1d labels.
+        
+        mask_image: A 2D mask for the flux_list_2d image.
+        
+        arrows: bool. If show the arrows for pointing the North and East.
+        
+        if_annuli: bool. If True, the 1D profile will show the surface brightness in the annuli apertures. 
+        
     """
     norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 
@@ -210,20 +216,7 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                   mask_image=None, if_annuli=False,
                   arrows=False, show_plot = True):
     """
-    The purpose of this def
-    
-    Parameter
-    --------
-        flux_list: a list of 2D flux array:
-            [data, pointsource_list, galaxy_model_list, normalized residual]
-            
-        label_list: a list of lable to show:
-            ['data', 'model', 'point source(s)', 'galaxy(s)']
-        
-    Return
-    --------
-        A sth sth
-    #TODO: test mask 
+    Similar to total_compare(), i.e., to compare a list of light profiles but without showing normlized residual.
     """
     norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 

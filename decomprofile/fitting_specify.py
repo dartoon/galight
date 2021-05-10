@@ -11,13 +11,14 @@ import copy
 
 class FittingSpecify(object):
     """
-    A class to generate the direct materials for the 'FittingSequence', including:
+    A class to generate the materials for the 'FittingSequence', defined by 'lenstronomy'
+    key materials include the following, which are prepared by 'prepare_fitting_seq()':
         - kwargs_data_joint: data materils
         - kwargs_model: a list of class 
         - kwargs_constraints
         - kwargs_likelihood
         - kwargs_params
-        - imageModel: 
+        - imageModel 
     """    
     def __init__(self, data_process_class):
         self.data_process_class = data_process_class
@@ -62,15 +63,14 @@ class FittingSpecify(object):
         
     def sepc_kwargs_constraints(self, fix_center_list = None):
         """
-        generate the kwargs_constraints for the fitting.
+        Prepare the 'kwargs_constraints' for the fitting.
         
         Parameter
         --------
-            fix_center_list: list 
-            if not None, describe how to fix the center [[0,0]] for example.
-            
-            Define how to 'joint_lens_light_with_point_source':
-                for example [[0, 1]], joint first extend source with second ps.
+            fix_center_list: list.
+            -If not None, describe how to fix the center [[0,0]] for example.
+            This list defines how to 'joint_lens_light_with_point_source':
+                for example [[0, 1]], joint first extend source with second point source.
         """
         kwargs_constraints = {'num_point_source_list': [1] * len(self.point_source_list)  #kwargs_constraints also generated here
                               }
@@ -80,6 +80,27 @@ class FittingSpecify(object):
         self.kwargs_constraints = kwargs_constraints 
        
     def sepc_kwargs_likelihood(self, condition=None):
+        """
+        Prepare the 'kwargs_likelihood' for the fitting.
+        
+        Most default values will be assigned. 
+        
+        Parameter
+        --------
+            condition: input as a defination.
+            -Set up extra prior. For example if one want the first component have lower
+            Sersic index, it can be set by first define a condition:
+
+                def condition_def(kwargs_lens, kwargs_source, kwargs_lens_light, kwargs_ps, kwargs_special, kwargs_extinction):
+                    logL = 0
+                    cond_0 = (kwargs_source[0]['n_sersic'] > kwargs_source[1]['n_sersic'])
+                    if cond_0:
+                        logL -= 10**15
+                    return logL
+            Then assign to condition:
+
+                fit_sepc.prepare_fitting_seq(**, condition = condition_def)                
+        """        
         kwargs_likelihood = {'check_bounds': True,  #Set the bonds, if exceed, reutrn "penalty"
                              'image_likelihood_mask_list': [self.data_process_class.target_mask],
                              'custom_logL_addition': condition
@@ -91,6 +112,25 @@ class FittingSpecify(object):
         
     def sepc_kwargs_params(self, source_params = None, fix_n_list = None, fix_Re_list = None, ps_params = None, 
                            neighborhood_size = 4, threshold = 5, apertures_center_focus = False):
+        """
+        Setting up the 'kwargs_params' (i.e., the parameters) for the fitting. If 'source_params' or 'ps_params'
+        are given, rather then setting as None, then, the input settings will be used.
+        
+        Parameter
+        --------
+            fix_n_list: list.
+            -Describe a prior if want to fix the Sersic index.
+            e.g., fix_n_list= [[0,4], [1,1]], means the first (i.e., 0) fix n = 4; the second (i.e., 1) fix n = 1.
+            
+            fix_Re_list: list.
+            -Describe a prior if want to fix the Sersic effective radius.
+            e.g., fix_n_list= [[0,0.4], [1,1]], means the first (i.e., 0) fix Reff value as 0.4.
+            
+            apertures_center_focus: bool.
+            -If true, the default parameters will have strong prior so that the center of the fitted Sersic will 
+            be closer to the apertures.
+            
+        """
         kwargs_params = {}
         if self.light_model_list != []:
             if source_params is None:
@@ -163,7 +203,6 @@ class FittingSpecify(object):
         from lenstronomy.ImSim.image_model import ImageModel
         from lenstronomy.Data.imaging_data import ImageData
         from lenstronomy.Data.psf import PSF
-        
         data_class = ImageData(**self.kwargs_data)
         
         from lenstronomy.PointSource.point_source import PointSource
@@ -184,6 +223,17 @@ class FittingSpecify(object):
         self.pointSource = pointSource
         
     def plot_fitting_sets(self, savename = None, show_plot=True):
+        """
+        To make a plot show how the data will be fitted. The extend source will be shown using aperture, point source will be show as point source.
+        
+        Parameter
+        --------
+            savename: None or string. 
+            -Defining the saving name.
+            
+            show_plot: bool.
+            -Plot or not plot. Note that figure can be saved without shown.
+        """
         from decomprofile.tools.measure_tools import plot_data_apertures_point
         plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], 
                                   self.apertures, self.center_pix_pos, savename = savename, show_plot=show_plot)
@@ -195,6 +245,9 @@ class FittingSpecify(object):
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
                           psf_error_map = None):
+        """
+        Key function used to prepared for the fitting. Parameters will be passed to the corresponding functions.
+        """
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data, psf_error_map = psf_error_map)
@@ -217,19 +270,19 @@ class FittingSpecify(object):
 def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None,
                             apertures_center_focus = False):
     """
-    Quickly generate a source parameters for the fitting
+    Quickly generate a source parameters for the fitting.
     
     Parameter
     --------
-        frame_size: int
-        The frame size, to define the center of the frame
+        frame_size: int.
+        -The frame size, to define the center of the frame
             
         apertures: The apertures of the targets
         
         deltaPix: The pixel size of the data
         
         fix_n_list: A list to define how to fix the sersic index, default = []
-        use example: fix_n_list = [[0,1],[1,4]], fix first and disk and second as bulge.
+        -for example: fix_n_list = [[0,1],[1,4]], fix first and disk and second as bulge.
         
     Return
     --------
@@ -296,6 +349,9 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
     return source_params
 
 def ps_params_generator(centers, flux_list, deltaPix = 1):
+    """
+    Quickly generate a point source parameters for the fitting.
+    """    
     fixed_ps = []
     kwargs_ps_init = []
     kwargs_ps_sigma = []
