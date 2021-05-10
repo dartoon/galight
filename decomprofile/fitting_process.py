@@ -19,29 +19,52 @@ from lenstronomy.Plots.model_plot import ModelPlot
 from decomprofile.tools.plot_tools import total_compare
 class FittingProcess(object):
     """
-    A class to perform the fitting task:
+    A class to perform the fitting task and show the result. 
         - define the way to fitting: PSO and MCMC
         - save all the useful fitting materials, if assign save_pkl
+        - make plots to show the fittings.
+    
+    Parameter
+    --------
+        fitting_level: String.
+        -Defines the depth of the fitting
+            - 'deep', perfer a deep fitting, with more fitting PSO and/or MCMC particles, which takes more time.
+            - 'shallow', perfer a quick fitting.
     """
-    def __init__(self, fitting_specify_class, savename = 'result'):
+    def __init__(self, fitting_specify_class, savename = 'result', fitting_level='norm'):
         self.fitting_specify_class = fitting_specify_class
         self.fitting_seq = fitting_specify_class.fitting_seq
         self.savename = savename
         self.zp = fitting_specify_class.zp
+        self.fitting_level = fitting_level
         
     def fitting_kwargs(self, algorithm_list = ['PSO', 'MCMC'], setting_list = [None, None]):
+        """
+        Define the fitting steps. The 'PSO' and 'MCMC' are defined here. 
+        
+        Parameter
+        --------
+            algorithm_list: list.
+            -Define the steps for the fitting, e.g., ['PSO', 'PSO', 'MCMC'].
+            
+            setting_list: list of fitting setting.
+            -Setting are done by 'fitting_setting_temp()' with three options.
+        """
         if len(algorithm_list) != len(setting_list):
             raise ValueError("The algorithm_list and setting_list should be in the same length.") 
         fitting_kwargs_list = []
         for i in range(len(algorithm_list)):
             if setting_list[i] is None:
-                setting = fitting_setting_temp(algorithm_list[i])
+                setting = fitting_setting_temp(algorithm_list[i], self.fitting_level)
             else:
                 setting = setting_list[i]
             fitting_kwargs_list.append([algorithm_list[i], setting])
         self.fitting_kwargs_list = fitting_kwargs_list
     
     def run(self, algorithm_list = ['PSO', 'MCMC'], setting_list = [None, None]):
+        """
+        Run the fitting. The algorithm_list and setting_list will be pass to 'fitting_kwargs()'
+        """
         self.fitting_kwargs(algorithm_list = algorithm_list, setting_list = setting_list)
         fitting_specify_class = self.fitting_specify_class
         start_time = time.time()
@@ -129,18 +152,12 @@ class FittingProcess(object):
 
     def run_diag(self, diag_list = None, show_plot = True):
         """
-        The purpose of this def
+        Plot the fitting particles and show how they converge. 
         
         Parameter
         --------
-            diag_list: list of int
-            which chains to show?
-            
-        Return
-        --------
-            A sth sth
-            
-        #TODO: Add save plot.
+            diag_list: None or list of int, e.g., [0, 1]
+            -defines which chains to show?
         """         
         from lenstronomy.Plots import chain_plot
         if diag_list is None:
@@ -155,6 +172,9 @@ class FittingProcess(object):
             plt.close()
 
     def model_plot(self, save_plot = False, show_plot = True):
+        """
+        Show the fitting plot based on lenstronomy.Plots.model_plot.ModelPlot
+        """
         # this is the linear inversion. The kwargs will be updated afterwards
         modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
                               self.fitting_specify_class.kwargs_model, self.kwargs_result,
@@ -182,6 +202,9 @@ class FittingProcess(object):
             plt.close()
 
     def plot_params_corner(self, save_plot = False, show_plot = True):
+        """
+        Show the MCMC parametere corner plots.
+        """        
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
             samples_mcmc = self.samples_mcmc
             n, num_param = np.shape(samples_mcmc)
@@ -197,6 +220,9 @@ class FittingProcess(object):
             plot.savefig('{0}_params_corner.pdf'.format(savename)) 
             
     def plot_flux_corner(self, save_plot = False, show_plot = True):
+        """
+        After translate the MCMC parameter values into flux. This function plots the corner plot.
+        """          
         plot = corner.corner(self.mcmc_flux_list, labels=self.labels_flux, show_titles=True)
         if save_plot == True:
             savename = self.savename
@@ -207,7 +233,9 @@ class FittingProcess(object):
             plt.close()
             
     def plot_final_qso_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
-
+        """
+        Plot the compact fitting result, if a QSO is fitted.
+        """ 
         data = self.fitting_specify_class.kwargs_data['image_data']
         if 'psf_error_map' in self.fitting_specify_class.kwargs_psf.keys():
             modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
@@ -249,6 +277,9 @@ class FittingProcess(object):
             plt.close()
 
     def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
+        """
+        Plot the compact fitting result, if galaxies is fitted (i.e., no point source).
+        """         
         data = self.fitting_specify_class.kwargs_data['image_data']
         noise = self.fitting_specify_class.kwargs_data['noise_map']
         galaxy_list = self.image_host_list
@@ -276,6 +307,16 @@ class FittingProcess(object):
             plt.close()
     
     def plot_all(self):
+        """
+        Plot everyting, including:
+            -run_diag()
+            -model_plot()
+            -plot_params_corner()
+            -plot_flux_corner()
+            -plot_final_qso_fit() or plot_final_galaxy_fit(), based on if point source is included or not.
+            
+            
+        """          
         self.run_diag()
         self.model_plot()
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
@@ -287,6 +328,9 @@ class FittingProcess(object):
             self.plot_final_galaxy_fit()
 
     def translate_result(self):
+        """
+        Translate some parameter results to make the fitting more readable, including the flux value, and the elliptical.
+        """
         import lenstronomy.Util.param_util as param_util
         from decomprofile.tools.measure_tools import model_flux_cal
         self.final_result_galaxy = copy.deepcopy(self.source_result)
@@ -307,6 +351,9 @@ class FittingProcess(object):
             self.final_result_ps[i] = ps
             
     def mcmc_result_range(self, chain=None, param=None):
+        """
+        Quick checkout the MCMC fitting 1-sigma range.
+        """ 
         if chain is None:
             chain = self.samples_mcmc
             param = self.param_mcmc
@@ -316,9 +363,10 @@ class FittingProcess(object):
         print("Low {0:.3f}, Mid {1:.3f}, High: {2:.3f}".format(np.percentile(chain[:, checkid],16),
                                                                 np.percentile(chain[:, checkid],50), 
                                                                 np.percentile(chain[:, checkid],84)) )
-        
-
     def dump_result(self):
+        """
+        Save all the fitting materials as pickle for the future use. To save space, the data_process_class() will be removed, since it usually includes FOV image which can be huge.
+        """        
         savename = self.savename
         dump_class = copy.deepcopy(self)
         if hasattr(dump_class.fitting_specify_class, 'data_process_class'):
@@ -327,21 +375,34 @@ class FittingProcess(object):
             del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
-def fitting_setting_temp(algorithm, fill_value_list = None):
+def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'shallow'):
+    """
+    Quick setting up the fitting particles for the 'PSO' and 'MCMC'.
+    
+    Parameter
+    --------
+        fill_value_list: 
+        -A list of values to fill in to the settings.
+    Return
+    --------
+        Fitting particle settings.
+    """    
     if algorithm == 'PSO':
         if fill_value_list is None:
-            setting = {'sigma_scale': 0.8, 'n_particles': 100, 'n_iterations': 150}
-            #setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
+            if fitting_level == 'deep':
+                setting = {'sigma_scale': 0.8, 'n_particles': 100, 'n_iterations': 150}
+            else:
+                setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
         else:
             setting = {'sigma_scale': fill_value_list[0], 'n_particles': fill_value_list[1], 'n_iterations': fill_value_list[2]}
     elif algorithm == 'MCMC':     
-        if fill_value_list is None:        
-            setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
-            # setting = {'n_burn': 100, 'n_run': 200, 'walkerRatio': 10, 'sigma_scale': .1}
+        if fill_value_list is None: 
+            if fitting_level == 'deep':            
+                setting = {'n_burn': 100, 'n_run': 200, 'walkerRatio': 10, 'sigma_scale': .1}
+            else:
+                setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
         else:
             setting = {'n_burn': fill_value_list[0], 'n_run': fill_value_list[1],
                        'walkerRatio': fill_value_list[2], 'sigma_scale': fill_value_list[3]}
     return setting
 
-#TODO: add other priors? i.e., the q? host flux ratio?
-#TODO: Translate MCMC Chains to 1 sigma.
