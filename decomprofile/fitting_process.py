@@ -27,9 +27,9 @@ class FittingProcess(object):
     Parameter
     --------
         fitting_level: String.
-        -Defines the depth of the fitting
-            - 'deep', perfer a deep fitting, with more fitting PSO and/or MCMC particles, which takes more time.
-            - 'shallow', perfer a quick fitting.
+            Defines the depth of the fitting
+                - 'deep', perfer a deep fitting, with more fitting PSO and/or MCMC particles, which takes more time.
+                - 'shallow', perfer a quick fitting.
     """
     def __init__(self, fitting_specify_class, savename = 'result', fitting_level='norm'):
         self.fitting_specify_class = fitting_specify_class
@@ -45,10 +45,10 @@ class FittingProcess(object):
         Parameter
         --------
             algorithm_list: list.
-            -Define the steps for the fitting, e.g., ['PSO', 'PSO', 'MCMC'].
+                Define the steps for the fitting, e.g., ['PSO', 'PSO', 'MCMC'].
             
             setting_list: list of fitting setting.
-            -Setting are done by 'fitting_setting_temp()' with three options.
+                Setting are done by 'fitting_setting_temp()' with three options.
         """
         if len(algorithm_list) != len(setting_list):
             raise ValueError("The algorithm_list and setting_list should be in the same length.") 
@@ -157,7 +157,7 @@ class FittingProcess(object):
         Parameter
         --------
             diag_list: None or list of int, e.g., [0, 1]
-            -defines which chains to show?
+                Defines which chains to show?
         """         
         from lenstronomy.Plots import chain_plot
         if diag_list is None:
@@ -382,7 +382,8 @@ def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'sha
     Parameter
     --------
         fill_value_list: 
-        -A list of values to fill in to the settings.
+            A list of values to fill in to the settings.
+            
     Return
     --------
         Fitting particle settings.

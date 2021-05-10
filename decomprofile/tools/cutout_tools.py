@@ -18,8 +18,11 @@ def pix_region(center=[49.0,49.0], radius=5):
     
     Parameter
     --------
-        center: The center of the region, with [reg_x, reg_y].
-        radius: The radius of the region.
+        center: 
+            The center of the region, with [reg_x, reg_y].
+            
+        radius: 
+            The radius of the region.
     Return
     --------
         A region which is ds9-like.
@@ -34,9 +37,14 @@ def cutout(image, center, radius):
     
     Parameter
     --------
-        image: large frame 2D image data.
-        center: the center position to cutout.
-        radius: the cutout box size.
+        image: 
+            Large frame 2D image data.
+            
+        center: 
+            The center position to cutout.
+            
+        radius: 
+            The cutout box size.
     Return
     --------
         A cutout image stamp, frame size in odd number.
@@ -53,17 +61,24 @@ def cut_center_auto(image, center, radius, kernel = 'center_bright', return_cent
     
     Parameter
     --------
-        image: large frame 2D image data.
-        center: the center position to cutout.
+        image: 
+            Large frame 2D image data.
+            
+        center: 
+            The center position to cutout.
+            
         kernel: the way to define the central pixel, with choices:
-            -'center_bright': 
-                Cutout at the brightest pixel as center
-
-            -'center_gaussian': 
-                Cutout at the Gaussian center
-        radius: the cutout box size.
-        return_center: if return the finally used center value.
-        if_plot: if plot the zoom in center of the cutout stamp.
+            -'center_bright': Cutout at the brightest pixel as center
+            -'center_gaussian': Cutout at the Gaussian center
+            
+        radius: 
+            The cutout box size.
+            
+        return_center:
+            If return the finally used center value.
+            
+        if_plot: 
+            If plot the zoom in center of the cutout stamp.
     
     Warning  
     --------
@@ -117,10 +132,17 @@ def plot_overview(img, center_target,  target_label = None, c_psf_list=None, lab
     
     Parameter
     --------
-        img: A FOV image.
-        center_target: The central position of the pixels of the QSO.
-        c_psf_list: A list of PSF positions.
-        label: define label if want to lable this plot.
+        img: 
+            A FOV image.
+            
+        center_target: 
+            The central position of the pixels of the QSO.
+            
+        c_psf_list: 
+            A list of PSF positions.
+            
+        label:
+            Define label if want to lable this plot.
     """    
     import copy, matplotlib
     my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap

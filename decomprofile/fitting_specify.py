@@ -68,9 +68,9 @@ class FittingSpecify(object):
         Parameter
         --------
             fix_center_list: list.
-            -If not None, describe how to fix the center [[0,0]] for example.
-            This list defines how to 'joint_lens_light_with_point_source':
-                for example [[0, 1]], joint first extend source with second point source.
+                -if not None, describe how to fix the center [[0,0]] for example.
+                This list defines how to 'joint_lens_light_with_point_source':
+                    for example [[0, 1]], joint first extend source with second point source.
         """
         kwargs_constraints = {'num_point_source_list': [1] * len(self.point_source_list)  #kwargs_constraints also generated here
                               }
@@ -88,18 +88,18 @@ class FittingSpecify(object):
         Parameter
         --------
             condition: input as a defination.
-            -Set up extra prior. For example if one want the first component have lower
-            Sersic index, it can be set by first define a condition:
-
-                def condition_def(kwargs_lens, kwargs_source, kwargs_lens_light, kwargs_ps, kwargs_special, kwargs_extinction):
-                    logL = 0
-                    cond_0 = (kwargs_source[0]['n_sersic'] > kwargs_source[1]['n_sersic'])
-                    if cond_0:
-                        logL -= 10**15
-                    return logL
-            Then assign to condition:
-
-                fit_sepc.prepare_fitting_seq(**, condition = condition_def)                
+                Set up extra prior. For example if one want the first component have lower
+                Sersic index, it can be set by first define a condition:
+    
+                    def condition_def(kwargs_lens, kwargs_source, kwargs_lens_light, kwargs_ps, kwargs_special, kwargs_extinction):
+                        logL = 0
+                        cond_0 = (kwargs_source[0]['n_sersic'] > kwargs_source[1]['n_sersic'])
+                        if cond_0:
+                            logL -= 10**15
+                        return logL
+                Then assign to condition:
+    
+                    fit_sepc.prepare_fitting_seq(**, condition = condition_def)                
         """        
         kwargs_likelihood = {'check_bounds': True,  #Set the bonds, if exceed, reutrn "penalty"
                              'image_likelihood_mask_list': [self.data_process_class.target_mask],
@@ -119,16 +119,16 @@ class FittingSpecify(object):
         Parameter
         --------
             fix_n_list: list.
-            -Describe a prior if want to fix the Sersic index.
-            e.g., fix_n_list= [[0,4], [1,1]], means the first (i.e., 0) fix n = 4; the second (i.e., 1) fix n = 1.
+                Describe a prior if want to fix the Sersic index.
+                e.g., fix_n_list= [[0,4], [1,1]], means the first (i.e., 0) fix n = 4; the second (i.e., 1) fix n = 1.
             
             fix_Re_list: list.
-            -Describe a prior if want to fix the Sersic effective radius.
-            e.g., fix_n_list= [[0,0.4], [1,1]], means the first (i.e., 0) fix Reff value as 0.4.
+                Describe a prior if want to fix the Sersic effective radius.
+                e.g., fix_n_list= [[0,0.4], [1,1]], means the first (i.e., 0) fix Reff value as 0.4.
             
             apertures_center_focus: bool.
-            -If true, the default parameters will have strong prior so that the center of the fitted Sersic will 
-            be closer to the apertures.
+                If true, the default parameters will have strong prior so that the center of the fitted Sersic will 
+                be closer to the apertures.
             
         """
         kwargs_params = {}
@@ -275,14 +275,17 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
     Parameter
     --------
         frame_size: int.
-        -The frame size, to define the center of the frame
+            The frame size, to define the center of the frame
             
-        apertures: The apertures of the targets
+        apertures: 
+            The apertures of the targets
         
-        deltaPix: The pixel size of the data
+        deltaPix: 
+            The pixel size of the data
         
-        fix_n_list: A list to define how to fix the sersic index, default = []
-        -for example: fix_n_list = [[0,1],[1,4]], fix first and disk and second as bulge.
+        fix_n_list: 
+            A list to define how to fix the sersic index, default = []
+            -for example: fix_n_list = [[0,1],[1,4]], fix first and disk and second as bulge.
         
     Return
     --------

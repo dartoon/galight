@@ -34,33 +34,33 @@ class DataProcess(object):
     Parameter
     --------
         fov_image: 2D array.
-            -The field of view image of the data.
+            The field of view image of the data.
         
         target_pos: list or tuple or array, length = 2.
-            -The position of the target.
+            The position of the target.
         
         pos_type: string.
             'pixel' or 'wcs'
-            -Define the position of the target, i.e., if the position is in 'pixel' or 'wcs'.
+            Define the position of the target, i.e., if the position is in 'pixel' or 'wcs'.
             
         header: io.fits.header.Header.
             -The header information given by the fits file. 
             Note: should including the exposure time and WCS information.
         
         exptime: float / 2D array.
-            -The exposure time of the data in (s) a the exptime_map
+            The exposure time of the data in (s) a the exptime_map
         
         fov_noise_map: 2D array.
-            -The field of view noise map, should have same shape as the 'fov_image'.
+            The field of view noise map, should have same shape as the 'fov_image'.
         
         rm_bkglight: bool. 
-            -If 'True', the FOV background light will be modeled and removed. 
+            If 'True', the FOV background light will be modeled and removed. 
         
         if_plot: bool.
-            -If 'True', the plots will made during the data processing.
+            If 'True', the plots will made during the data processing.
         
         zp: float.
-            -The zeropoint of the telescope. To calcualte the magnitude. If not provided will assign as 27.0
+            The zeropoint of the telescope. To calcualte the magnitude. If not provided will assign as 27.0
                 
     """
     def __init__(self, fov_image=None, target_pos = None, pos_type = 'pixel', header=None, 
@@ -105,10 +105,10 @@ class DataProcess(object):
         Parameter
         --------
             cut_kernel: string or 'None'.
-                -args will be input as kernel into decomprofile.tools.cutout_tools.cut_center_auto()
+                The args will be input as kernel into decomprofile.tools.cutout_tools.cut_center_auto()
             
             radius: int or float
-                -the radius to cutout the image data. The final framesize will be 2*radius+1
+                The radius to cutout the image data. The final framesize will be 2*radius+1
                 
             cut_kernel: None or 'center_gaussian' or 'center_bright'.
                 - if 'None', directly cut.
@@ -116,13 +116,13 @@ class DataProcess(object):
                 - if 'center_bright', cut the brightest pixel in the center
                 
             bkg_std: float
-                -To input the background noise level.
+                To input the background noise level.
             
             create_mask: bool.
-                -'True' if masks are needed to input.
+                'True' if masks are needed to input.
 
             if_plot: bool.
-                -if 'True', the plots will made during the cut out.
+                If 'True', the plots will made during the cut out.
                         
         """
         if if_plot == None:
@@ -203,17 +203,17 @@ class DataProcess(object):
         Parameter
         --------
             radius: int/float.
-                -the radius of the cutout frames of the PSF. PSF size = 2*radius + 1
+                The radius of the cutout frames of the PSF. PSF size = 2*radius + 1
             
             PSF_pos_list: None or list of position.
-                -input a list if PSF star position has decided.
+                Input a list if PSF star position has decided.
             
             pos_type: string.
                 'pixel' or 'wcs'
-                -define the position of the target
+                Define the position of the target
             
             user_option: bool.
-                -only works when PSF_pos_list = None. 
+                Only works when PSF_pos_list = None. 
         """
         if PSF_pos_list is None:
             from decomprofile.tools.measure_tools import search_local_max, measure_FWHM

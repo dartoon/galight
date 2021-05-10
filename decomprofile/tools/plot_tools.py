@@ -60,22 +60,28 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     
     Parameter
     --------
-        flux_list_2d: a list of 2D flux array, that will use plt.imshow() to plot and show.
-            [data, pointsource_list, galaxy_model_list, normalized residual]
+        flux_list_2d: 
+            A list of 2D flux array, that will use plt.imshow() to plot and show.
+            e.g., [data, pointsource_list, galaxy_model_list, normalized residual]
             
-        label_list_2d: a list of lables for flux_list_2d.
-            ['data', 'model', 'point source(s)', 'galaxy(s)']
+        label_list_2d: 
+            A list of lables for flux_list_2d.
+            e.g., ['data', 'model', 'point source(s)', 'galaxy(s)']
             
-        flux_list_1d:  a list of 2D flux array, that will be plot as 1D profile in the very right panel.
+        flux_list_1d:  
+            A list of 2D flux array, that will be plot as 1D profile in the very right panel.
         
-        label_list_1d: flux_list_1d labels.
+        label_list_1d: 
+            The labels for flux_list_1d.
         
-        mask_image: A 2D mask for the flux_list_2d image.
+        mask_image: 
+            A 2D mask for the flux_list_2d image.
         
-        arrows: bool. If show the arrows for pointing the North and East.
+        arrows: bool. 
+            If show the arrows for pointing the North and East.
         
-        if_annuli: bool. If True, the 1D profile will show the surface brightness in the annuli apertures. 
-        
+        if_annuli: bool.
+            If True, the 1D profile will show the surface brightness in the annuli apertures. 
     """
     norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 

@@ -19,7 +19,8 @@ def read_pixel_scale(header):
     
     Parameter
     --------
-        header: a fits file header from pyfits.open('filename').
+        header: 
+            A fits file header from pyfits.open('filename').
         
     Return
     --------
@@ -37,7 +38,8 @@ def read_fits_exp(header):
     
     Parameter
     --------
-        header: a fits file header from pyfits.open('filename').
+        header:
+            A fits file header from pyfits.open('filename').
         
     Return
     --------
