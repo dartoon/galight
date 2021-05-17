@@ -2,12 +2,13 @@
 Installation
 ============
 
-At the command line either via easy_install or pip::
+At the command line pip::
 
-    $ easy_install decomprofile
     $ pip install decomprofile
 
-Or, if you have virtualenvwrapper installed::
+Or, using through github channel (see guidance there):
 
-    $ mkvirtualenv decomprofile
-    $ pip install decomprofile
+https://github.com/dartoon/decomprofile 
+
+Note that, if python2 is used. Please install the lenstronomy at version == 1.3.0
+
