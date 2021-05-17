@@ -4,7 +4,7 @@ A python package that can be used to analysis and model the imaging data.
 Features
 ------------
 * Search PSF stars in the FOV.
-![plot](./directory_1/directory_2/.../directory_n/plot.png)
+![plot](./figs/find_PSF.png)
 * Estimate the background noise level.
 * Cutout the target object galaxies (QSOs) and prepare the materials to model the data.
 * Model them QSOs and galaxies using 2D Sersic profile and scaled point source, based on [``lenstronomy``](https://github.com/sibirrer/lenstronomy).
