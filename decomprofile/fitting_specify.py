@@ -196,8 +196,6 @@ class FittingSpecify(object):
             center_pix_pos = center_pix_pos + int(self.numPix/2)
         self.center_pix_pos = center_pix_pos
         self.kwargs_params = kwargs_params
-        # self.source_params = source_params
-        # self.ps_params = ps_params
         
     def sepc_imageModel(self):
         from lenstronomy.ImSim.image_model import ImageModel
@@ -257,6 +255,11 @@ class FittingSpecify(object):
         self.sepc_kwargs_params(source_params = source_params, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
                                 ps_params = ps_params, neighborhood_size = neighborhood_size, threshold = threshold,
                                 apertures_center_focus = apertures_center_focus)
+        if point_source_num == 0 or point_source_num == None:
+            del self.kwargs_params['point_source_model']
+            del self.kwargs_constraints['num_point_source_list']
+            del self.kwargs_model['point_source_model_list']
+            
         self.sepc_imageModel()
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     

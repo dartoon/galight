@@ -266,8 +266,11 @@ class DataProcess(object):
                 for i in range( 5 - len(PSF_cutouts)%5 ):
                     axs[-1][-(i+1)].axis('off')
                 plt.show()
-                select_idx = str(input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n'))
-                if  select_idx == '':
+                if sys.version_info[0] == 2:
+                    select_idx = raw_input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
+                elif sys.version_info[0] == 3:
+                    select_idx = input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
+                if  select_idx == '' or select_idx == 'a':
                     select_idx = [i for i in range(len(PSF_cutouts))]
                 else:
                     select_idx = select_idx.split(" ")       

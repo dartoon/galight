@@ -55,7 +55,7 @@ class FittingProcess(object):
         fitting_kwargs_list = []
         for i in range(len(algorithm_list)):
             if setting_list[i] is None:
-                setting = fitting_setting_temp(algorithm_list[i], self.fitting_level)
+                setting = fitting_setting_temp(algorithm_list[i], fitting_level = self.fitting_level)
             else:
                 setting = setting_list[i]
             fitting_kwargs_list.append([algorithm_list[i], setting])
@@ -79,7 +79,8 @@ class FittingProcess(object):
         print('============ CONGRATULATION, YOUR JOB WAS SUCCESSFUL ================ ')
         
         from lenstronomy.ImSim.image_linear_solve import ImageLinearFit
-        imageLinearFit = ImageLinearFit(data_class=fitting_specify_class.data_class, psf_class=fitting_specify_class.psf_class,
+        imageLinearFit = ImageLinearFit(data_class=fitting_specify_class.data_class, 
+                                        psf_class=fitting_specify_class.psf_class,
                                         source_model_class=fitting_specify_class.lightModel,
                                         point_source_class=fitting_specify_class.pointSource, 
                                         kwargs_numerics=fitting_specify_class.kwargs_numerics)    
@@ -105,7 +106,7 @@ class FittingProcess(object):
                 kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2]
             except:
                 kwargs_fixed_ps = None
-            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_source=kwargs_fixed_source,
+            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_source,
                           kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
             if len(fitting_specify_class.point_source_list) >0 :
@@ -138,7 +139,7 @@ class FittingProcess(object):
                 if int(i/1000) > int((i-1)/1000) :
                     print(trans_steps[1]-trans_steps[0],
                           "MCMC samplers in total, finished translate:", i-trans_steps[0] )
-            self.mcmc_flux_list = mcmc_flux_list
+            self.mcmc_flux_list = np.array(mcmc_flux_list)
             self.labels_flux = labels_flux            
         self.chain_list = chain_list
         self.kwargs_result = kwargs_result
