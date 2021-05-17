@@ -18,6 +18,10 @@ Installation
 
     $ pip install decomprofile --user
 
+Alternatively, the package can be installed through github channel:
+https://github.com/dartoon/decomprofile
+
+
 Requirements
 ------------
 Running ``decomprofile`` requires the following packages to be installed.
