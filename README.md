@@ -5,10 +5,13 @@ Features
 ------------
 * Search PSF stars in the FOV.
 ![plot](./figs/find_PSF.png)
-* Estimate the background noise level.
+* Automatically Estimate the background noise level.
+![plot](./figs/est_bkgstd.png)
 * Cutout the target object galaxies (QSOs) and prepare the materials to model the data.
-* Model them QSOs and galaxies using 2D Sersic profile and scaled point source, based on [``lenstronomy``](https://github.com/sibirrer/lenstronomy).
 * Detecting objects in the cutout stamp and quickly create Sersic keywords (in ``lenstronomy`` type) to model them.
+* Model them QSOs and galaxies using 2D Sersic profile and scaled point source, based on [``lenstronomy``](https://github.com/sibirrer/lenstronomy).
+![plot](./figs/fitting_sets.png)
+![plot](./figs/fitting_result.png)
 
 Notebooks:
 ------------
