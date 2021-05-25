@@ -16,7 +16,7 @@ import copy
 import matplotlib as matt
 matt.rcParams['font.family'] = 'STIXGeneral'
 from lenstronomy.Plots.model_plot import ModelPlot
-from decomprofile.tools.plot_tools import total_compare
+from galight.tools.plot_tools import total_compare
 class FittingProcess(object):
     """
     A class to perform the fitting task and show the result. 
@@ -333,7 +333,7 @@ class FittingProcess(object):
         Translate some parameter results to make the fitting more readable, including the flux value, and the elliptical.
         """
         import lenstronomy.Util.param_util as param_util
-        from decomprofile.tools.measure_tools import model_flux_cal
+        from galight.tools.measure_tools import model_flux_cal
         self.final_result_galaxy = copy.deepcopy(self.source_result)
         flux_sersic_model = model_flux_cal(self.final_result_galaxy)
         for i in range(len(self.final_result_galaxy)):

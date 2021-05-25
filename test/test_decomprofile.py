@@ -1,11 +1,11 @@
 """
-Tests for `decomprofile` module.
+Tests for `galight` module.
 """
 import pytest
-from decomprofile import decomprofile
+from galight import galight
 
 
-class TestDecomprofile(object):
+class TestGalight(object):
 
     @classmethod
     def setup_class(cls):

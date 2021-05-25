@@ -19,27 +19,27 @@ doclink = """
 Documentation
 -------------
 
-The full documentation is at http://decomprofile.rtfd.org."""
+The full documentation is at http://galight.rtfd.org."""
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
-    name='decomprofile',
-    version='0.1.0',
+    name='galight',
+    version='0.0.1',
     description='A package to decompose the light profile of galaxy, AGN, dual AGN...',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Xuheng Ding',
     author_email='xuheng.ding@ipmu.jp',
-    url='https://github.com/dartoon/decomprofile',
+    url='https://github.com/dartoon/galight',
     packages=[
-        'decomprofile','decomprofile.tools'
+        'galight','galight.tools'
     ],
-    package_dir={'decomprofile': 'decomprofile'},
+    package_dir={'galight': 'galight'},
     include_package_data=True,
     install_requires=[
     ],
     license='MIT',
     zip_safe=False,
-    keywords='decomprofile',
+    keywords='galight',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

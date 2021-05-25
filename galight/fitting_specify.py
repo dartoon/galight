@@ -145,7 +145,7 @@ class FittingSpecify(object):
             kwargs_params['lens_light_model'] = source_params
             
         if ps_params is None and len(self.point_source_list) > 0:
-            from decomprofile.tools.measure_tools import find_loc_max
+            from galight.tools.measure_tools import find_loc_max
             x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
             if x == []:
                 x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
@@ -232,7 +232,7 @@ class FittingSpecify(object):
             show_plot: bool.
             -Plot or not plot. Note that figure can be saved without shown.
         """
-        from decomprofile.tools.measure_tools import plot_data_apertures_point
+        from galight.tools.measure_tools import plot_data_apertures_point
         plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], 
                                   self.apertures, self.center_pix_pos, savename = savename, show_plot=show_plot)
 

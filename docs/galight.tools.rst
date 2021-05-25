@@ -1,39 +1,39 @@
-decomprofile.tools package
+galight.tools package
 ============================
 
 Submodules
 ----------
 
-decomprofile.tools.astro\_tools module
+galight.tools.astro\_tools module
 --------------------------------
 
-.. automodule:: decomprofile.tools.astro_tools
+.. automodule:: galight.tools.astro_tools
     :members:
     :undoc-members:
     :show-inheritance:
 
-decomprofile.tools.cutout\_tools module
+galight.tools.cutout\_tools module
 --------------------------------
 
-.. automodule:: decomprofile.tools.cutout_tools
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-decomprofile.tools.measure\_tools module
---------------------------------
-
-.. automodule:: decomprofile.tools.measure_tools
+.. automodule:: galight.tools.cutout_tools
     :members:
     :undoc-members:
     :show-inheritance:
 
 
-decomprofile.tools.plot\_tools module
+galight.tools.measure\_tools module
 --------------------------------
 
-.. automodule:: decomprofile.tools.plot_tools
+.. automodule:: galight.tools.measure_tools
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+galight.tools.plot\_tools module
+--------------------------------
+
+.. automodule:: galight.tools.plot_tools
     :members:
     :undoc-members:
     :show-inheritance:
@@ -41,7 +41,7 @@ decomprofile.tools.plot\_tools module
 Module contents
 ---------------
 
-.. automodule:: decomprofile.tools
+.. automodule:: galight.tools
     :members:
     :undoc-members:
     :show-inheritance:

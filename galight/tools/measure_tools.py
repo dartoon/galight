@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator
 import copy
 import matplotlib
 from photutils import make_source_mask
-from decomprofile.tools.astro_tools import plt_fits 
+from galight.tools.astro_tools import plt_fits 
 my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
 import photutils
@@ -78,7 +78,7 @@ def search_local_max(image, radius=120, view=False, **kwargs):
     --------
         A list of positions of 'PSF'
     """
-    from decomprofile.tools.cutout_tools import cutout
+    from galight.tools.cutout_tools import cutout
     PSFx, PSFy =find_loc_max(image, **kwargs)
     PSF_locs = []
     ct = 0
@@ -164,7 +164,7 @@ def flux_in_region(image,region,mode='exact'):
     tot_flux= np.sum(mask.data * data)
     return tot_flux
 
-from decomprofile.tools.cutout_tools import pix_region
+from galight.tools.cutout_tools import pix_region
 
 def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=None, if_plot=False,
                  fits_plot=False, mask_image=None):

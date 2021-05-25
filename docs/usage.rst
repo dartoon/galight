@@ -2,19 +2,19 @@
 Usage
 ========
 
-To use **decomprofile** in your project::
+To use **galight** in your project::
 
-	import decomprofile
+	import galight
 
 To check the current version of **decmoprofile**::
 
-	print(decomprofile.__version__)
+	print(galight.__version__)
 
 
 Getting started
 ---------------
 
-**decomprofile** is a package that help to quickly set up the materials and input to **lenstronomy** to achieve the photomertic inference of Galaxy profile with AGN. 
+**galight** is a package that help to quickly set up the materials and input to **lenstronomy** to achieve the photomertic inference of Galaxy profile with AGN. 
 We provide a set of example notebooks to demonstrate the modelling inference, with cases include:
 
 * HST observed AGN:

@@ -1,13 +1,13 @@
-decomprofile.data_process package
+galight.data_process package
 ============================
 
 Submodules
 ----------
 
-decomprofile.data\_process module
+galight.data\_process module
 --------------------------------
 
-.. automodule:: decomprofile.data_process
+.. automodule:: galight.data_process
     :members:
     :undoc-members:
     :show-inheritance:

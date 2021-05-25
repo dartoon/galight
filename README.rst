@@ -1,12 +1,12 @@
 =============================
-decomprofile - Decompse the galaxy light profile
+galight - Decompse the galaxy light profile
 =============================
 
-.. image:: https://badge.fury.io/py/decomprofile.png
-    :target: http://badge.fury.io/py/decomprofile
+.. image:: https://badge.fury.io/py/galight.png
+    :target: http://badge.fury.io/py/galight
 
-.. image:: https://travis-ci.org/dartoon/decomprofile.png?branch=master
-    :target: https://travis-ci.org/dartoon/decomprofile
+.. image:: https://travis-ci.org/dartoon/galight.png?branch=master
+    :target: https://travis-ci.org/dartoon/galight
 
 A python package that analyze and model the imaging data of galaxies, QSOs and duals.
 
@@ -16,15 +16,15 @@ Installation
 
 .. code-block:: bash
 
-    $ pip install decomprofile --user
+    $ pip install galight --user
 
 Alternatively, the package can be installed through github channel:
-https://github.com/dartoon/decomprofile
+https://github.com/dartoon/galight
 
 
 Requirements
 ------------
-Running ``decomprofile`` requires the following packages to be installed.
+Running ``galight`` requires the following packages to be installed.
 
  * ``lenstronomy`` `https://github.com/sibirrer/lenstronomy <https://github.com/sibirrer/lenstronomy>`_
  * ``astropy``  `https://github.com/astropy/astropy <https://github.com/astropy/astropy>`_
@@ -34,13 +34,13 @@ and related ones to be installed...
 
 Example notebooks
 -----------------
-We have create `notebooks <https://github.com/dartoon/decomprofile_notebooks>`_ to demonstrate how to use ``decomprofile``. These notebooks demonstrate how to model QSOs and galaxies using 2D Sersic profile and scaled point source, based on ``lenstronomy`` `lenstronomy <https://github.com/sibirrer/lenstronomy>`_.
+We have create `notebooks <https://github.com/dartoon/galight_notebooks>`_ to demonstrate how to use ``galight``. These notebooks demonstrate how to model QSOs and galaxies using 2D Sersic profile and scaled point source, based on ``lenstronomy`` `lenstronomy <https://github.com/sibirrer/lenstronomy>`_.
 
 Examples including:
 
-* `Modeling a HSC imaged QSO <https://github.com/dartoon/decomprofile_notebooks/blob/master/decomprofile_HSC_QSO.ipynb>`_
-* `Modeling a HSC imaged dual QSO <https://github.com/dartoon/decomprofile_notebooks/blob/master/decomprofile_HSC_dualAGN.ipynb>`_
-* `Modeling a HST imaged QSO <https://github.com/dartoon/decomprofile_notebooks/blob/master/decomprofile_HST_QSO.ipynb>`_
+* `Modeling a HSC imaged QSO <https://github.com/dartoon/galight_notebooks/blob/master/galight_HSC_QSO.ipynb>`_
+* `Modeling a HSC imaged dual QSO <https://github.com/dartoon/galight_notebooks/blob/master/galight_HSC_dualAGN.ipynb>`_
+* `Modeling a HST imaged QSO <https://github.com/dartoon/galight_notebooks/blob/master/galight_HST_QSO.ipynb>`_
 
 Features
 --------

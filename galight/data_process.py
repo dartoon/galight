@@ -13,11 +13,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import astropy.io.fits as pyfits
 from astropy.wcs import WCS
-from decomprofile.tools.measure_tools import measure_bkg
-from decomprofile.tools.cutout_tools import cut_center_auto, cutout
+from galight.tools.measure_tools import measure_bkg
+from galight.tools.cutout_tools import cut_center_auto, cutout
 from copy import deepcopy
 from matplotlib.colors import LogNorm
-from decomprofile.tools.astro_tools import plt_fits, read_pixel_scale
+from galight.tools.astro_tools import plt_fits, read_pixel_scale
 
 import sys
 from packaging import version
@@ -105,7 +105,7 @@ class DataProcess(object):
         Parameter
         --------
             cut_kernel: string or 'None'.
-                The args will be input as kernel into decomprofile.tools.cutout_tools.cut_center_auto()
+                The args will be input as kernel into galight.tools.cutout_tools.cut_center_auto()
             
             radius: int or float
                 The radius to cutout the image data. The final framesize will be 2*radius+1
@@ -132,7 +132,7 @@ class DataProcess(object):
             if radius_list == None:
                 radius_list = [30, 35, 40, 45, 50, 60, 70]
             for rad in radius_list:
-                from decomprofile.tools.measure_tools import fit_data_oneD_gaussian
+                from galight.tools.measure_tools import fit_data_oneD_gaussian
                 _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=rad)
                 edge_data = np.concatenate([_cut_data[0,:],_cut_data[-1,:],_cut_data[:,0], _cut_data[:,-1]])
                 gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
@@ -155,7 +155,7 @@ class DataProcess(object):
             self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
         else:
             if bkg_std == None:
-                from decomprofile.tools.measure_tools import esti_bgkstd
+                from galight.tools.measure_tools import esti_bgkstd
                 target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
                 self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
             _exptime = deepcopy(self.exptime)
@@ -170,7 +170,7 @@ class DataProcess(object):
             self.noise_map = noise_map
         
         target_mask = np.ones_like(target_stamp)
-        from decomprofile.tools.measure_tools import detect_obj, mask_obj
+        from galight.tools.measure_tools import detect_obj, mask_obj
         apertures = detect_obj(target_stamp, if_plot=create_mask, **kwargs)
         if create_mask == True:
             select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
@@ -216,7 +216,7 @@ class DataProcess(object):
                 Only works when PSF_pos_list = None. 
         """
         if PSF_pos_list is None:
-            from decomprofile.tools.measure_tools import search_local_max, measure_FWHM
+            from galight.tools.measure_tools import search_local_max, measure_FWHM
             init_PSF_locs_ = search_local_max(self.fov_image)
             init_PSF_locs, FWHMs, fluxs, PSF_cutouts = [], [], [], []
             for i in range(len(init_PSF_locs_)):
@@ -290,16 +290,16 @@ class DataProcess(object):
 
     def profiles_compare(self, **kargs):
         """
-        Use decomprofile.tools.measure_tools.profiles_compare to plot the profiles of data and PSFs (when prepared).
+        Use galight.tools.measure_tools.profiles_compare to plot the profiles of data and PSFs (when prepared).
         """    
-        from decomprofile.tools.measure_tools import profiles_compare    
+        from galight.tools.measure_tools import profiles_compare    
         profiles_compare([self.target_stamp] + self.PSF_list, **kargs)
         
     def plot_overview(self, **kargs):
         """
-        Use decomprofile.tools.cutout_tools.plot_overview to plot image overview.
+        Use galight.tools.cutout_tools.plot_overview to plot image overview.
         """
-        from decomprofile.tools.cutout_tools import plot_overview
+        from galight.tools.cutout_tools import plot_overview
         if hasattr(self, 'PSF_pos_list'):
             PSF_pos_list = self.PSF_pos_list
         else:
@@ -309,7 +309,7 @@ class DataProcess(object):
     
     def checkout(self):
         """
-        Check out if everything is prepared to pass to decomprofile.fitting_process().
+        Check out if everything is prepared to pass to galight.fitting_process().
         """        
         checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_for_fitting']
         ct = 0

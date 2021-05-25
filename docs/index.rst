@@ -13,7 +13,7 @@ Contents:
 
    installation
    usage
-   decomprofile
+   galight
    contributing
    authors
    history
@@ -25,4 +25,4 @@ If you have any suggestions or questions about **Decompose galaxy light profile*
 at xuheng.ding@ipmu.jp.
 
 If you encounter any errors or problems with **Decompose galaxy light profile**, please let me know!
-Open an Issue at the GitHub http://github.com/dartoon/decomprofile main repository.
+Open an Issue at the GitHub http://github.com/dartoon/galight main repository.

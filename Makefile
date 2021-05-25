@@ -24,7 +24,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 lint:
-	flake8 decomprofile test
+	flake8 galight test
 
 test:
 	py.test
@@ -33,15 +33,15 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source decomprofile setup.py test
+	coverage run --source galight setup.py test
 	coverage report -m
 	coverage html
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/decomprofile.rst
+	rm -f docs/galight.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ decomprofile
+	sphinx-apidoc -o docs/ galight
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html

@@ -1,13 +1,13 @@
-decomprofile.fitting_specify package
+galight.fitting_process package
 ============================
 
 Submodules
 ----------
 
-decomprofile.fitting\_specify module
+galight.fitting\_process module
 --------------------------------
 
-.. automodule:: decomprofile.fitting_specify
+.. automodule:: galight.fitting_process
     :members:
     :undoc-members:
     :show-inheritance:
