@@ -1,5 +1,5 @@
 =============================
-galight - Decompse the galaxy light profile
+galight - Galaxy shapes of Light
 =============================
 
 .. image:: https://badge.fury.io/py/galight.png
