@@ -26,7 +26,7 @@ setup(
     name='galight',
     version='0.0.1',
     description='A package to decompose the light profile of galaxy, AGN, dual AGN...',
-    long_description=readme + '\n\n' + doclink + '\n\n' + history,
+    long_description=readme,
     author='Xuheng Ding',
     author_email='xuheng.ding@ipmu.jp',
     url='https://github.com/dartoon/galight',
