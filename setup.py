@@ -24,9 +24,10 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='galight',
-    version='0.0.1',
-    description='A package to decompose the light profile of galaxy, AGN, dual AGN...',
+    version='0.0.0',
+    description='Galaxy light 2D modeling tool',
     long_description=readme,
+    long_description_content_type='text/markdown',
     author='Xuheng Ding',
     author_email='xuheng.ding@ipmu.jp',
     url='https://github.com/dartoon/galight',
