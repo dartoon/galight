@@ -34,7 +34,7 @@ and related ones to be installed...
 
 Example notebooks
 -----------------
-We have create `notebooks <https://github.com/dartoon/galight_notebooks>`_ to demonstrate how to use ``galight``. These notebooks demonstrate how to model QSOs and galaxies using 2D Sersic profile and scaled point source, based on ``lenstronomy`` `lenstronomy <https://github.com/sibirrer/lenstronomy>`_.
+We have created `notebooks <https://github.com/dartoon/galight_notebooks>`_ to demonstrate how to use ``galight``. These notebooks demonstrate how to model QSOs and galaxies using 2D Sersic profile and scaled point source, based on ``lenstronomy`` `lenstronomy <https://github.com/sibirrer/lenstronomy>`_.
 
 Examples including:
 
@@ -44,7 +44,7 @@ Examples including:
 
 Features
 --------
-The notebook demonstrate the follwing feature/functions:
+The notebook demonstrates the follwing feature/functions:
 
 * Search PSF stars through entire field of view, automatically.
 * Cutout the target object and prepare the materials for the modelling.
