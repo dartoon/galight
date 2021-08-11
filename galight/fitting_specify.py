@@ -8,6 +8,9 @@ Created on Mon Sep 14 12:16:43 2020
 
 import numpy as np
 import copy
+import lenstronomy
+from packaging import version
+import warnings
 
 class FittingSpecify(object):
     """
@@ -26,8 +29,14 @@ class FittingSpecify(object):
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
         self.apertures = copy.deepcopy(data_process_class.apertures)
+        self.sersic_major_axis = True
+        if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
+            from lenstronomy.Conf import config_loader
+            convention_conf = config_loader.conventions_conf()
+            self.sersic_major_axis =  convention_conf['sersic_major_axis']
+            
     
-    def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
+    def sepc_kwargs_data(self, supersampling_factor = 3, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
                                                      inverse=True)
@@ -40,7 +49,14 @@ class FittingSpecify(object):
         if psf_error_map is not None:
             kwargs_psf['psf_error_map']  = psf_error_map
         
-        kwargs_numerics = {'supersampling_factor': supersampling_factor, 'supersampling_convolution': False} 
+        # here we super-sample the resolution of some of the pixels where the surface brightness profile has a high gradient 
+        supersampled_indexes = np.zeros((self.numPix, self.numPix), dtype=bool)
+        supersampled_indexes[int(self.numPix/2)-1:int(self.numPix/2)+1, int(self.numPix/2)-1:int(self.numPix/2)+1] = True
+        kwargs_numerics = {'supersampling_factor': supersampling_factor, 
+                           'compute_mode': 'adaptive',
+                          'supersampled_indexes': supersampled_indexes}
+        
+        kwargs_numerics = {'supersampling_factor': supersampling_factor} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
         multi_band_list = [image_band]
         self.kwargs_data = kwargs_data
@@ -69,8 +85,10 @@ class FittingSpecify(object):
         --------
             fix_center_list: list.
                 -if not None, describe how to fix the center [[0,0]] for example.
-                This list defines how to 'joint_lens_light_with_point_source':
-                    for example [[0, 1]], joint first extend source with second point source.
+                This list defines how to 'joint_lens_light_with_point_source' definied by lenstronomy:
+                    [[i_point_source, k_lens_light], [...], ...], see 
+                    https://lenstronomy.readthedocs.io/en/latest/_modules/lenstronomy/Sampling/parameters.html?highlight=joint_lens_light_with_point_source#
+                    for example [[0, 1]], joint first (0) point source with the second extend source (1).
         """
         kwargs_constraints = {'num_point_source_list': [1] * len(self.point_source_list)  #kwargs_constraints also generated here
                               }
@@ -150,7 +168,6 @@ class FittingSpecify(object):
             if x == []:
                 x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
             if len(x) < len(self.point_source_list):
-                import warnings
                 warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
                 # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
                 #                  the ps_params must input manually or change the neighborhood_size and threshold values")
@@ -197,7 +214,7 @@ class FittingSpecify(object):
         self.center_pix_pos = center_pix_pos
         self.kwargs_params = kwargs_params
         
-    def sepc_imageModel(self):
+    def sepc_imageModel(self, sersic_major_axis):
         from lenstronomy.ImSim.image_model import ImageModel
         from lenstronomy.Data.imaging_data import ImageData
         from lenstronomy.Data.psf import PSF
@@ -208,7 +225,13 @@ class FittingSpecify(object):
         psf_class = PSF(**self.kwargs_psf) 
         
         from lenstronomy.LightModel.light_model import LightModel
-        lightModel = LightModel(light_model_list=self.light_model_list)
+        try:
+            lightModel = LightModel(light_model_list=self.light_model_list, sersic_major_axis=sersic_major_axis)  # By this setting: fit_sepc.lightModel.func_list[1]._sersic_major_axis
+            self.sersic_major_axis = sersic_major_axis
+        except:
+            lightModel = LightModel(light_model_list=self.light_model_list)
+            if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
+                warnings.warn("\nWarning: The current Lenstronomy Version doesn't not allow for sersic_major_axis=True. Please update you Lenstrnomy version or change you Lenstronomy configure file.")
         if self.light_model_list is None:
             imageModel = ImageModel(data_class, psf_class, point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)  
         else:
@@ -242,7 +265,7 @@ class FittingSpecify(object):
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
-                          psf_error_map = None):
+                          psf_error_map = None, sersic_major_axis=True):
         """
         Key function used to prepared for the fitting. Parameters will be passed to the corresponding functions.
         """
@@ -260,7 +283,7 @@ class FittingSpecify(object):
             del self.kwargs_constraints['num_point_source_list']
             del self.kwargs_model['point_source_model_list']
             
-        self.sepc_imageModel()
+        self.sepc_imageModel(sersic_major_axis = sersic_major_axis)
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     
     def build_fitting_seq(self):
@@ -289,6 +312,9 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
         fix_n_list: 
             A list to define how to fix the sersic index, default = []
             -for example: fix_n_list = [[0,1],[1,4]], fix first and disk and second as bulge.
+            
+        apertures_center_focus:
+            If True, the prior of the Sersic postion will be most limited to the center of the aperture. 
         
     Return
     --------

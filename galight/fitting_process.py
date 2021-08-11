@@ -17,6 +17,9 @@ import matplotlib as matt
 matt.rcParams['font.family'] = 'STIXGeneral'
 from lenstronomy.Plots.model_plot import ModelPlot
 from galight.tools.plot_tools import total_compare
+from packaging import version
+import lenstronomy
+
 class FittingProcess(object):
     """
     A class to perform the fitting task and show the result. 
@@ -37,6 +40,7 @@ class FittingProcess(object):
         self.savename = savename
         self.zp = fitting_specify_class.zp
         self.fitting_level = fitting_level
+        self.sersic_major_axis = fitting_specify_class.sersic_major_axis
         
     def fitting_kwargs(self, algorithm_list = ['PSO', 'MCMC'], setting_list = [None, None]):
         """

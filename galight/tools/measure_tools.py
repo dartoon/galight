@@ -380,13 +380,14 @@ def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None ,
     plt.tick_params(which='major', length=7)
     plt.tick_params(which='minor', length=4, color='r')
     plt.grid()
-    ax.set_ylabel("Scaled Surface Brightness")
-    ax.set_xlabel("Pixels")
+    ax.set_ylabel("Scaled Surface Brightness", fontsize=20)
+    ax.set_xlabel("Pixels", fontsize=20)
     if x_gridspace == 'log':
         ax.set_xscale('log')
         # plt.xlim(1.3, ) 
     plt.grid(which="minor")
-    plt.legend()
+    plt.legend(prop={'size':15},ncol=2)
+    plt.tick_params(labelsize=20)
     plt.show() 
     return fig
 
@@ -597,13 +598,14 @@ def detect_obj(image, nsigma=2.8, exp_sz= 1.2, npixels = 15, if_plot=False, auto
         vmin = 1.e-3
         vmax = 2.1 
         ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
-        ax1.set_title('Data')
+        ax1.set_title('Data', fontsize=25)
+        ax1.tick_params(labelsize=15)
         if version.parse(photutils.__version__) > version.parse("0.7"):
-            ax2.imshow(segm_deblend, origin='lower', cmap=segm_deblend.make_cmap(random_state=12345))
+            ax2.imshow(segm_deblend, origin='lower', cmap=segm_deblend.make_cmap(random_state=12344))
         else:
-            ax2.imshow(segm_deblend, origin='lower', cmap=segm_deblend.cmap(random_state=12345))
+            ax2.imshow(segm_deblend, origin='lower', cmap=segm_deblend.cmap(random_state=12344))
         for i in range(len(cat)):
-            ax2.text(cat[i].xcentroid.value, cat[i].ycentroid.value, '{0}'.format(i), fontsize=15,
+            ax2.text(cat[i].xcentroid.value, cat[i].ycentroid.value, '{0}'.format(i), fontsize=25,
                      bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
         for i in range(len(apertures)):
             aperture = apertures[i]
@@ -613,7 +615,8 @@ def detect_obj(image, nsigma=2.8, exp_sz= 1.2, npixels = 15, if_plot=False, auto
             else:
                 aperture.plot(color='white', lw=1.5, ax=ax1)
                 aperture.plot(color='white', lw=1.5, ax=ax2)                       
-        ax2.set_title('Segmentation Image')
+        ax2.set_title('Segmentation Image', fontsize=25)
+        ax2.tick_params(labelsize=15)
         plt.show()    
         print(tbl)
     return apertures
@@ -661,10 +664,12 @@ def esti_bgkstd(image, nsigma=2, exp_sz= 1.5, npixels = 15, if_plot=False):
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 6))
         ax1.imshow(image_mask, origin='lower', cmap=my_cmap, norm=LogNorm())
-        ax1.set_title('pixels used to estimate background stdd')
+        ax1.set_title('pixels used to estimate bkg stdd', fontsize=20)
+        ax1.tick_params(labelsize=15)
         values = ax2.hist(image_mask[image_mask!=0])
         ax2.plot(np.zeros(5)+np.median(image_mask[image_mask!=0]), np.linspace(0,values[0].max(),num=5), 'k--', linewidth = 4)
-        ax2.set_title('pixel value histogram and median point (mid = {0:.4f}).'.format(np.median(image_mask[image_mask!=0])))
+        ax2.set_title('pixel value hist and med-point (mid = {0:.4f}).'.format(np.median(image_mask[image_mask!=0])), fontsize=20)
+        ax2.tick_params(labelsize=15)
     return stdd
 
 def model_flux_cal(params_list, model_list = None):
@@ -717,7 +722,7 @@ def plot_data_apertures_point(image, apertures, ps_center_list, savename = None,
     """    
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
-    plt.title('Data and components used to fit')
+    plt.title('Data and components used to fit', fontsize=25)
     # vmin = 1.e-3
     # vmax = 2.1 
     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm())#, vmin=vmin, vmax=vmax)
@@ -731,7 +736,8 @@ def plot_data_apertures_point(image, apertures, ps_center_list, savename = None,
         aperture = apertures[i]
         aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
                       lw=3.5, label = 'comp {0}'.format(i))
-    plt.legend()
+    plt.legend(prop={'size':15})
+    plt.tick_params(labelsize=15)
     if savename is not None:
         plt.savefig(savename)
     if show_plot == True:
