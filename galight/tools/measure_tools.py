@@ -512,7 +512,7 @@ def cr_mask(image, filename='test_circle.reg'):
     return mask    
 
 
-def detect_obj(image, nsigma=2.8, exp_sz= 1.2, npixels = 15, if_plot=False, auto_sort_center = True):  
+def detect_obj(image, nsigma=2.8, exp_sz= 1.2, npixels = 15, contrast=0.001, if_plot=False, auto_sort_center = True):  
     """
     Define the apeatures for all the objects in the image.
     
@@ -557,7 +557,7 @@ def detect_obj(image, nsigma=2.8, exp_sz= 1.2, npixels = 15, if_plot=False, auto
     segm = detect_sources(image, threshold, npixels=npixels, filter_kernel=kernel)
     segm_deblend = deblend_sources(image, segm, npixels=npixels,
                                     filter_kernel=kernel, nlevels=25,
-                                    contrast=0.001)
+                                    contrast=contrast)
     #Number of objects segm_deblend.data.max()
     cat = source_properties(image, segm_deblend)
     columns = ['id', 'xcentroid', 'ycentroid', 'source_sum', 'orientation', 'area']
