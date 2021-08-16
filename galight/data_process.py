@@ -98,9 +98,11 @@ class DataProcess(object):
             self.zp = zp
 
     def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
-                                  bkg_std = None, create_mask = False, if_plot=None, **kwargs):
+                                  bkg_std = None, if_select_obj = False, create_mask = False, 
+                                  if_plot=None, **kwargs):
         """
         Prepare the fitting materials to used for the fitting, including the image cutout, noise map and masks (optional).
+        More important, the apertures that used to define the fitting settings are also generated.
         
         Parameter
         --------
@@ -117,9 +119,13 @@ class DataProcess(object):
                 
             bkg_std: float
                 To input the background noise level.
+                
+            if_select_obj:
+                - if 'True', only selected obj will be modelled. 
             
             create_mask: bool.
-                'True' if masks are needed to input.
+                'True' if to define a mask based on the apertures. Note that the corresponding aperture 
+                will de removed automaticlly. 
 
             if_plot: bool.
                 If 'True', the plots will made during the cut out.
@@ -171,9 +177,21 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
-        apertures = detect_obj(target_stamp, if_plot=create_mask, **kwargs)
+        
+        apertures = detect_obj(target_stamp, if_plot=create_mask and if_select_obj, err=self.bkg_std, **kwargs)
+        if if_select_obj == True:
+            select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
+            if select_idx != '':
+                if sys.version_info.major > 2:
+                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+                else:
+                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
+                apertures_select = [apertures[i] for i in select_idx]  
+            else:
+                apertures_select = apertures
+        
         if create_mask == True:
-            select_idx = str(input('Input directly the a obj idx to mask, use space between each id:\n'))
+            select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
             if sys.version_info.major > 2:
                 select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
             else:
@@ -183,6 +201,8 @@ class DataProcess(object):
             mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
             for i in range(len(mask_list)):
                 target_mask *= mask_list[i]
+        if if_select_obj == True:
+            apertures = [apertures[i] for i in range(len(apertures)) if apertures[i] in apertures_select]
         self.apertures = apertures
         self.target_stamp = target_stamp
         self.target_mask = target_mask
