@@ -511,7 +511,7 @@ def cr_mask(image, filename='test_circle.reg'):
     return mask    
 
 
-def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True,
+def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True, segm_map = False,
                nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, 
                thresh=2.8, err=0.001, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True, clean_param=1.0):  
@@ -641,7 +641,10 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         plt.show()    
         if detect_tool == 'phot':
             print(tbl)
-    return apertures
+    if segm_map == False:
+        return apertures
+    else:
+        return apertures, segm_deblend
 
 def mask_obj(image, apertures, if_plot = True):
     """
