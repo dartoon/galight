@@ -181,11 +181,14 @@ class DataProcess(object):
         apertures = detect_obj(target_stamp, if_plot=create_mask and if_select_obj, err=self.bkg_std, **kwargs)
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
-            if sys.version_info.major > 2:
-                select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+            if select_idx != '':
+                if sys.version_info.major > 2:
+                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+                else:
+                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
+                apertures_select = [apertures[i] for i in select_idx]  
             else:
-                select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
-            apertures_select = [apertures[i] for i in select_idx]            
+                apertures_select = apertures
         
         if create_mask == True:
             select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
@@ -199,7 +202,7 @@ class DataProcess(object):
             for i in range(len(mask_list)):
                 target_mask *= mask_list[i]
         if if_select_obj == True:
-            apertures = apertures_select
+            apertures = [apertures[i] for i in range(len(apertures)) if apertures[i] in apertures_select]
         self.apertures = apertures
         self.target_stamp = target_stamp
         self.target_mask = target_mask

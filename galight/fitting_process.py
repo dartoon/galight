@@ -380,7 +380,7 @@ class FittingProcess(object):
             del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
-def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'shallow'):
+def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'norm'):
     """
     Quick setting up the fitting particles for the 'PSO' and 'MCMC'.
     
