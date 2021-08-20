@@ -56,7 +56,7 @@ class FittingSpecify(object):
                            'compute_mode': 'adaptive',
                           'supersampled_indexes': supersampled_indexes}
         
-        kwargs_numerics = {'supersampling_factor': supersampling_factor} 
+        # kwargs_numerics = {'supersampling_factor': supersampling_factor} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
         multi_band_list = [image_band]
         self.kwargs_data = kwargs_data

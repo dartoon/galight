@@ -177,7 +177,7 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
-        apertures, self.segm_deblend = detect_obj(target_stamp, if_plot= create_mask and if_select_obj, 
+        apertures, self.segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj, 
                                               err=self.noise_map, segm_map= True, **kwargs)
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
@@ -193,11 +193,16 @@ class DataProcess(object):
         if create_mask == True:
             select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
             if sys.version_info.major > 2:
-                select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+                select_idx_list = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
             else:
-                select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
-            apertures_ = [apertures[i] for i in select_idx]
-            apertures = [apertures[i] for i in range(len(apertures)) if i not in select_idx]
+                select_idx_list = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
+            
+            if '!' not in select_idx:
+                apertures_ = [apertures[i] for i in select_idx_list]
+                apertures = [apertures[i] for i in range(len(apertures)) if i not in select_idx_list]
+            else:
+                apertures_ = [apertures[i] for i in range(len(apertures)) if i not in select_idx_list]                            
+                apertures = [apertures[i] for i in range(len(apertures)) if i in select_idx_list]                            
             mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
             for i in range(len(mask_list)):
                 target_mask *= mask_list[i]

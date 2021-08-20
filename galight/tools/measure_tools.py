@@ -587,6 +587,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     elif detect_tool == 'sep':
         import sep
         data = image
+        data = data.byteswap().newbyteorder()
         # data = data.byteswap().newbyteorder()
         objects, segm_deblend = sep.extract(data, thresh=thresh, err=err, mask=mask, minarea=minarea,
                filter_kernel=filter_kernel, filter_type=filter_type,
