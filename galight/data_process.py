@@ -225,7 +225,7 @@ class DataProcess(object):
             ax3.get_yaxis().set_visible(False) 
             plt.show()  
     
-    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', user_option= False):
+    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, if_filter=False, user_option= False):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -243,10 +243,13 @@ class DataProcess(object):
             
             user_option: bool.
                 Only works when PSF_pos_list = None. 
+                
+            psf_edge: int/float.
+                The PSF should be avoid at the edge by how many pixels.
         """
         if PSF_pos_list is None:
             from galight.tools.measure_tools import search_local_max, measure_FWHM
-            init_PSF_locs_ = search_local_max(self.fov_image)
+            init_PSF_locs_ = search_local_max(self.fov_image, radius = psf_edge)
             init_PSF_locs, FWHMs, fluxs, PSF_cutouts = [], [], [], []
             for i in range(len(init_PSF_locs_)):
                 cut_image = cut_center_auto(self.fov_image, center = init_PSF_locs_[i],
@@ -267,15 +270,21 @@ class DataProcess(object):
                 select_bool = (FWHMs<np.median(FWHMs)*1.5)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
             else:
                 select_bool = (FWHMs<np.median(FWHMs)*1.5)
-            PSF_locs = init_PSF_locs[select_bool]    
-            FWHMs = FWHMs[select_bool]
-            fluxs = fluxs[select_bool]
-            PSF_cutouts = PSF_cutouts[select_bool]
+            if if_filter:
+                PSF_locs = init_PSF_locs[select_bool]    
+                FWHMs = FWHMs[select_bool]
+                fluxs = fluxs[select_bool]
+                PSF_cutouts = PSF_cutouts[select_bool]
+            else:
+                PSF_locs = init_PSF_locs
             if user_option == False:
+                print(FWHMs)
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
                 self.PSF_pos_list = [PSF_locs[i] for i in select_idx]            
             else:
                 _row = int(len(PSF_cutouts) / 5) + 1
+                if _row<=1:
+                    _row=2
                 fig, (axs) = plt.subplots(_row, 5, figsize=(15, 3 + 3 * (_row-1)))
                 import matplotlib as mat
                 mat.rcParams['font.family'] = 'STIXGeneral'
