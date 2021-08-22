@@ -36,7 +36,7 @@ class FittingSpecify(object):
             self.sersic_major_axis =  convention_conf['sersic_major_axis']
             
     
-    def sepc_kwargs_data(self, supersampling_factor = 3, psf_data = None, psf_error_map = None):
+    def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
                                                      inverse=True)
@@ -51,7 +51,8 @@ class FittingSpecify(object):
         
         # here we super-sample the resolution of some of the pixels where the surface brightness profile has a high gradient 
         supersampled_indexes = np.zeros((self.numPix, self.numPix), dtype=bool)
-        supersampled_indexes[int(self.numPix/2)-1:int(self.numPix/2)+1, int(self.numPix/2)-1:int(self.numPix/2)+1] = True
+        supersampled_indexes[int(self.numPix/2)-int(self.numPix/10):int(self.numPix/2)+int(self.numPix/10), 
+                             int(self.numPix/2)-int(self.numPix/10):int(self.numPix/2)+int(self.numPix/10)] = True
         kwargs_numerics = {'supersampling_factor': supersampling_factor, 
                            'compute_mode': 'adaptive',
                           'supersampled_indexes': supersampled_indexes}
