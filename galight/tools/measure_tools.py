@@ -587,12 +587,18 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     elif detect_tool == 'sep':
         import sep
         data = image
-        data = data.byteswap().newbyteorder()
-        # data = data.byteswap().newbyteorder()
-        objects, segm_deblend = sep.extract(data, thresh=thresh, err=err, mask=mask, minarea=minarea,
-               filter_kernel=filter_kernel, filter_type=filter_type,
-               deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
-               clean_param=clean_param, segmentation_map=True)
+        data = data.copy(order='C')
+        try:
+            objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
+                   filter_kernel=filter_kernel, filter_type=filter_type,
+                   deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
+                   clean_param=clean_param, segmentation_map=True)   
+        except:
+            data = data.byteswap().newbyteorder()
+            objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
+                   filter_kernel=filter_kernel, filter_type=filter_type,
+                   deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
+                   clean_param=clean_param, segmentation_map=True)
         for i in range(len(objects)):
             position = (objects['x'][i], objects['y'][i])
             a, b = np.sqrt(exp_sz*6)*objects['a'][i], np.sqrt(exp_sz*6)*objects['b'][i]
