@@ -15,6 +15,9 @@ Features
 
 Notebooks:
 ------------
+The online documentation can be found in Read the Docs:
+https://galight.readthedocs.io/
+
 The notebooks of demonstrating how to use ``galight`` can be found in:
 https://github.com/dartoon/galight_notebooks
 
