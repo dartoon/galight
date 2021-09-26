@@ -192,10 +192,10 @@ class DataProcess(object):
         
         if create_mask == True:
             select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
-            if sys.version_info.major > 2:
-                select_idx_list = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
-            else:
-                select_idx_list = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
+            # if sys.version_info.major > 2:
+            #     select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
+            # else:
+            select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
             
             if '!' not in select_idx:
                 apertures_ = [apertures[i] for i in select_idx_list]
