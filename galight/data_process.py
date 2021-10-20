@@ -84,7 +84,8 @@ class DataProcess(object):
         if header is not None:
             self.deltaPix = read_pixel_scale(header)
             if self.deltaPix == 3600.:
-                print("WARNING: pixel size could not read from the header! ")
+                print("WARNING: pixel size could not read from the header, thus the value assigend as 1! ")
+                self.deltaPix = 1.
         if fov_image is not None and rm_bkglight == True:
             bkglight = measure_bkg(fov_image, if_plot=if_plot, **kwargs)
             fov_image = fov_image-bkglight
@@ -133,6 +134,8 @@ class DataProcess(object):
         """
         if if_plot == None:
             if_plot = self.if_plot
+            
+        self.bkg_std = bkg_std
             
         if radius == None:
             if radius_list == None:
