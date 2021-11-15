@@ -1,7 +1,15 @@
 # galight
-A python package that can be used to analysis and model the imaging data.
+A Python-based open-source package that can be used to perform two-dimensional model fitting of optical and near- infrared images to characterize the light distribution of galaxies with components including a disk, bulge, bar and quasar.
 
-Features
+![plot](./figs/fitting_result.png)
+
+Installation
+------------
+    $ git clone https://github.com/dartoon/galight <desired location>
+    $ cd <desired location>
+    $ python setup.py install --user
+
+Additional Features
 ------------
 * Search PSF stars in the FOV.
 ![plot](./figs/find_PSF.png)
@@ -11,7 +19,6 @@ Features
 * Detecting objects in the cutout stamp and quickly create Sersic keywords (in ``lenstronomy`` type) to model them.
 * Model them QSOs and galaxies using 2D Sersic profile and scaled point source, based on [``lenstronomy``](https://github.com/sibirrer/lenstronomy).
 ![plot](./figs/fitting_sets.png)
-![plot](./figs/fitting_result.png)
 
 Notebooks:
 ------------
@@ -23,12 +30,6 @@ https://github.com/dartoon/galight_notebooks
 
 The data used in the example notebook can be found [here](https://drive.google.com/file/d/1ZO9-HzV8K60ijYWK98jGoSoZHjIGW5Lc/view?usp=sharing).
 
-
-Installation
-------------
-    $ git clone https://github.com/dartoon/galight <desired location>
-    $ cd <desired location>
-    $ python setup.py install --user
 
 Requirements
 ------------
