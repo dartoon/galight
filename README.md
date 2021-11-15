@@ -1,5 +1,5 @@
-# galight
-A Python-based open-source package that can be used to perform two-dimensional model fitting of optical and near- infrared images to characterize the light distribution of galaxies with components including a disk, bulge, bar and quasar.
+# galight - Galaxy shapes of Light
+A Python-based open-source package that can be used to perform two-dimensional model fitting of optical and near-infrared images to characterize the light distribution of galaxies with components including a disk, bulge, bar and quasar.
 
 ![plot](./figs/fitting_result.png)
 
