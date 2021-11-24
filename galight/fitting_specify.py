@@ -166,16 +166,18 @@ class FittingSpecify(object):
         if ps_params is None and len(self.point_source_list) > 0:
             from galight.tools.measure_tools import find_loc_max
             x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
-            if x == []:
-                x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
+            # if x == []:
             if len(x) < len(self.point_source_list):
-                warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
+                x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
                 # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
                 #                  the ps_params must input manually or change the neighborhood_size and threshold values")
-                if x ==[]:
-                    x, y = [self.numPix/2], [self.numPix/2]                
-                x = x * len(self.point_source_list)
-                y = y * len(self.point_source_list)
+                if len(x) < len(self.point_source_list):
+                    warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
+                    if x == []:
+                        x, y = [self.numPix/2], [self.numPix/2]                
+                    else:
+                        x = x * len(self.point_source_list)
+                        y = y * len(self.point_source_list)
             flux_ = []
             for i in range(len(x)):
                 flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])

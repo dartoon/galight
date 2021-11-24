@@ -311,7 +311,7 @@ class FittingProcess(object):
         else:
             plt.close()
     
-    def plot_all(self):
+    def plot_all(self, target_ID=None):
         """
         Plot everyting, including:
             -run_diag()
@@ -328,9 +328,9 @@ class FittingProcess(object):
             self.plot_params_corner()
             self.plot_flux_corner()  
         if self.image_ps_list != []:
-            self.plot_final_qso_fit()
+            self.plot_final_qso_fit(target_ID=target_ID)
         else:
-            self.plot_final_galaxy_fit()
+            self.plot_final_galaxy_fit(target_ID=target_ID)
 
     def translate_result(self):
         """
@@ -354,6 +354,69 @@ class FittingProcess(object):
             ps['flux_within_frame'] = np.sum(self.image_ps_list[i])
             ps['magnitude'] = -2.5*np.log10(ps['flux_within_frame']) + self.zp  
             self.final_result_ps[i] = ps
+        
+    def cal_astrometry(self):
+        from astropy.wcs import WCS
+        header = self.fitting_specify_class.data_process_class.header
+        wcs = WCS(header)
+        # pos = wcs.all_world2pix([[ra, dec]], 1)[0]
+        target_pos = self.fitting_specify_class.data_process_class.target_pos
+        wcs.all_pix2world([target_pos], 1)[0]
+        deltaPix = self.fitting_specify_class.deltaPix
+        for i in range(len(self.final_result_ps)):
+            x, y = -self.final_result_ps[i]['ra_image'][0]/deltaPix, self.final_result_ps[i]['dec_image'][0]/deltaPix
+            x_orgframe = x + target_pos[0] + 1
+            y_orgframe = y + target_pos[1] + 1
+            target_ra, target_dec = wcs.all_pix2world([[x_orgframe, y_orgframe]], 1)[0]
+            self.final_result_ps[i]['wcs_RaDec'] = target_ra, target_dec
+            self.final_result_ps[i]['position_xy'] = x, y
+            
+        for i in range(len(self.final_result_galaxy)):
+            x, y = -self.final_result_galaxy[i]['center_x']/deltaPix, self.final_result_galaxy[i]['center_y']/deltaPix
+            x_orgframe = x + target_pos[0] + 1
+            y_orgframe = y + target_pos[1] + 1
+            target_ra, target_dec = wcs.all_pix2world([[x_orgframe, y_orgframe]], 1)[0]
+            self.final_result_galaxy[i]['wcs_RaDec'] = target_ra, target_dec
+            self.final_result_galaxy[i]['position_xy'] = x, y
+    
+    def targets_subtraction(self, sub_gal_list = [], sub_qso_list = [], org_fov_data = None, 
+                           save_fitsfile = False):
+        """
+        Subtract the target from the FOV image, based on the infernece. 
+        
+        Parameter
+        --------
+            sub_gal_list: list of int number.
+                A list of galaxies will be removed.
+                
+            sub_qso_list: list of int number.
+                A list of qso/stars to be removed.
+                
+            org_fov_data: 2D array.
+                Input a the original FOV data, whose pixel grides should be the same as original input.
+            
+        Return
+        --------
+            A FOV image that remove a certain of fitted targets.
+        """
+        if org_fov_data is None:
+            target_removed_fov_data = copy.deepcopy(self.fitting_specify_class.data_process_class.fov_image)
+        else:
+            target_removed_fov_data = org_fov_data
+        header = self.fitting_specify_class.data_process_class.header
+        target_pos = self.fitting_specify_class.data_process_class.target_pos
+        fmr = int(len(self.fitting_specify_class.kwargs_data['image_data'])/2)
+        x_range = target_pos[0]-fmr, target_pos[0]+fmr
+        y_range = target_pos[1]-fmr, target_pos[1]+fmr
+        remove_ = target_removed_fov_data[y_range[0]:y_range[1]+1, x_range[0]:x_range[1]+1 ]
+        for i in sub_gal_list:
+            remove_  -= self.image_host_list[i]
+        for i in sub_qso_list:
+            remove_  -= self.image_ps_list[i]
+        self.fov_image_targets_sub = target_removed_fov_data
+        if save_fitsfile == True:
+            pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov_data.fits',overwrite=True)
+        
             
     def mcmc_result_range(self, chain=None, param=None):
         """
@@ -368,14 +431,15 @@ class FittingProcess(object):
         print("Low {0:.3f}, Mid {1:.3f}, High: {2:.3f}".format(np.percentile(chain[:, checkid],16),
                                                                 np.percentile(chain[:, checkid],50), 
                                                                 np.percentile(chain[:, checkid],84)) )
-    def dump_result(self):
+    def dump_result(self, savedata= False):
         """
         Save all the fitting materials as pickle for the future use. To save space, the data_process_class() will be removed, since it usually includes FOV image which can be huge.
         """        
         savename = self.savename
         dump_class = copy.deepcopy(self)
-        if hasattr(dump_class.fitting_specify_class, 'data_process_class'):
+        if hasattr(dump_class.fitting_specify_class, 'data_process_class') and savedata==False:
             del dump_class.fitting_specify_class.data_process_class
+        if dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition'] != None:
             dump_class.prior = str(dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition'])
             del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
