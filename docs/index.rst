@@ -21,8 +21,8 @@ Contents:
 Feedback
 ========
 
-If you have any suggestions or questions about **Decompose galaxy light profile** feel free to email me
+If you have any suggestions or questions about using ``galight`` feel free to email me
 at xuheng.ding@ipmu.jp.
 
-If you encounter any errors or problems with **Decompose galaxy light profile**, please let me know!
+If you encounter any errors or problems with ``galight``, please let me know!
 Open an Issue at the GitHub http://github.com/dartoon/galight main repository.
