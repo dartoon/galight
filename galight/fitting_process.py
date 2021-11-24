@@ -415,7 +415,7 @@ class FittingProcess(object):
             remove_  -= self.image_ps_list[i]
         self.fov_image_targets_sub = target_removed_fov_data
         if save_fitsfile == True:
-            pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov_data.fits',overwrite=True)
+            pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov.fits',overwrite=True)
         
             
     def mcmc_result_range(self, chain=None, param=None):
