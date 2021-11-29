@@ -60,3 +60,8 @@ def plt_fits(img, norm = LogNorm(), figsize = None, colorbar = False):
     # plt.colorbar()
     # plt.show()
     
+def plt_fits_color(imgs, **args):
+    from astropy.visualization import make_lupton_rgb
+    rgb_default = make_lupton_rgb(imgs[0], imgs[1], imgs[2], **args)
+    plt.imshow(rgb_default, origin='lower')
+    plt.show()
