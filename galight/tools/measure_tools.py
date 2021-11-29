@@ -620,7 +620,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
         vmin = 1.e-3
         vmax = 2.1 
-        ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
+        ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
         ax1.set_title('Data', fontsize=25)
         ax1.tick_params(labelsize=15)
         # if detect_tool == 'phot' and version.parse(photutils.__version__) > version.parse("0.7"):
@@ -736,7 +736,7 @@ def plot_data_apertures(image, apertures, if_plot=True):
     plt.title('Data and apertures sets')
     vmin = 1.e-3
     vmax = 2.1 
-    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
+    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
     np.random.seed(seed = 3)
     for i in range(len(apertures)):
         aperture = apertures[i]

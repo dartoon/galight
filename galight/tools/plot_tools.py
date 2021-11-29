@@ -83,7 +83,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         if_annuli: bool.
             If True, the 1D profile will show the surface brightness in the annuli apertures. 
     """
-    norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
+    # norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 
     f = plt.figure(0, figsize=(6.5+ (cl_num-1)*3.5,4))    
     # f = plt.figure(0, figsize=(17.0,4))  #3
@@ -101,12 +101,11 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         if i >1:
             flux_list_2d[i] = flux_list_2d[i] * mask
         if i == 0:
-            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=norm,
-                                  vmax = flux_list_2d[0].max(), vmin = 1.e-4)
+            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=LogNorm(vmax = flux_list_2d[0].max(), vmin = 1.e-4))
             clim=im_i.properties()['clim'] #To uniform the color bar scale.
             ax_l[i].set_ylabel(target_ID, fontsize=15, weight='bold')
         else:
-            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=norm, clim=clim)
+            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=LogNorm(), clim=clim)
             ax_l[i].get_yaxis().set_visible(False)
         ax_l[i].get_xaxis().set_visible(False)
         scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white')
@@ -224,7 +223,7 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     """
     Similar to total_compare(), i.e., to compare a list of light profiles but without showing normlized residual.
     """
-    norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
+    # norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 
     f = plt.figure(0, figsize=(6.5+ (cl_num-1)*3.5,4))    
     # f = plt.figure(0, figsize=(17.0,4))  #3
@@ -241,12 +240,11 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         if i >1:
             flux_list_2d[i] = flux_list_2d[i] * mask
         if i == 0:
-            im_i = ax_l[i].imshow(flux_list_2d[i] * mask ,origin='lower',cmap=my_cmap, norm=norm,
-                                  vmax = flux_list_2d[0].max(), vmin = 1.e-4)
+            im_i = ax_l[i].imshow(flux_list_2d[i] * mask ,origin='lower',cmap=my_cmap, norm=LogNorm(vmax = flux_list_2d[0].max(), vmin = 1.e-4))
             clim=im_i.properties()['clim'] #To uniform the color bar scale.
             ax_l[i].set_ylabel(target_ID, fontsize=15, weight='bold')
         else:
-            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=norm, clim=clim)
+            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=LogNorm(), clim=clim)
             ax_l[i].get_yaxis().set_visible(False)
         ax_l[i].get_xaxis().set_visible(False)
         scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white')

@@ -29,17 +29,17 @@ class FittingSpecify(object):
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
         self.apertures = copy.deepcopy(data_process_class.apertures)
-        self.sersic_major_axis = True
-        if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
-            from lenstronomy.Conf import config_loader
-            convention_conf = config_loader.conventions_conf()
-            self.sersic_major_axis =  convention_conf['sersic_major_axis']
+        # self.sersic_major_axis = True   #
+        # if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
+        #     from lenstronomy.Conf import config_loader
+        #     convention_conf = config_loader.conventions_conf()
+        #     self.sersic_major_axis =  convention_conf['sersic_major_axis']
             
     
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
-                                                     inverse=True)
+                                                     inverse=True)  #inverse: if True, coordinate system is ra to the left, if False, to the right
         kwargs_data['image_data'] = self.data_process_class.target_stamp
         kwargs_data['noise_map'] = self.data_process_class.noise_map
         
@@ -335,7 +335,7 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
         aper = apertures[i]
         Reff = np.sqrt((aper.a**2 + aper.b**2)/2) * deltaPix
         q = aper.b/aper.a
-        phi = aper.theta
+        phi = - aper.theta # since data_configure_simple(inverse=True), aperture is anti-clock-wise, and inverse=True is clock-wise
         e1, e2 = param_util.phi_q2_ellipticity(phi, q)
         
         if isinstance(apertures[0].positions[0],float): 

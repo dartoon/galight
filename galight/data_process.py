@@ -216,7 +216,7 @@ class DataProcess(object):
         self.target_mask = target_mask
         if if_plot:
             fig, (ax1, ax3, ax2) = plt.subplots(1, 3, figsize=(14, 10))
-            im1 = ax1.imshow(target_stamp, origin='lower', norm=LogNorm(), vmax = target_stamp.max(), vmin = 1.e-4)
+            im1 = ax1.imshow(target_stamp, origin='lower', norm=LogNorm(vmax = target_stamp.max(), vmin = 1.e-4))
             ax1.set_title('Cutout target', fontsize=25)
             fig.colorbar(im1, ax=ax1, pad=0.01,  orientation="horizontal")
             ax1.get_xaxis().set_visible(False)
@@ -226,7 +226,7 @@ class DataProcess(object):
             fig.colorbar(im2, ax=ax2, pad=0.01,  orientation="horizontal")
             ax2.get_xaxis().set_visible(False)
             ax2.get_yaxis().set_visible(False) 
-            im3 = ax3.imshow(target_stamp * target_mask, origin='lower', norm=LogNorm(), vmax = target_stamp.max(), vmin = 1.e-4)
+            im3 = ax3.imshow(target_stamp * target_mask, origin='lower', norm=LogNorm(vmax = target_stamp.max(), vmin = 1.e-4))
             ax3.set_title('data * mask', fontsize=25)
             fig.colorbar(im3, ax=ax3, pad=0.01,  orientation="horizontal")
             ax3.get_xaxis().set_visible(False)
