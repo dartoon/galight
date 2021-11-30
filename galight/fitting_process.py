@@ -357,10 +357,10 @@ class FittingProcess(object):
         
     def cal_astrometry(self):
         from astropy.wcs import WCS
-        header = self.fitting_specify_class.data_process_class.header
+        header = self.fitting_specify_class.header
         wcs = WCS(header)
         # pos = wcs.all_world2pix([[ra, dec]], 1)[0]
-        target_pos = self.fitting_specify_class.data_process_class.target_pos
+        target_pos = self.fitting_specify_class.target_pos
         wcs.all_pix2world([target_pos], 1)[0]
         deltaPix = self.fitting_specify_class.deltaPix
         for i in range(len(self.final_result_ps)):

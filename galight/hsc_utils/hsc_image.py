@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Import from Connor Bottrell for HSC image download
+https://github.com/cbottrell
+"""
 import os,sys,time,requests
 import tarfile,tempfile, getpass
 
