@@ -130,6 +130,9 @@ class DataProcess(object):
 
             if_plot: bool.
                 If 'True', the plots will made during the cut out.
+                
+            **kwargs:
+                Arguments can also passed to detect_obj()
                         
         """
         if if_plot == None:

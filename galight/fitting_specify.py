@@ -31,6 +31,7 @@ class FittingSpecify(object):
         self.apertures = copy.deepcopy(data_process_class.apertures)
         self.header = data_process_class.header
         self.target_pos = data_process_class.target_pos
+        self.segm_deblend = data_process_class.segm_deblend
         # self.sersic_major_axis = True   #
         # if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
         #     from lenstronomy.Conf import config_loader
@@ -199,14 +200,6 @@ class FittingSpecify(object):
         else:
             ps_params = ps_params            
         kwargs_params['point_source_model'] = ps_params
-        
-        # if center_list == []:
-        #     center_pix_pos = []
-        # else:
-        #     center_list = np.array(center_list)
-        #     center_pix_pos = center_list
-        #     center_pix_pos[:,0] =  -1 * center_pix_pos[:,0]
-        #     center_pix_pos = center_pix_pos + int(self.numPix/2)
             
         center_pix_pos = []
         if len(self.point_source_list) > 0:

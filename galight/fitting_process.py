@@ -18,7 +18,7 @@ matt.rcParams['font.family'] = 'STIXGeneral'
 from lenstronomy.Plots.model_plot import ModelPlot
 from galight.tools.plot_tools import total_compare
 from packaging import version
-import lenstronomy
+import lenstronomy, statmorph
 
 class FittingProcess(object):
     """
@@ -416,8 +416,34 @@ class FittingProcess(object):
         self.fov_image_targets_sub = target_removed_fov_data
         if save_fitsfile == True:
             pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov.fits',overwrite=True)
+
+    def cal_statmorph(self, obj_id=0, segm = None):
+        if segm is None:
+            segm = self.fitting_specify_class.segm_deblend
+        obj_id = obj_id
+        apertures = self.fitting_specify_class.apertures
+        pix_pos = np.intc(apertures[obj_id].positions)
+        seg_idx = segm.data[pix_pos[1], pix_pos[0]]
+        segmap = segm.data == seg_idx
+        import scipy.ndimage as ndi
+        segmap_float = ndi.uniform_filter(np.float64(segmap), size=10)
+        segmap = segmap_float > 0.5
+        mask = np.zeros_like(segm.data, dtype=np.bool)
+        for i in range(1,segm.data.max()+1):
+            if i != seg_idx:
+                mask_  = segm.data == i
+                mask = mask + mask_
+        feeddata = copy.deepcopy(self.fitting_specify_class.kwargs_data['image_data'])
+        for i in range(len(self.image_host_list)):
+            if i != obj_id:
+                feeddata -= self.image_host_list[i]
+        for i in range(len(self.image_ps_list)):
+            feeddata -= self.image_ps_list[i]
+        source_morphs = statmorph.source_morphology(feeddata, segmap, 
+                                                    weightmap=self.fitting_specify_class.kwargs_data['noise_map'], 
+                                                    psf=self.fitting_specify_class.kwargs_psf['kernel_point_source'],mask = mask)
+        return source_morphs[0]
         
-            
     def mcmc_result_range(self, chain=None, param=None):
         """
         Quick checkout the MCMC fitting 1-sigma range.
