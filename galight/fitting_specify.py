@@ -32,11 +32,11 @@ class FittingSpecify(object):
         self.header = data_process_class.header
         self.target_pos = data_process_class.target_pos
         self.segm_deblend = data_process_class.segm_deblend
-        # self.sersic_major_axis = True   #
-        # if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
-        #     from lenstronomy.Conf import config_loader
-        #     convention_conf = config_loader.conventions_conf()
-        #     self.sersic_major_axis =  convention_conf['sersic_major_axis']
+        self.sersic_major_axis = True   #
+        if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
+            from lenstronomy.Conf import config_loader
+            convention_conf = config_loader.conventions_conf()
+            self.sersic_major_axis =  convention_conf['sersic_major_axis']
             
     
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
