@@ -420,20 +420,25 @@ class FittingProcess(object):
     def cal_statmorph(self, obj_id=0, segm = None):
         if segm is None:
             segm = self.fitting_specify_class.segm_deblend
+        if isinstance(self.fitting_specify_class.segm_deblend, (np.ndarray)):
+            data = segm
+        else:
+            data = segm.data
+            
         obj_id = obj_id
         apertures = self.fitting_specify_class.apertures
         pix_pos = np.intc(apertures[obj_id].positions)
-        seg_idx = segm.data[pix_pos[1], pix_pos[0]]
-        segmap = segm.data == seg_idx
+        seg_idx = data[pix_pos[1], pix_pos[0]]
+        segmap = data == seg_idx
         import scipy.ndimage as ndi
         segmap_float = ndi.uniform_filter(np.float64(segmap), size=10)
         segmap_ = segmap_float > 0.5
         if np.sum(segmap_)>10:
             segmap = segmap_
-        mask = np.zeros_like(segm.data, dtype=np.bool)
-        for i in range(1,segm.data.max()+1):
+        mask = np.zeros_like(data, dtype=np.bool)
+        for i in range(1,data.max()+1):
             if i != seg_idx:
-                mask_  = segm.data == i
+                mask_  = data == i
                 mask = mask + mask_
         feeddata = copy.deepcopy(self.fitting_specify_class.kwargs_data['image_data'])
         for i in range(len(self.image_host_list)):
