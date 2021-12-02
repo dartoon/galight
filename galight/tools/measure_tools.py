@@ -559,9 +559,9 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
         kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3)
         kernel.normalize()
-        segm = detect_sources(image, threshold, npixels=npixels, filter_kernel=kernel)
+        segm = detect_sources(image, threshold, npixels=npixels, kernel=kernel)
         segm_deblend = deblend_sources(image, segm, npixels=npixels,
-                                        filter_kernel=kernel, nlevels=nlevels,
+                                        kernel=kernel, nlevels=nlevels,
                                         contrast=contrast)
         #Number of objects segm_deblend.data.max()
         cat = source_properties(image, segm_deblend)

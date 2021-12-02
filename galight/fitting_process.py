@@ -427,7 +427,9 @@ class FittingProcess(object):
         segmap = segm.data == seg_idx
         import scipy.ndimage as ndi
         segmap_float = ndi.uniform_filter(np.float64(segmap), size=10)
-        segmap = segmap_float > 0.5
+        segmap_ = segmap_float > 0.5
+        if np.sum(segmap_)>10:
+            segmap = segmap_
         mask = np.zeros_like(segm.data, dtype=np.bool)
         for i in range(1,segm.data.max()+1):
             if i != seg_idx:
