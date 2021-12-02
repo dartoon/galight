@@ -47,12 +47,14 @@ def read_fits_exp(header):
     """    
     return header['EXPTIME']
 
-def plt_fits(img, norm = LogNorm(), figsize = None, colorbar = False):
+def plt_fits(img, norm = None, figsize = None, colorbar = False):
     """
     Directly plot a 2D image using imshow.
     """
     fig, ax = plt.subplots(figsize=figsize)
-    plt.imshow(img, norm=norm, origin='lower', vmax = np.max(img[~np.isnan(img)])) 
+    if norm is None:
+        norm = LogNorm(np.max(img[~np.isnan(img)]))
+    plt.imshow(img, norm=norm, origin='lower') 
     if colorbar == True:
         plt.colorbar()
     plt.show()     

@@ -111,8 +111,9 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white')
         if arrows == True:
             coordinate_arrows(ax_l[i], frame_size, arrow_size=0.03, color = 'white')
+        ticks= np.array([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])
         cb_i = f.colorbar(im_i, ax=ax_l[i], shrink=0.48, pad=0.01,  orientation="horizontal", 
-                          aspect=15, ticks= [1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])
+                          aspect=15, ticks=ticks)
         # cb_i.ax.set_xticklabels([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])   
         if len(label_list_2d[i])>10:
             fontsize = 17
