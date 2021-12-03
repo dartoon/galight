@@ -153,7 +153,7 @@ def plot_overview(img, center_target,  target_label = None, c_psf_list=None, lab
     PSF_box_size = np.min(img.shape)/109
     fig = plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
-    ax.imshow(img,origin='lower', cmap=my_cmap, norm=LogNorm(), vmin=vmin, vmax=vmax)
+    ax.imshow(img,origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
     QSO_reg = pix_region(center_target, radius= QSO_box_size)
     QSO_mask = QSO_reg.to_mask(mode='center')
     if target_label == None:
