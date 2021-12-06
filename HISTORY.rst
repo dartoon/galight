@@ -21,7 +21,7 @@ History
 * Remove any objs in the original fov image.
 * Include the HSC_utils by Connor.
 
-0.1.2 (2021-11-16)
+0.1.2 (2021-12-06)
 ++++++++++++++++++
 
 * Debug the aperture alignment issue. 
