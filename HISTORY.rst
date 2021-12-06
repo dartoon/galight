@@ -16,7 +16,14 @@ History
 0.1.1 (2021-11-16)
 ++++++++++++++++++
 
-* Debug the aperture alignment
-* Calcualte astrometry information for objs
-* Remove any objs in the original fov image
-* Include the HSC_utils by Connor
+* Debug the aperture alignment.
+* Calcualte astrometry information for objs.
+* Remove any objs in the original fov image.
+* Include the HSC_utils by Connor.
+
+0.1.2 (2021-11-16)
+++++++++++++++++++
+
+* Debug the aperture alignment issue. 
+* Synchronous upgrade for other package.
+* A bridge between galight and statmorph.
