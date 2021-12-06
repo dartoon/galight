@@ -417,7 +417,7 @@ class FittingProcess(object):
         if save_fitsfile == True:
             pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov.fits',overwrite=True)
 
-    def cal_statmorph(self, obj_id=0, segm = None):
+    def cal_statmorph(self, obj_id=0, segm = None, if_plot=False):
         if segm is None:
             segm = self.fitting_specify_class.segm_deblend
         if isinstance(self.fitting_specify_class.segm_deblend, (np.ndarray)):
@@ -446,6 +446,26 @@ class FittingProcess(object):
                 feeddata -= self.image_host_list[i]
         for i in range(len(self.image_ps_list)):
             feeddata -= self.image_ps_list[i]
+        if if_plot:
+            from matplotlib.colors import LogNorm
+            fig, (ax1, ax3, ax2) = plt.subplots(1, 3, figsize=(14, 10))
+            im1 = ax1.imshow(feeddata, origin='lower', norm=LogNorm(vmax = feeddata.max(), vmin = 1.e-4))
+            ax1.set_title('Data input to starmorph', fontsize=25)
+            fig.colorbar(im1, ax=ax1, pad=0.01,  orientation="horizontal")
+            ax1.get_xaxis().set_visible(False)
+            ax1.get_yaxis().set_visible(False) 
+            im2 = ax2.imshow(segmap, origin='lower')
+            ax2.set_title('Segmap', fontsize=25)
+            fig.colorbar(im2, ax=ax2, pad=0.01,  orientation="horizontal")
+            ax2.get_xaxis().set_visible(False)
+            ax2.get_yaxis().set_visible(False) 
+            im3 = ax3.imshow(feeddata * (1-mask), origin='lower', norm=LogNorm(vmax = feeddata.max(), vmin = 1.e-4))
+            ax3.set_title('data * mask', fontsize=25)
+            fig.colorbar(im3, ax=ax3, pad=0.01,  orientation="horizontal")
+            ax3.get_xaxis().set_visible(False)
+            ax3.get_yaxis().set_visible(False) 
+            plt.show()         
+        
         source_morphs = statmorph.source_morphology(feeddata, segmap, 
                                                     weightmap=self.fitting_specify_class.kwargs_data['noise_map'], 
                                                     psf=self.fitting_specify_class.kwargs_psf['kernel_point_source'],mask = mask)
