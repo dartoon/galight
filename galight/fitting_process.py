@@ -265,11 +265,11 @@ class FittingProcess(object):
         model = ps_image + galaxy_image
         data_removePSF = data - ps_image
         norm_residual = (data - model)/noise
-        flux_list_2d = [data, model, data_removePSF, norm_residual]
-        label_list_2d = ['data', 'model', 'data-Point Source', 'normalized residual']
-        flux_list_1d = [data, model, ps_image, galaxy_image]
-        label_list_1d = ['data', 'model', 'Point Source', '{0} galaxy(s)'.format(len(galaxy_list))]
-        fig = total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d, deltaPix = self.fitting_specify_class.deltaPix,
+        flux_dict_2d = {'data':data, 'model':model, 'data-Point Source':data_removePSF, 'normalized residual':norm_residual}
+        self.flux_2d_out = flux_dict_2d
+        flux_dict_1d = {'data':data, 'model':model, 'Point Source':ps_image, '{0} galaxy(s)'.format(len(galaxy_list)):galaxy_image}
+        self.flux_1d_out = flux_dict_1d
+        fig = total_compare(list(flux_dict_2d.values()), list(flux_dict_2d.keys()), list(flux_dict_1d.values()), list(flux_dict_1d.keys()), deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID)
@@ -295,11 +295,11 @@ class FittingProcess(object):
             galaxy_image = galaxy_image+galaxy_list[i]
         model = galaxy_image
         norm_residual = (data - model)/noise
-        flux_list_2d = [data, model, norm_residual]
-        label_list_2d = ['data', 'model', 'normalized residual']
-        flux_list_1d = [data, model]
-        label_list_1d = ['data', 'model ({0} galaxy(s))'.format(len(galaxy_list))]
-        fig = total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d, deltaPix = self.fitting_specify_class.deltaPix,
+        flux_dict_2d = {'data':data, 'model':model, 'normalized residual':norm_residual}
+        self.flux_2d_out = flux_dict_2d
+        flux_dict_1d = {'data':data, 'model ({0} galaxy(s))'.format(len(galaxy_list)):model}
+        self.flux_1d_out = flux_dict_1d
+        fig = total_compare(list(flux_dict_2d.values()), list(flux_dict_2d.keys()), list(flux_dict_1d.values()), list(flux_dict_1d.keys()), deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID)
