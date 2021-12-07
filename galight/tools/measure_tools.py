@@ -545,115 +545,118 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     """ 
     from photutils import EllipticalAperture
     apertures = []
-    if detect_tool == 'phot':
-        from photutils import detect_threshold
-        from astropy.stats import gaussian_fwhm_to_sigma
-        from astropy.convolution import Gaussian2DKernel
-        from photutils import detect_sources,deblend_sources   
-        from photutils import source_properties
-        if version.parse(photutils.__version__) > version.parse("0.7"):
-            threshold = detect_threshold(image, nsigma=nsigma)
-        else:
-            threshold = detect_threshold(image, snr=nsigma)
-        # center_image = len(image)/2
-        sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
-        kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3)
-        kernel.normalize()
-        if version.parse(photutils.__version__) >= version.parse("1.2.0"):
-            segm = detect_sources(image, threshold, npixels=npixels, kernel=kernel)
-            segm_deblend = deblend_sources(image, segm, npixels=npixels,
-                                            kernel=kernel, nlevels=nlevels,
-                                            contrast=contrast)
-        else:
-            segm = detect_sources(image, threshold, npixels=npixels, filter_kernel=kernel)
-            segm_deblend = deblend_sources(image, segm, npixels=npixels,
-                                            filter_kernel=kernel, nlevels=nlevels,
-                                            contrast=contrast)
-        #Number of objects segm_deblend.data.max()
-        cat = source_properties(image, segm_deblend)
-        columns = ['id', 'xcentroid', 'ycentroid', 'source_sum', 'orientation', 'area']
-        tbl = cat.to_table(columns=columns)
-        tbl['xcentroid'].info.format = '.2f'  # optional format
-        tbl['ycentroid'].info.format = '.2f'
-        tbl['id'] -= 1
-        segm_deblend_size = segm_deblend.areas
-        for obj in cat:
-            size = segm_deblend_size[obj.id-1]
-            position = (obj.xcentroid.value, obj.ycentroid.value)
-            a_o = obj.semimajor_axis_sigma.value
-            b_o = obj.semiminor_axis_sigma.value
-            size_o = np.pi * a_o * b_o
-            r = np.sqrt(size/size_o)*exp_sz
-            a, b = a_o*r, b_o*r
-            if version.parse(photutils.__version__) > version.parse("0.7"):
-                theta = obj.orientation.value / 180 * np.pi
-            else:
-                theta = obj.orientation.value
-            apertures.append(EllipticalAperture(position, a, b, theta=theta))     
-    elif detect_tool == 'sep':
-        import sep
-        data = image
-        data = data.copy(order='C')
-        try:
-            objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
-                   filter_kernel=filter_kernel, filter_type=filter_type,
-                   deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
-                   clean_param=clean_param, segmentation_map=True)   
-        except:
-            data = data.byteswap().newbyteorder()
-            objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
-                   filter_kernel=filter_kernel, filter_type=filter_type,
-                   deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
-                   clean_param=clean_param, segmentation_map=True)
-        for i in range(len(objects)):
-            position = (objects['x'][i], objects['y'][i])
-            a, b = np.sqrt(exp_sz*6)*objects['a'][i], np.sqrt(exp_sz*6)*objects['b'][i]
-            theta = objects['theta'][i]
-            apertures.append(EllipticalAperture(position, a, b, theta=theta))     
-    
-    if auto_sort_center == True:
-        center = np.array([len(image)/2, len(image)/2])
-        dis_sq = [np.sum((apertures[i].positions - center)**2) for i in range(len(apertures))]
-        dis_sq = np.array(dis_sq)
-        c_idx = np.where(dis_sq == dis_sq.min())[0][0]
-        apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]
+    try:
         if detect_tool == 'phot':
-            cat = [cat[c_idx]] + [cat[i] for i in range(len(cat)) if i != c_idx] 
-            tbl['id'][0] = c_idx
-            tbl['id'][c_idx] = 0
+            from photutils import detect_threshold
+            from astropy.stats import gaussian_fwhm_to_sigma
+            from astropy.convolution import Gaussian2DKernel
+            from photutils import detect_sources,deblend_sources   
+            from photutils import source_properties
+            if version.parse(photutils.__version__) > version.parse("0.7"):
+                threshold = detect_threshold(image, nsigma=nsigma)
+            else:
+                threshold = detect_threshold(image, snr=nsigma)
+            # center_image = len(image)/2
+            sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
+            kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3)
+            kernel.normalize()
+            if version.parse(photutils.__version__) >= version.parse("1.2.0"):
+                segm = detect_sources(image, threshold, npixels=npixels, kernel=kernel)
+                segm_deblend = deblend_sources(image, segm, npixels=npixels,
+                                                kernel=kernel, nlevels=nlevels,
+                                                contrast=contrast)
+            else:
+                segm = detect_sources(image, threshold, npixels=npixels, filter_kernel=kernel)
+                segm_deblend = deblend_sources(image, segm, npixels=npixels,
+                                                filter_kernel=kernel, nlevels=nlevels,
+                                                contrast=contrast)
+            #Number of objects segm_deblend.data.max()
+            cat = source_properties(image, segm_deblend)
+            columns = ['id', 'xcentroid', 'ycentroid', 'source_sum', 'orientation', 'area']
+            tbl = cat.to_table(columns=columns)
+            tbl['xcentroid'].info.format = '.2f'  # optional format
+            tbl['ycentroid'].info.format = '.2f'
+            tbl['id'] -= 1
+            segm_deblend_size = segm_deblend.areas
+            for obj in cat:
+                size = segm_deblend_size[obj.id-1]
+                position = (obj.xcentroid.value, obj.ycentroid.value)
+                a_o = obj.semimajor_axis_sigma.value
+                b_o = obj.semiminor_axis_sigma.value
+                size_o = np.pi * a_o * b_o
+                r = np.sqrt(size/size_o)*exp_sz
+                a, b = a_o*r, b_o*r
+                if version.parse(photutils.__version__) > version.parse("0.7"):
+                    theta = obj.orientation.value / 180 * np.pi
+                else:
+                    theta = obj.orientation.value
+                apertures.append(EllipticalAperture(position, a, b, theta=theta))     
+        elif detect_tool == 'sep':
+            import sep
+            data = image
+            data = data.copy(order='C')
+            try:
+                objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
+                       filter_kernel=filter_kernel, filter_type=filter_type,
+                       deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
+                       clean_param=clean_param, segmentation_map=True)   
+            except:
+                data = data.byteswap().newbyteorder()
+                objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
+                       filter_kernel=filter_kernel, filter_type=filter_type,
+                       deblend_nthresh=deblend_nthresh, deblend_cont=deblend_cont, clean=clean,
+                       clean_param=clean_param, segmentation_map=True)
+            for i in range(len(objects)):
+                position = (objects['x'][i], objects['y'][i])
+                a, b = np.sqrt(exp_sz*6)*objects['a'][i], np.sqrt(exp_sz*6)*objects['b'][i]
+                theta = objects['theta'][i]
+                apertures.append(EllipticalAperture(position, a, b, theta=theta))     
         
-    if if_plot == True:
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
-        vmin = 1.e-3
-        vmax = 2.1 
-        ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
-        ax1.set_title('Data', fontsize=25)
-        ax1.tick_params(labelsize=15)
-        # if detect_tool == 'phot' and version.parse(photutils.__version__) > version.parse("0.7"):
-        ax2.imshow(segm_deblend, origin='lower')
-        # elif detect_tool == 'phot':
-        #     ax2.imshow(segm_deblend, origin='lower')
-        # elif detect_tool == 'sep':
-        #     ax2.imshow(segm_deblend, origin='lower')
-
-        for i in range(len(apertures)):
-            plt_xi, plt_yi = apertures[i].positions
-            ax2.text(plt_xi, plt_yi, '{0}'.format(i), fontsize=25,
-                     bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
+        if auto_sort_center == True:
+            center = np.array([len(image)/2, len(image)/2])
+            dis_sq = [np.sum((apertures[i].positions - center)**2) for i in range(len(apertures))]
+            dis_sq = np.array(dis_sq)
+            c_idx = np.where(dis_sq == dis_sq.min())[0][0]
+            apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]
+            if detect_tool == 'phot':
+                cat = [cat[c_idx]] + [cat[i] for i in range(len(cat)) if i != c_idx] 
+                tbl['id'][0] = c_idx
+                tbl['id'][c_idx] = 0
             
-        for i in range(len(apertures)):
-            aperture = apertures[i]
-            if version.parse(photutils.__version__) > version.parse("0.7"):
-                aperture.plot(color='white', lw=1.5, axes=ax1)
-                aperture.plot(color='white', lw=1.5, axes=ax2)           
-            else:
-                aperture.plot(color='white', lw=1.5, ax=ax1)
-                aperture.plot(color='white', lw=1.5, ax=ax2)                       
-        ax2.set_title('Segmentation Image', fontsize=25)
-        ax2.tick_params(labelsize=15)
-        plt.show()    
-        if detect_tool == 'phot':
-            print(tbl)
+        if if_plot == True:
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
+            vmin = 1.e-3
+            vmax = 2.1 
+            ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
+            ax1.set_title('Data', fontsize=25)
+            ax1.tick_params(labelsize=15)
+            # if detect_tool == 'phot' and version.parse(photutils.__version__) > version.parse("0.7"):
+            ax2.imshow(segm_deblend, origin='lower')
+            # elif detect_tool == 'phot':
+            #     ax2.imshow(segm_deblend, origin='lower')
+            # elif detect_tool == 'sep':
+            #     ax2.imshow(segm_deblend, origin='lower')
+    
+            for i in range(len(apertures)):
+                plt_xi, plt_yi = apertures[i].positions
+                ax2.text(plt_xi, plt_yi, '{0}'.format(i), fontsize=25,
+                         bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
+                
+            for i in range(len(apertures)):
+                aperture = apertures[i]
+                if version.parse(photutils.__version__) > version.parse("0.7"):
+                    aperture.plot(color='white', lw=1.5, axes=ax1)
+                    aperture.plot(color='white', lw=1.5, axes=ax2)           
+                else:
+                    aperture.plot(color='white', lw=1.5, ax=ax1)
+                    aperture.plot(color='white', lw=1.5, ax=ax2)                       
+            ax2.set_title('Segmentation Image', fontsize=25)
+            ax2.tick_params(labelsize=15)
+            plt.show()    
+            if detect_tool == 'phot':
+                print(tbl)
+    except:
+        segm_deblend = None
     if segm_map == False:
         return apertures
     else:
