@@ -147,7 +147,10 @@ class DataProcess(object):
                 from galight.tools.measure_tools import fit_data_oneD_gaussian
                 _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=rad)
                 edge_data = np.concatenate([_cut_data[0,:],_cut_data[-1,:],_cut_data[:,0], _cut_data[:,-1]])
-                gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
+                try:
+                    gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
+                except:
+                    gauss_mean, gauss_1sig = np.mean(edge_data), np.std(edge_data)
                 up_limit = gauss_mean + 2 * gauss_1sig
                 percent = np.sum(edge_data>up_limit)/float(len(edge_data))
                 if percent<0.03:
