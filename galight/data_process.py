@@ -186,8 +186,11 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
-        apertures, self.segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj, 
-                                              err=self.noise_map, segm_map= True, **kwargs)
+        try:
+            apertures, self.segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj, 
+                                                      err=self.noise_map, segm_map= True, **kwargs)
+        except:
+            apertures, self.segm_deblend = [], None
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
             if select_idx != '':
