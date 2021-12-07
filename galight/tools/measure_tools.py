@@ -662,7 +662,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     else:
         return apertures, segm_deblend
 
-def mask_obj(image, apertures, if_plot = True):
+def mask_obj(image, apertures, if_plot = False, sum_mask = False):
     """
     Automaticlly generate a list of masked based on the input apertures.
     """
@@ -689,6 +689,11 @@ def mask_obj(image, apertures, if_plot = True):
             axi.imshow(mask, origin='lower')
             plt.show()
         masks.append(mask)
+    if sum_mask == True:
+        mask_ = copy.deepcopy(masks[0])
+        for i in range(len(masks)-1):
+            mask_ = mask_*masks[i+1]
+        masks = mask_
     return masks
 
 def esti_bgkstd(image, nsigma=2, exp_sz= 1.5, npixels = 15, if_plot=False):
