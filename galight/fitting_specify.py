@@ -239,7 +239,7 @@ class FittingSpecify(object):
         if self.light_model_list is None:
             imageModel = ImageModel(data_class, psf_class, point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)  
         else:
-            imageModel = ImageModel(data_class, psf_class, source_model_class=lightModel,
+            imageModel = ImageModel(data_class, psf_class, lens_light_model_class=lightModel,
                                     point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)   
         self.data_class = data_class
         self.psf_class = psf_class

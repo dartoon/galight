@@ -93,7 +93,7 @@ class FittingProcess(object):
         imageModel = fitting_specify_class.imageModel
         image_host_list = []  #The linear_solver before and after LensModelPlot could have different result for very faint sources.
         for i in range(len(source_result)):
-            image_host_list.append(imageModel.source_surface_brightness(source_result, de_lensed=True,unconvolved=False,k=i))
+            image_host_list.append(imageModel.lens_surface_brightness(source_result, unconvolved=False,k=i))
         
         image_ps_list = []
         for i in range(len(ps_result)):
@@ -137,7 +137,7 @@ class FittingProcess(object):
                         flux_list_quasar.append(np.sum(image_ps_j))
                 flux_list_galaxy = []
                 for j in range(len(fitting_specify_class.light_model_list)):
-                    image_j = fitting_specify_class.imageModel.source_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
+                    image_j = fitting_specify_class.imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
                     flux_list_galaxy.append(np.sum(image_j))
                 mcmc_flux_list.append(flux_list_quasar + flux_list_galaxy )
                 if int(i/1000) > int((i-1)/1000) :
