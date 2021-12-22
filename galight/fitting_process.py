@@ -17,8 +17,8 @@ import matplotlib as matt
 matt.rcParams['font.family'] = 'STIXGeneral'
 from lenstronomy.Plots.model_plot import ModelPlot
 from galight.tools.plot_tools import total_compare
-from packaging import version
 import lenstronomy, statmorph
+
 
 class FittingProcess(object):
     """
