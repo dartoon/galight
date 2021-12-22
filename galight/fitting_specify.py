@@ -78,7 +78,6 @@ class FittingSpecify(object):
         self.point_source_list = point_source_list
         self.light_model_list = light_model_list
         kwargs_model['sersic_major_axis'] = self.sersic_major_axis
-        print('test +++++++')
         self.kwargs_model = kwargs_model
         
     def sepc_kwargs_constraints(self, fix_center_list = None):
