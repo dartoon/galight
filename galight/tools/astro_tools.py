@@ -53,7 +53,7 @@ def plt_fits(img, norm = None, figsize = None, colorbar = False):
     """
     fig, ax = plt.subplots(figsize=figsize)
     if norm is None:
-        norm = LogNorm(np.max(img[~np.isnan(img)]))
+        norm = LogNorm()#np.max(img[~np.isnan(img)]))
     plt.imshow(img, norm=norm, origin='lower') 
     if colorbar == True:
         plt.colorbar()

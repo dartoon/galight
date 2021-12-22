@@ -17,7 +17,8 @@ import matplotlib as matt
 matt.rcParams['font.family'] = 'STIXGeneral'
 from lenstronomy.Plots.model_plot import ModelPlot
 from galight.tools.plot_tools import total_compare
-import lenstronomy, statmorph
+from packaging import version
+import lenstronomy
 
 
 class FittingProcess(object):
@@ -85,15 +86,15 @@ class FittingProcess(object):
         from lenstronomy.ImSim.image_linear_solve import ImageLinearFit
         imageLinearFit = ImageLinearFit(data_class=fitting_specify_class.data_class, 
                                         psf_class=fitting_specify_class.psf_class,
-                                        source_model_class=fitting_specify_class.lightModel,
+                                        lens_light_model_class=fitting_specify_class.lightModel,
                                         point_source_class=fitting_specify_class.pointSource, 
                                         kwargs_numerics=fitting_specify_class.kwargs_numerics)    
-        image_reconstructed, error_map, _, _ = imageLinearFit.image_linear_solve(kwargs_source=source_result,
+        image_reconstructed, error_map, _, _ = imageLinearFit.image_linear_solve(kwargs_lens_light=source_result,
                                                                                  kwargs_ps=ps_result)
         imageModel = fitting_specify_class.imageModel
         image_host_list = []  #The linear_solver before and after LensModelPlot could have different result for very faint sources.
         for i in range(len(source_result)):
-            image_host_list.append(imageModel.source_surface_brightness(source_result, de_lensed=True,unconvolved=False,k=i))
+            image_host_list.append(imageModel.lens_surface_brightness(source_result, unconvolved=False,k=i))
         
         image_ps_list = []
         for i in range(len(ps_result)):
@@ -128,7 +129,7 @@ class FittingProcess(object):
                 kwargs_out = param.args2kwargs(self.samples_mcmc[i])
                 kwargs_light_source_out = kwargs_out['kwargs_lens_light']
                 kwargs_ps_out =  kwargs_out['kwargs_ps']
-                image_reconstructed, _, _, _ = imageLinearFit.image_linear_solve(kwargs_source=kwargs_light_source_out,
+                image_reconstructed, _, _, _ = imageLinearFit.image_linear_solve(kwargs_lens_light=kwargs_light_source_out,
                                                                                       kwargs_ps=kwargs_ps_out)
                 flux_list_quasar = []
                 if len(fitting_specify_class.point_source_list) > 0:
@@ -137,7 +138,7 @@ class FittingProcess(object):
                         flux_list_quasar.append(np.sum(image_ps_j))
                 flux_list_galaxy = []
                 for j in range(len(fitting_specify_class.light_model_list)):
-                    image_j = fitting_specify_class.imageModel.source_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
+                    image_j = fitting_specify_class.imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
                     flux_list_galaxy.append(np.sum(image_j))
                 mcmc_flux_list.append(flux_list_quasar + flux_list_galaxy )
                 if int(i/1000) > int((i-1)/1000) :
@@ -418,6 +419,7 @@ class FittingProcess(object):
             pyfits.PrimaryHDU(self.fov_image_targets_sub,header=header).writeto(self.savename+'_target_removed_fov.fits',overwrite=True)
 
     def cal_statmorph(self, obj_id=0, segm = None, if_plot=False):
+        import statmorph
         if segm is None:
             segm = self.fitting_specify_class.segm_deblend
         if isinstance(self.fitting_specify_class.segm_deblend, (np.ndarray)):

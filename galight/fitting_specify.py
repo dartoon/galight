@@ -132,7 +132,7 @@ class FittingSpecify(object):
             kwargs_likelihood['check_positive_flux'] = True #penalty is any component's flux is 'negative'.
         self.kwargs_likelihood = kwargs_likelihood
         
-    def sepc_kwargs_params(self, source_params = None, fix_n_list = None, fix_Re_list = None, ps_params = None, 
+    def sepc_kwargs_params(self, source_params = None, fix_n_list = None, fix_Re_list = None, ps_params = None, ps_pix_center_list= None,
                            neighborhood_size = 4, threshold = 5, apertures_center_focus = False):
         """
         Setting up the 'kwargs_params' (i.e., the parameters) for the fitting. If 'source_params' or 'ps_params'
@@ -167,35 +167,41 @@ class FittingSpecify(object):
             kwargs_params['lens_light_model'] = source_params
             
         if ps_params is None and len(self.point_source_list) > 0:
-            from galight.tools.measure_tools import find_loc_max
-            x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
-            # if x == []:
-            if len(x) < len(self.point_source_list):
-                x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
-                # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
-                #                  the ps_params must input manually or change the neighborhood_size and threshold values")
+            if ps_pix_center_list is None:
+                from galight.tools.measure_tools import find_loc_max
+                x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold)  #Automaticlly find the local max as PS center.
+                # if x == []:
                 if len(x) < len(self.point_source_list):
-                    warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
-                    if x == []:
-                        x, y = [self.numPix/2], [self.numPix/2]                
-                    else:
-                        x = x * len(self.point_source_list)
-                        y = y * len(self.point_source_list)
-            flux_ = []
-            for i in range(len(x)):
-                flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])
-            _id = np.flipud(np.argsort(flux_))
-            arr_x = np.array(x)
-            arr_y = np.array(y)
-            ps_x = - 1 * ((arr_x - int(self.numPix/2) ) )
-            ps_y = (arr_y - int(self.numPix/2) )
-            center_list = []
-            flux_list = []
-            for i in range(len(self.point_source_list)):
-                center_list.append([ps_x[_id[i]], ps_y[_id[i]]])
-                flux_list.append(flux_[_id[i]] * 10 )
+                    x, y = find_loc_max(self.data_process_class.target_stamp, neighborhood_size = neighborhood_size, threshold = threshold/2)  #Automaticlly find the local max as PS center.
+                    # raise ValueError("Warning: could not find the enough number of local max to match the PS numbers. Thus,\
+                    #                  the ps_params must input manually or change the neighborhood_size and threshold values")
+                    if len(x) < len(self.point_source_list):
+                        warnings.warn("\nWarning: could not find the enough number of local max to match the PS numbers. Thus, all the initial PS set the same initial parameters.")
+                        if x == []:
+                            x, y = [self.numPix/2], [self.numPix/2]                
+                        else:
+                            x = x * len(self.point_source_list)
+                            y = y * len(self.point_source_list)
+                flux_ = []
+                for i in range(len(x)):
+                    flux_.append(self.data_process_class.target_stamp[int(x[i]), int(y[i])])
+                _id = np.flipud(np.argsort(flux_))
+                arr_x = np.array(x)
+                arr_y = np.array(y)
+                ps_x = - 1 * ((arr_x - int(self.numPix/2) ) )
+                ps_y = (arr_y - int(self.numPix/2) )
+                center_list = []
+                flux_list = []
+                for i in range(len(self.point_source_list)):
+                    center_list.append([ps_x[_id[i]], ps_y[_id[i]]])
+                    flux_list.append(flux_[_id[i]] * 10 )
+            elif ps_pix_center_list is not None:
+                if len(ps_pix_center_list) != len(self.point_source_list):
+                    raise ValueError("Point source number mismatch between ps_pix_center_list and point_source_num")
+                center_list = ps_pix_center_list
+                for i in range(len(center_list)):
+                    center_list[i][0] = -center_list[i][0] 
             ps_params = ps_params_generator(centers = center_list,
-                                            flux_list = flux_list,
                                             deltaPix = self.deltaPix)
         else:
             ps_params = ps_params            
@@ -233,7 +239,7 @@ class FittingSpecify(object):
         if self.light_model_list is None:
             imageModel = ImageModel(data_class, psf_class, point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)  
         else:
-            imageModel = ImageModel(data_class, psf_class, source_model_class=lightModel,
+            imageModel = ImageModel(data_class, psf_class, lens_light_model_class=lightModel,
                                     point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)   
         self.data_class = data_class
         self.psf_class = psf_class
@@ -259,7 +265,7 @@ class FittingSpecify(object):
 
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
                           extend_source_model = None,
-                          point_source_num = 0, #point_source_pos = None, 
+                          point_source_num = 0, ps_pix_center_list = None, 
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
@@ -275,7 +281,7 @@ class FittingSpecify(object):
         self.sepc_kwargs_likelihood(condition)
         self.sepc_kwargs_params(source_params = source_params, fix_n_list = fix_n_list, fix_Re_list = fix_Re_list, 
                                 ps_params = ps_params, neighborhood_size = neighborhood_size, threshold = threshold,
-                                apertures_center_focus = apertures_center_focus)
+                                apertures_center_focus = apertures_center_focus, ps_pix_center_list = ps_pix_center_list)
         if point_source_num == 0 or point_source_num == None:
             del self.kwargs_params['point_source_model']
             del self.kwargs_constraints['num_point_source_list']
@@ -368,17 +374,17 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
                 fixed_source[-1]['R_sersic'] = fix_Re_value
                 kwargs_source_init[-1]['R_sersic'] = fix_Re_value
         
-        kwargs_source_sigma.append({'n_sersic': 0.3, 'R_sersic': 0.5*deltaPix, 'e1': 0.1, 'e2': 0.1, 'center_x': 0.1*deltaPix, 'center_y': 0.1*deltaPix})
+        kwargs_source_sigma.append({'n_sersic': 0.3, 'R_sersic': 0.2*deltaPix, 'e1': 0.1, 'e2': 0.1, 'center_x': 0.1*deltaPix, 'center_y': 0.1*deltaPix})
         if apertures_center_focus == False:
-            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
-            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
+            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': deltaPix*0.05, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
+            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
         elif apertures_center_focus == True:
-            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': Reff*0.1*deltaPix, 'n_sersic': 0.3, 'center_x': c_x-2*deltaPix, 'center_y': c_y-2*deltaPix})
-            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30*deltaPix, 'n_sersic': 9., 'center_x': c_x+2*deltaPix, 'center_y': c_y+2*deltaPix})        
+            kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': deltaPix*0.05, 'n_sersic': 0.3, 'center_x': c_x-2*deltaPix, 'center_y': c_y-2*deltaPix})
+            kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30, 'n_sersic': 9., 'center_x': c_x+2*deltaPix, 'center_y': c_y+2*deltaPix})        
     source_params = [kwargs_source_init, kwargs_source_sigma, fixed_source, kwargs_lower_source, kwargs_upper_source]
     return source_params
 
-def ps_params_generator(centers, flux_list, deltaPix = 1):
+def ps_params_generator(centers, deltaPix = 1):
     """
     Quickly generate a point source parameters for the fitting.
     """    
@@ -390,9 +396,9 @@ def ps_params_generator(centers, flux_list, deltaPix = 1):
     for i in range(len(centers)):
         center_x = centers[i][0] * deltaPix
         center_y = centers[i][1] * deltaPix
-        point_amp = flux_list[i] 
+        # point_amp = flux_list[i] 
         fixed_ps.append({})
-        kwargs_ps_init.append({'ra_image': [center_x], 'dec_image': [center_y], 'point_amp': [point_amp]})
+        kwargs_ps_init.append({'ra_image': [center_x], 'dec_image': [center_y]}) # , 'point_amp': [point_amp]})
         kwargs_ps_sigma.append({'ra_image': [0.5*deltaPix], 'dec_image': [0.5*deltaPix]})
         kwargs_lower_ps.append({'ra_image': [center_x-2*deltaPix], 'dec_image': [center_y-2*deltaPix] } )
         kwargs_upper_ps.append({'ra_image': [center_x+2*deltaPix], 'dec_image': [center_y+2*deltaPix] } )

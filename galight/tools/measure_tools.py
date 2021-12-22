@@ -630,18 +630,12 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
             ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
             ax1.set_title('Data', fontsize=25)
             ax1.tick_params(labelsize=15)
-            # if detect_tool == 'phot' and version.parse(photutils.__version__) > version.parse("0.7"):
             ax2.imshow(segm_deblend, origin='lower')
-            # elif detect_tool == 'phot':
-            #     ax2.imshow(segm_deblend, origin='lower')
-            # elif detect_tool == 'sep':
-            #     ax2.imshow(segm_deblend, origin='lower')
     
             for i in range(len(apertures)):
                 plt_xi, plt_yi = apertures[i].positions
                 ax2.text(plt_xi, plt_yi, '{0}'.format(i), fontsize=25,
                          bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
-                
             for i in range(len(apertures)):
                 aperture = apertures[i]
                 if version.parse(photutils.__version__) > version.parse("0.7"):
@@ -661,6 +655,17 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         return apertures
     else:
         return apertures, segm_deblend
+
+def sort_apertures(image, apertures):
+    """
+    Automaticlly sort the apertures based on the positions related to the center.
+    """
+    center = np.array([len(image)/2, len(image)/2])
+    dis_sq = [np.sum((apertures[i].positions - center)**2) for i in range(len(apertures))]
+    dis_sq = np.array(dis_sq)
+    c_idx = np.where(dis_sq == dis_sq.min())[0][0]
+    apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]    
+    return apertures
 
 def mask_obj(image, apertures, if_plot = False, sum_mask = False):
     """

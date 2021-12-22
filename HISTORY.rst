@@ -27,3 +27,10 @@ History
 * Debug the aperture alignment issue. 
 * Synchronous upgrade for other package.
 * A bridge between galight and statmorph.
+
+0.1.3 (2021-12-15)
+++++++++++++++++++
+
+* Add sum_mask feature in mask_obj()
+* Update flux_list_2d into dict.
+* Maintenance for error.
