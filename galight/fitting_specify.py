@@ -36,7 +36,7 @@ class FittingSpecify(object):
         if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
             from lenstronomy.Conf import config_loader
             convention_conf = config_loader.conventions_conf()
-            self.sersic_major_axis = convention_conf['sersic_major_axis']
+            self.sersic_major_axis = convention_conf['sersic_major_axis']  #By default, the sersic_major_axis follows Lenstronomy.
 
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
@@ -230,7 +230,6 @@ class FittingSpecify(object):
         from lenstronomy.LightModel.light_model import LightModel
         try:
             lightModel = LightModel(light_model_list=self.light_model_list, sersic_major_axis=sersic_major_axis)  # By this setting: fit_sepc.lightModel.func_list[1]._sersic_major_axis
-            self.sersic_major_axis = sersic_major_axis
         except:
             lightModel = LightModel(light_model_list=self.light_model_list)
             if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
@@ -268,7 +267,7 @@ class FittingSpecify(object):
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
-                          psf_error_map = None, sersic_major_axis=True):
+                          psf_error_map = None):
         """
         Key function used to prepared for the fitting. Parameters will be passed to the corresponding functions.
         """
@@ -286,7 +285,7 @@ class FittingSpecify(object):
             del self.kwargs_constraints['num_point_source_list']
             del self.kwargs_model['point_source_model_list']
             
-        self.sepc_imageModel(sersic_major_axis = sersic_major_axis)
+        self.sepc_imageModel(sersic_major_axis = self.sersic_major_axis)
         print("The settings for the fitting is done. Ready to pass to FittingProcess. \n  However, please make updates manullay if needed.")
     
     def build_fitting_seq(self):
