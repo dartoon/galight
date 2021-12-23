@@ -23,7 +23,7 @@ class FittingSpecify(object):
         - kwargs_params
         - imageModel 
     """    
-    def __init__(self, data_process_class):
+    def __init__(self, data_process_class, sersic_major_axis=True):
         self.data_process_class = data_process_class
         self.deltaPix = data_process_class.deltaPix
         self.numPix = len(self.data_process_class.target_stamp)
@@ -32,11 +32,13 @@ class FittingSpecify(object):
         self.header = data_process_class.header
         self.target_pos = data_process_class.target_pos
         self.segm_deblend = data_process_class.segm_deblend
-        self.sersic_major_axis = True   #
-        if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
-            from lenstronomy.Conf import config_loader
-            convention_conf = config_loader.conventions_conf()
-            self.sersic_major_axis = convention_conf['sersic_major_axis']  #By default, the sersic_major_axis follows Lenstronomy.
+        if sersic_major_axis is None:
+            if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
+                from lenstronomy.Conf import config_loader
+                convention_conf = config_loader.conventions_conf()
+                self.sersic_major_axis = convention_conf['sersic_major_axis']  #If sersic_major_axis == None, the sersic_major_axis follows Lenstronomy.
+        else:
+            self.sersic_major_axis = sersic_major_axis
 
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
