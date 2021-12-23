@@ -36,9 +36,8 @@ class FittingSpecify(object):
         if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
             from lenstronomy.Conf import config_loader
             convention_conf = config_loader.conventions_conf()
-            self.sersic_major_axis =  convention_conf['sersic_major_axis']
-            
-    
+            self.sersic_major_axis = convention_conf['sersic_major_axis']
+
     def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
@@ -58,7 +57,7 @@ class FittingSpecify(object):
                              int(self.numPix/2)-int(self.numPix/10):int(self.numPix/2)+int(self.numPix/10)] = True
         kwargs_numerics = {'supersampling_factor': supersampling_factor, 
                            'compute_mode': 'adaptive',
-                          'supersampled_indexes': supersampled_indexes}
+                           'supersampled_indexes': supersampled_indexes}
         
         # kwargs_numerics = {'supersampling_factor': supersampling_factor} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
@@ -70,8 +69,7 @@ class FittingSpecify(object):
     
     def sepc_kwargs_model(self, extend_source_model = ['SERSIC_ELLIPSE'] * 1, point_source_num = 1):
         point_source_list = ['UNLENSED'] * point_source_num
-        kwargs_model = { 'point_source_model_list': point_source_list
-                }
+        kwargs_model = {'point_source_model_list': point_source_list}
         if extend_source_model != None and extend_source_model != []:
             light_model_list = extend_source_model
             kwargs_model['lens_light_model_list'] = light_model_list
@@ -79,6 +77,7 @@ class FittingSpecify(object):
             light_model_list = []
         self.point_source_list = point_source_list
         self.light_model_list = light_model_list
+        kwargs_model['sersic_major_axis'] = self.sersic_major_axis
         self.kwargs_model = kwargs_model
         
     def sepc_kwargs_constraints(self, fix_center_list = None):

@@ -20,6 +20,7 @@ from galight.tools.plot_tools import total_compare
 from packaging import version
 import lenstronomy
 
+
 class FittingProcess(object):
     """
     A class to perform the fitting task and show the result. 
@@ -305,7 +306,7 @@ class FittingProcess(object):
                       target_ID = target_ID)
         if save_plot == True:
             savename = self.savename
-            fig.savefig(savename+"_galaxy_final_plot.pdf")   
+            fig.savefig(savename+"_qso_final_plot.pdf")   
         if show_plot == True:
             plt.show()
         else:
