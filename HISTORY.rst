@@ -34,3 +34,8 @@ History
 * Add sum_mask feature in mask_obj()
 * Update flux_list_2d into dict.
 * Maintenance for error.
+
+0.1.4 (2021-12-23)
+++++++++++++++++++
+
+* Debug and update the setting for sersic_major_axis following lenstronomy.Conf
