@@ -126,6 +126,27 @@ def cut_center_auto(image, center, radius, kernel = 'center_bright', return_cent
     elif return_center==True:
         return cutout_image, center_pos
 
+def exp_grid(img,nums,drc):
+    """
+    expand the image frame with zero, with nums, direct to expand
+        img: 
+            2d array_like
+        num:
+            number of pixels to input
+        drc:
+            direction. 1: -x 2: -y 3: x 4: -y (i.e.: from -x, anticlockwise)
+    """
+    if drc==1:
+        exp_img=np.concatenate((np.zeros([len(img), nums]),img), axis=1)
+    if drc==2:
+        exp_img=np.concatenate((np.zeros([nums, len(img.T)]), img), axis=0)
+    if drc==3:
+        exp_img=np.concatenate((img,np.zeros([len(img), nums])), axis=1)
+    if drc==4:
+        exp_img=np.concatenate((img,np.zeros([nums, len(img.T)])), axis=0)
+    return exp_img
+
+
 def plot_overview(img, center_target,  target_label = None, c_psf_list=None, label=None, ifsave=False):
     """
     Plot the overview of the image, highlight the location of the QSO and PSFs.
