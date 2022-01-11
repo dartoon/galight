@@ -551,12 +551,11 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
             from astropy.stats import gaussian_fwhm_to_sigma
             from astropy.convolution import Gaussian2DKernel
             from photutils import detect_sources,deblend_sources   
-            from photutils import source_properties
+            from photutils.segmentation import SourceCatalog 
             if version.parse(photutils.__version__) > version.parse("0.7"):
                 threshold = detect_threshold(image, nsigma=nsigma)
             else:
                 threshold = detect_threshold(image, snr=nsigma)
-            # center_image = len(image)/2
             sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
             kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3)
             kernel.normalize()
@@ -570,19 +569,14 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
                 segm_deblend = deblend_sources(image, segm, npixels=npixels,
                                                 filter_kernel=kernel, nlevels=nlevels,
                                                 contrast=contrast)
-            #Number of objects segm_deblend.data.max()
-            cat = source_properties(image, segm_deblend)
-            columns = ['id', 'xcentroid', 'ycentroid', 'source_sum', 'orientation', 'area']
-            tbl = cat.to_table(columns=columns)
-            tbl['xcentroid'].info.format = '.2f'  # optional format
-            tbl['ycentroid'].info.format = '.2f'
-            tbl['id'] -= 1
+            cat = SourceCatalog(image, segm_deblend)
+            tbl = cat.to_table()
             segm_deblend_size = segm_deblend.areas
             for obj in cat:
-                size = segm_deblend_size[obj.id-1]
-                position = (obj.xcentroid.value, obj.ycentroid.value)
-                a_o = obj.semimajor_axis_sigma.value
-                b_o = obj.semiminor_axis_sigma.value
+                size = segm_deblend_size[obj.label-1]
+                position = (obj.xcentroid, obj.ycentroid)
+                a_o = obj.semimajor_sigma.value
+                b_o = obj.semiminor_sigma.value
                 size_o = np.pi * a_o * b_o
                 r = np.sqrt(size/size_o)*exp_sz
                 a, b = a_o*r, b_o*r
@@ -590,7 +584,9 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
                     theta = obj.orientation.value / 180 * np.pi
                 else:
                     theta = obj.orientation.value
-                apertures.append(EllipticalAperture(position, a, b, theta=theta))     
+                apertures.append(EllipticalAperture(position, a, b, theta=theta))  
+            
+            
         elif detect_tool == 'sep':
             import sep
             data = image
@@ -695,9 +691,9 @@ def mask_obj(image, apertures, if_plot = False, sum_mask = False):
             plt.show()
         masks.append(mask)
     if sum_mask == True:
-        mask_ = copy.deepcopy(masks[0])
-        for i in range(len(masks)-1):
-            mask_ = mask_*masks[i+1]
+        mask_ = np.ones_like(image)
+        for i in range(len(masks)):
+            mask_ = mask_*masks[i]
         masks = mask_
     return masks
 

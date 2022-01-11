@@ -29,9 +29,9 @@ class FittingSpecify(object):
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
         self.apertures = copy.deepcopy(data_process_class.apertures)
-        self.header = data_process_class.header
-        self.target_pos = data_process_class.target_pos
-        self.segm_deblend = data_process_class.segm_deblend
+        self.header = copy.deepcopy(data_process_class.header)
+        self.target_pos = copy.deepcopy(data_process_class.target_pos)
+        self.segm_deblend = copy.deepcopy(data_process_class.segm_deblend)
         if sersic_major_axis is None:
             if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
                 from lenstronomy.Conf import config_loader

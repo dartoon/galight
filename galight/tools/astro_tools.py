@@ -52,8 +52,10 @@ def plt_fits(img, norm = None, figsize = None, colorbar = False):
     Directly plot a 2D image using imshow.
     """
     fig, ax = plt.subplots(figsize=figsize)
-    if norm is None:
+    if norm is None or norm == 'log':
         norm = LogNorm()#np.max(img[~np.isnan(img)]))
+    else:
+        norm = None
     plt.imshow(img, norm=norm, origin='lower') 
     if colorbar == True:
         plt.colorbar()
