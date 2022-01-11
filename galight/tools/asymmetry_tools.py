@@ -10,6 +10,7 @@ import numpy as np
 from scipy import ndimage
 import scipy.optimize as op
 from galight.tools.astro_tools import plt_fits
+import matplotlib.pyplot as plt
 
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
@@ -87,20 +88,27 @@ class Measure_asy:
             mask_areas = mask + mask_
         return cal_areas, mask_areas, punish
         
-    def cal_asymmetry(self, rotate_pix, if_pass_bkg=False, if_plot = True, if_plot_bkg = False):
+    def cal_asymmetry(self, rotate_pix, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
         asy = self.abs_res(rotate_pix, if_plot=if_plot)
         cal_areas, masks, _ = self.segm_to_mask(rotate_pix)
         obj_flux = np.sum(self.img * cal_areas)
-        if if_pass_bkg == False:
+        if if_remeasure_bkg == False:
             obj_masks = cal_areas + masks
             obj_masks = obj_masks == False
             img_bkg = self.img * obj_masks
+            img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
+            rot_mask = img_bkg_!=0
+            obj_masks = obj_masks * rot_mask
+        elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
+                data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
+                img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
+                                              num_pix=np.sum(cal_areas),
+                                              rotate_pix=rotate_pix,
+                                              ini_pix = self.ini_pix)
+                img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix-self.ini_pix), order =1)
         else:
-            img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
-                                          num_pix=np.sum(cal_areas),
-                                          rotate_pix=rotate_pix)
-
-        bkg_asy_2d = abs(img_bkg - np.flip(img_bkg)) * obj_masks
+            raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
+        bkg_asy_2d = abs(img_bkg - img_bkg_) * obj_masks
         bkg_asy = np.sum(bkg_asy_2d)  #!!! The mask for bkg also change with pos.
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
@@ -108,8 +116,11 @@ class Measure_asy:
         return asy/obj_flux - bkg_asy/np.sum(obj_masks) * np.sum(cal_areas)/obj_flux  
     
 from galight.tools.measure_tools import detect_obj, mask_obj
-def pass_bkg(data_process, num_pix, rotate_pix):# **kwargs):
-    for boost_list in [28, 30, 35, 40, 50,60]:
+def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
+    ini_pix = np.asarray(ini_pix)
+    rotate_pix = rotate_pix - ini_pix
+    data_process.target_pos = data_process.target_pos + ini_pix
+    for boost_list in [28, 30, 35, 40, 50, 60]:
         radius = np.sqrt(num_pix*boost_list)/2
         data_process.generate_target_materials(radius=radius)
         img = data_process.target_stamp
@@ -133,6 +144,6 @@ def pass_bkg(data_process, num_pix, rotate_pix):# **kwargs):
 # result = asy_class.find_pos()
 # print(result["x"])
 # plt_fits(asy_class.img,colorbar=True)
-# asy = asy_class.cal_asymmetry(rotate_pix = result["x"], if_pass_bkg=False ,if_plot=True, if_plot_bkg=True)
+# asy = asy_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=True, if_plot_bkg=True)
 # print('asymmetry :', asy)
 

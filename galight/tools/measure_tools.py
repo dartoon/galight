@@ -616,8 +616,8 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
             apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]
             if detect_tool == 'phot':
                 cat = [cat[c_idx]] + [cat[i] for i in range(len(cat)) if i != c_idx] 
-                tbl['id'][0] = c_idx
-                tbl['id'][c_idx] = 0
+                tbl['label'][0] = c_idx
+                tbl['label'][c_idx] = 0
             
         if if_plot == True:
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
