@@ -186,8 +186,14 @@ class DataProcess(object):
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
-        apertures, self.segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
+        apertures, segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
                                                   err=self.noise_map, segm_map= True, **kwargs)
+        
+        if isinstance(segm_deblend, (np.ndarray)):
+            self.segm_deblend = segm_deblend
+        else:
+            self.segm_deblend = segm_deblend.data
+        
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
             if select_idx != '':
@@ -363,22 +369,30 @@ class DataProcess(object):
         """
         Check out if everything is prepared to pass to galight.fitting_process().
         """        
-        checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'PSF_list', 'psf_id_for_fitting']
+        checklist = ['deltaPix', 'target_stamp', 'noise_map',  'target_mask', 'psf_id_for_fitting']
         ct = 0
-        if len(self.PSF_list[self.psf_id_for_fitting]) != 0 and self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
-            print("The PSF is not a box size, will cut it to a box size automatically.")
-            cut = int((self.PSF_list[self.psf_id_for_fitting].shape[0] - self.PSF_list[self.psf_id_for_fitting].shape[1])/2)
-            if cut>0:
-                self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][cut:-cut,:]
-            elif cut<0:
-                self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][:,-cut:cut]
-            self.PSF_list[self.psf_id_for_fitting] /= self.PSF_list[self.psf_id_for_fitting].sum()
-            if self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
-                raise ValueError("PSF shape is not a square.")
         for name in checklist:
             if not hasattr(self, name):
                 print('The keyword of {0} is missing.'.format(name))
                 ct = ct+1
+        if hasattr(self, 'PSF_list'):
+            if len(self.PSF_list[self.psf_id_for_fitting]) != 0 and self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
+                print("The PSF is not a box size, will cut it to a box size automatically.")
+                cut = int((self.PSF_list[self.psf_id_for_fitting].shape[0] - self.PSF_list[self.psf_id_for_fitting].shape[1])/2)
+                if cut>0:
+                    self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][cut:-cut,:]
+                elif cut<0:
+                    self.PSF_list[self.psf_id_for_fitting] = self.PSF_list[self.psf_id_for_fitting][:,-cut:cut]
+                self.PSF_list[self.psf_id_for_fitting] /= self.PSF_list[self.psf_id_for_fitting].sum()
+                if self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
+                    raise ValueError("PSF shape is not a square.")
+        else:
+            print('The PSF has not been assigned yet. For a direct asymmetry measurement, it is OK.')
+            #Manually input a mock PSF:
+            PSF = np.zeros([3,3])
+            PSF[1,1] = 1
+            self.PSF_list = [PSF]
+
         if ct == 0:
             print('The data_process is ready to go to pass to FittingSpecify!')
         
