@@ -109,11 +109,12 @@ class Measure_asy:
         else:
             raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
         bkg_asy_2d = abs(img_bkg - img_bkg_) * obj_masks
-        bkg_asy = np.sum(bkg_asy_2d)  #!!! The mask for bkg also change with pos.
+        bkg_asy = np.sum(bkg_asy_2d)
+        self.bkg_asy_dens = bkg_asy/np.sum(obj_masks) #The density of the background asymmetry.
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
             plt_fits(bkg_asy_2d,norm='linear')
-        return asy/obj_flux - bkg_asy/np.sum(obj_masks) * np.sum(cal_areas)/obj_flux  
+        return asy/obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/obj_flux  
     
 from galight.tools.measure_tools import detect_obj, mask_obj
 def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
