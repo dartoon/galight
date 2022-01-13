@@ -88,29 +88,54 @@ class Measure_asy:
             mask_areas = mask + mask_
         return cal_areas, mask_areas, punish
         
-    def cal_asymmetry(self, rotate_pix, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
+    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
+        '''
+
+        Parameters
+        ----------
+        rotate_pix : array
+            center of rotation.
+        bkg_asy_dens : float between 0 and 1, optional
+            bkg asymmetry per pixel, if given, use this value directly. The default is None.
+        if_remeasure_bkg : boolean, optional
+            if True, use a larger area up to 25 * obj pixels to calculate the bkg asymmetry. The default is False.
+        if_plot : boolean, optional
+            Plot the minimized abs residual. The default is True.
+        if_plot_bkg : boolean, optional
+            Plot the region to estiamte the background asymmetry. The default is False.
+
+        Returns
+        -------
+        float
+            asymmetry value.
+
+        '''
         asy = self.abs_res(rotate_pix, if_plot=if_plot)
         cal_areas, masks, _ = self.segm_to_mask(rotate_pix)
         obj_flux = np.sum(self.img * cal_areas)
-        if if_remeasure_bkg == False:
-            obj_masks = cal_areas + masks
-            obj_masks = obj_masks == False
-            img_bkg = self.img * obj_masks
-            img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
-            rot_mask = img_bkg_!=0
-            obj_masks = obj_masks * rot_mask
-        elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
-                data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
-                img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
-                                              num_pix=np.sum(cal_areas),
-                                              rotate_pix=rotate_pix,
-                                              ini_pix = self.ini_pix)
-                img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix-self.ini_pix), order =1)
+        if bkg_asy_dens is None:
+            if if_remeasure_bkg == False:
+                obj_masks = cal_areas + masks
+                obj_masks = obj_masks == False
+                img_bkg = self.img * obj_masks
+                img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
+                rot_mask = img_bkg_!=0
+                obj_masks = obj_masks * rot_mask
+            elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
+                    data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
+                    img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
+                                                  num_pix=np.sum(cal_areas),
+                                                  rotate_pix=rotate_pix,
+                                                  ini_pix = self.ini_pix)
+                    img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix-self.ini_pix), order =1)
+            else:
+                raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
+            bkg_asy_2d = abs(img_bkg - img_bkg_) * obj_masks
+            bkg_asy = np.sum(bkg_asy_2d)
+            self.bkg_asy_dens = bkg_asy/np.sum(obj_masks) #The density of the background asymmetry.
         else:
-            raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
-        bkg_asy_2d = abs(img_bkg - img_bkg_) * obj_masks
-        bkg_asy = np.sum(bkg_asy_2d)
-        self.bkg_asy_dens = bkg_asy/np.sum(obj_masks) #The density of the background asymmetry.
+            assert 0 < bkg_asy_dens < 1.0
+            self.bkg_asy_dens = bkg_asy_dens
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
             plt_fits(bkg_asy_2d,norm='linear')
