@@ -88,7 +88,7 @@ class Measure_asy:
             mask_areas = mask + mask_
         return cal_areas, mask_areas, punish
         
-    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
+    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, obj_flux = None, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
         '''
 
         Parameters
@@ -112,7 +112,11 @@ class Measure_asy:
         '''
         asy = self.abs_res(rotate_pix, if_plot=if_plot)
         cal_areas, masks, _ = self.segm_to_mask(rotate_pix)
-        obj_flux = np.sum(self.img * cal_areas)
+        
+        if obj_flux is None:
+            self.obj_flux = np.sum(self.img * cal_areas)
+        else:
+            self.obj_flux = obj_flux
         if bkg_asy_dens is None:
             if if_remeasure_bkg == False:
                 obj_masks = cal_areas + masks
@@ -122,7 +126,7 @@ class Measure_asy:
                 rot_mask = img_bkg_!=0
                 obj_masks = obj_masks * rot_mask
             elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
-                    data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
+                    # data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
                     img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
                                                   num_pix=np.sum(cal_areas),
                                                   rotate_pix=rotate_pix,
@@ -139,7 +143,7 @@ class Measure_asy:
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
             plt_fits(bkg_asy_2d,norm='linear')
-        return asy/obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/obj_flux  
+        return asy/self.obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/self.obj_flux  
     
 from galight.tools.measure_tools import detect_obj, mask_obj
 def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
