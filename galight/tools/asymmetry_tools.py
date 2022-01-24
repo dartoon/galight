@@ -11,7 +11,7 @@ from scipy import ndimage
 import scipy.optimize as op
 from galight.tools.astro_tools import plt_fits
 import matplotlib.pyplot as plt
-
+import copy
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
     from scipy.ndimage.interpolation import shift
@@ -147,6 +147,7 @@ class Measure_asy:
     
 from galight.tools.measure_tools import detect_obj, mask_obj
 def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
+    data_process = copy.deepcopy(data_process)
     ini_pix = np.asarray(ini_pix)
     rotate_pix = rotate_pix - ini_pix
     data_process.target_pos = data_process.target_pos + ini_pix
