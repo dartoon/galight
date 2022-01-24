@@ -14,9 +14,9 @@ import matplotlib.pyplot as plt
 import copy
 from galight.tools.measure_tools import detect_obj, mask_obj
 from photutils import EllipticalAperture
+from scipy.ndimage.interpolation import shift
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
-    from scipy.ndimage.interpolation import shift
     shifted_digit_image=shift(img, shift_pix, order = order)
     return shifted_digit_image
 def rotate_image(img, rotate_pix, order =1):
@@ -67,13 +67,16 @@ class Measure_asy:
             self.segm = segm_deblend.data
         pix_pos = np.intc(apertures[obj_id].positions)
         self.segm_id = self.segm[pix_pos[1], pix_pos[0]]
+        if self.segm_id == 0:
+            self.segm_id = np.max(self.segm[pix_pos[1]-2:pix_pos[1]+2, pix_pos[0]-2:pix_pos[0]+2])
         self.ini_pix = [pix_pos[0]-len(self.img)/2., pix_pos[1]-len(self.img)/2.]
         self.apertures = apertures
         
     def abs_res(self, rotate_pix, if_plot=False):
-        cal_areas, _, punish = self.segm_to_mask(rotate_pix)
+        cal_areas, masks, punish = self.segm_to_mask(rotate_pix)
         rotate_ = rotate_image(self.img, rotate_pix, order = self.interp_order)
         res_ = self.img - rotate_  #Consider resdiual as data-model, where model is the rotation.
+        self.cal_areas, self.masks, self.punish = cal_areas, masks, punish
         if if_plot == True:
             print("Plot the minimized abs residual:")
             plt_fits(abs(res_*cal_areas),norm='log')
@@ -141,7 +144,7 @@ class Measure_asy:
 
         '''
         asy = self.abs_res(rotate_pix, if_plot=if_plot)
-        cal_areas, masks, _ = self.segm_to_mask(rotate_pix)
+        cal_areas, masks = self.cal_areas, self.masks
         
         if obj_flux is None:
             self.obj_flux = np.sum(self.img * cal_areas)
