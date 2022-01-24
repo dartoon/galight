@@ -22,6 +22,7 @@ def rotate_image(img, rotate_pix, order =1):
     shift_ = shift_img(img, shift_pix, order=order)
     rotate = np.flip(shift_)
     return rotate
+    
 
 class Measure_asy:
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or'):
@@ -51,6 +52,7 @@ class Measure_asy:
         pix_pos = np.intc(apertures[obj_id].positions)
         self.segm_id = self.segm[pix_pos[1], pix_pos[0]]
         self.ini_pix = [pix_pos[0]-len(self.img)/2., pix_pos[1]-len(self.img)/2.]
+        self.apertures = apertures
         
     def abs_res(self, rotate_pix, if_plot=False):
         cal_areas, _, punish = self.segm_to_mask(rotate_pix)
@@ -88,9 +90,9 @@ class Measure_asy:
             mask_areas = mask + mask_
         return cal_areas, mask_areas, punish
         
-    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, obj_flux = None, if_remeasure_bkg=False, if_plot = True, if_plot_bkg = False):
+    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, obj_flux = None, if_remeasure_bkg=False, 
+                      if_plot = True, if_plot_bkg = False):
         '''
-
         Parameters
         ----------
         rotate_pix : array
