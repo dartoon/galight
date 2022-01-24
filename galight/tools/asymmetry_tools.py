@@ -12,6 +12,8 @@ import scipy.optimize as op
 from galight.tools.astro_tools import plt_fits
 import matplotlib.pyplot as plt
 import copy
+from galight.tools.measure_tools import detect_obj, mask_obj
+from photutils import EllipticalAperture
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
     from scipy.ndimage.interpolation import shift
@@ -22,16 +24,31 @@ def rotate_image(img, rotate_pix, order =1):
     shift_ = shift_img(img, shift_pix, order=order)
     rotate = np.flip(shift_)
     return rotate
+
+def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False):
+    from galight.tools.measure_tools import SB_profile
+    if mask is None:
+        mask = np.ones_like(image)
+    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = len(image)/2*0.8,
+                                 if_plot=False, fits_plot = if_plot, if_annuli= False, grids=len(image))
+    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = len(image)/2*0.8,
+                                 if_plot=False, fits_plot = if_plot, if_annuli= True, grids=len(image))
+    r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
+    return r_p
     
 
 class Measure_asy:
-    def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or'):
+    def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
+                 consider_petrosian=False, extend=1.5, eta = 0.2):
         self.fitting_process_class = fitting_process_class
         self.interp_order = interp_order
         self.seg_cal_reg = seg_cal_reg
         self.obj_id = obj_id
         self.interp_order = interp_order
         self.img = self.fitting_process_class.fitting_specify_class.kwargs_data['image_data']
+        self.consider_petrosian = consider_petrosian
+        self.extend = extend
+        self.eta = eta
     def asy_segm(self, segm = None, mask_type = 'segm'):
         obj_id = self.obj_id
         apertures = self.fitting_process_class.fitting_specify_class.apertures
@@ -39,7 +56,6 @@ class Measure_asy:
             if mask_type == 'segm':
                 segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
             elif mask_type == 'aper': #!!!
-                from galight.tools.measure_tools import mask_obj
                 segm_deblend = np.zeros_like(self.img)
                 for i in range(len(apertures)):
                     segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
@@ -71,11 +87,23 @@ class Measure_asy:
         result = op.minimize(self.abs_res, ini_pix, method='nelder-mead',
                 options={'xatol': 1e-8, 'disp': True})
         return result
+    
     def segm_to_mask(self, rotate_pix, segm_id = None):
         if segm_id is None:
             segm_id = self.segm_id
-        cal_area = self.segm == segm_id
-        mask = (self.segm != segm_id) * (self.segm != 0)
+        _segm = copy.deepcopy(self.segm)
+        if self.consider_petrosian == True:
+            pix_pos = rotate_pix + np.array([len(self.img)/2]*2)
+            r_p = cal_r_petrosian(self.img, center=pix_pos, eta=self.eta, mask= self.segm == segm_id)
+            apr = EllipticalAperture(pix_pos, r_p*self.extend, r_p*self.extend)
+            petro_mask = (1-mask_obj(self.img, [apr])[0])
+            _segm = self.segm*(self.segm!=segm_id) + petro_mask*segm_id
+            self.r_p = r_p
+            self.petro_mask = petro_mask
+            self._segm = _segm
+
+        mask = (_segm != segm_id) * (_segm != 0)
+        cal_area = _segm == segm_id
         rotate_pix = np.around(rotate_pix)
         cal_area_ = rotate_image(cal_area, rotate_pix,order =1)
         mask_ = rotate_image(mask, rotate_pix,order =1)
@@ -147,7 +175,6 @@ class Measure_asy:
             plt_fits(bkg_asy_2d,norm='linear')
         return asy/self.obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/self.obj_flux  
     
-from galight.tools.measure_tools import detect_obj, mask_obj
 def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
     data_process = copy.deepcopy(data_process)
     ini_pix = np.asarray(ini_pix)
