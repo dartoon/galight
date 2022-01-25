@@ -15,6 +15,7 @@ import copy
 from galight.tools.measure_tools import detect_obj, mask_obj
 from photutils import EllipticalAperture
 from scipy.ndimage.interpolation import shift
+from matplotlib.ticker import AutoMinorLocator
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
     shifted_digit_image=shift(img, shift_pix, order = order)
@@ -25,15 +26,39 @@ def rotate_image(img, rotate_pix, order =1):
     rotate = np.flip(shift_)
     return rotate
 
-def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False):
+def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False,x_gridspace=None,radius=None):
     from galight.tools.measure_tools import SB_profile
     if mask is None:
         mask = np.ones_like(image)
-    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = len(image)/2*0.8,
-                                 if_plot=False, fits_plot = if_plot, if_annuli= False, grids=len(image))
-    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = len(image)/2*0.8,
-                                 if_plot=False, fits_plot = if_plot, if_annuli= True, grids=len(image))
+    center = center + np.array([len(image)/2]*2)
+    if radius is None:
+        radius = len(image)/2*0.8
+    seeding_num = np.min([int(radius*2), 100])
+    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius,
+                                 if_plot=False, fits_plot = if_plot, if_annuli= False, grids=seeding_num )
+    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius,
+                                 if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
     r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
+    if if_plot == True:
+        minorLocator = AutoMinorLocator()
+        fig, ax = plt.subplots()
+        plt.plot(r_grids, r_SB, 'x-', label = 'Ave SB in radius')
+        plt.plot(r_grids, r_SB_annu, 'x--', label = 'SB in annuli')
+        plt.scatter(r_p, r_SB[np.sum(r_SB_annu/r_SB>eta)]*eta,s=100,c = 'r', marker='o',
+                    label='Ave SB times eta ({0})'.format(eta))
+        ax.xaxis.set_minor_locator(minorLocator)
+        plt.tick_params(which='both', width=2)
+        plt.tick_params(which='major', length=7)
+        plt.tick_params(which='minor', length=4, color='r')
+        plt.grid()
+        ax.set_ylabel("Surface Brightness")
+        ax.set_xlabel("Pixels")
+        if x_gridspace == 'log':
+            ax.set_xscale('log')
+            plt.xlim(1.5*0.7, )   #1.5 is the start pixel radius to measure.
+        plt.grid(which="minor")
+        plt.legend()
+        plt.show()
     return r_p
     
 
@@ -96,11 +121,12 @@ class Measure_asy:
             segm_id = self.segm_id
         _segm = copy.deepcopy(self.segm)
         if self.consider_petrosian == True:
-            pix_pos = rotate_pix + np.array([len(self.img)/2]*2)
-            r_p = cal_r_petrosian(self.img, center=pix_pos, eta=self.eta, mask= self.segm == segm_id)
-            apr = EllipticalAperture(pix_pos, r_p*self.extend, r_p*self.extend)
+            rotate_pix = rotate_pix #+ np.array([len(self.img)/2]*2)
+            radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2
+            r_p = cal_r_petrosian(self.img, center=rotate_pix, eta=self.eta, mask= self.segm == segm_id,radius=radius)
+            apr = EllipticalAperture(rotate_pix+np.array([len(self.img)/2]*2), r_p*self.extend, r_p*self.extend)
             petro_mask = (1-mask_obj(self.img, [apr])[0])
-            _segm = self.segm*(self.segm!=segm_id) + petro_mask*segm_id
+            _segm = self.segm*(self.segm!=segm_id) + petro_mask*(self.segm==segm_id) *segm_id
             self.r_p = r_p
             self.petro_mask = petro_mask
             self._segm = _segm
