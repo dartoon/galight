@@ -29,6 +29,7 @@ def pix_region(center=[49.0,49.0], radius=5):
     """
     center= PixCoord(x=center[0],y=center[1])
     region = CirclePixelRegion(center, radius)
+    #TODO: Add function and use the EllipsePixelRegion
     return region
 
 def cutout(image, center, radius):

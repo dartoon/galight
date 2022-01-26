@@ -198,9 +198,9 @@ class DataProcess(object):
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
             if select_idx != '':
                 if sys.version_info.major > 2:
-                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
+                    select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isnumeric()]
                 else:
-                    select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]
+                    select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isdigit()]
                 apertures_select = [apertures[i] for i in select_idx]  
             else:
                 apertures_select = apertures
