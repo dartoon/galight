@@ -9,10 +9,10 @@ Created on Fri Sep  4 15:12:15 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import astropy.io.fits as pyfits
-from regions import PixCoord, CirclePixelRegion 
+from regions import PixCoord, CirclePixelRegion, EllipsePixelRegion
 from matplotlib.colors import LogNorm
-
-def pix_region(center=[49.0,49.0], radius=5):
+from astropy.coordinates import Angle
+def pix_region(center=[49.0,49.0], radius=5, q = None, theta = None):
     """
     Creat a region file, in pixel units.
     
@@ -28,7 +28,11 @@ def pix_region(center=[49.0,49.0], radius=5):
         A region which is ds9-like.
     """
     center= PixCoord(x=center[0],y=center[1])
-    region = CirclePixelRegion(center, radius)
+    if q is not None and theta is not None:
+        angle = Angle(theta/np.pi*180, 'deg')
+        region = EllipsePixelRegion(center, radius*2, radius*2*q, angle=angle )  #Input are width and height, i.e., *2
+    else:
+        region = CirclePixelRegion(center, radius)
     #TODO: Add function and use the EllipsePixelRegion
     return region
 

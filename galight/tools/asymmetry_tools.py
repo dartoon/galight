@@ -26,7 +26,8 @@ def rotate_image(img, rotate_pix, order =1):
     rotate = np.flip(shift_)
     return rotate
 
-def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False,x_gridspace=None,radius=None):
+def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspace=None, radius=None,
+                    q=None, theta = None):
     from galight.tools.measure_tools import SB_profile
     if mask is None:
         mask = np.ones_like(image)
@@ -34,9 +35,9 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False,x_gridspace
     if radius is None:
         radius = len(image)/2*0.8
     seeding_num = np.min([int(radius*2), 100])
-    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius,
+    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = if_plot, if_annuli= False, grids=seeding_num )
-    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius,
+    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
     r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
     if if_plot == True:
@@ -145,6 +146,7 @@ class Measure_asy:
         elif self.seg_cal_reg == 'or':
             cal_areas = cal_area + cal_area_
             mask_areas = mask + mask_
+            cal_areas = cal_areas*(1-mask_areas)
         return cal_areas, mask_areas, punish
         
     def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, obj_flux = None, if_remeasure_bkg=False, 

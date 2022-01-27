@@ -167,7 +167,7 @@ def flux_in_region(image,region,mode='exact'):
 from galight.tools.cutout_tools import pix_region
 
 def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=None, if_plot=False,
-                 fits_plot=False, mask_image=None):
+                 fits_plot=False, mask_image=None, q=None, theta = None):
     '''
     Obtain the flux profile of a 2D image, region at the center position.
     
@@ -214,7 +214,7 @@ def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=Non
     if mask_image is not None:
         mask = mask_image * mask
     for i in range(len(r_grids)):
-        region = pix_region(center, r_grids[i])
+        region = pix_region(center, r_grids[i], q=q, theta = theta)
         r_flux[i] =flux_in_region(image*mask, region)
         regions.append(region)
     if fits_plot == True:
@@ -245,7 +245,7 @@ def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=Non
 
 def SB_profile(image, center, radius=35, start_p=1.5, grids=20,
                x_gridspace = None, if_plot=False, fits_plot=False,
-               if_annuli= False, mask_image=None):
+               if_annuli= False, mask_image=None, q=None, theta = None):
     '''
     Derive the SB profile of one image start at the center.
     
@@ -283,7 +283,7 @@ def SB_profile(image, center, radius=35, start_p=1.5, grids=20,
     if mask_image is not None:
         mask = mask * mask_image
     r_flux, r_grids, regions=flux_profile(image*mask, center, radius=radius, start_p=start_p, grids=grids,
-                                          x_gridspace=x_gridspace, if_plot=False, fits_plot=False)
+                                          x_gridspace=x_gridspace, if_plot=False, fits_plot=False, q=q, theta = theta)
     region_size = np.zeros([len(r_flux)])
     for i in range(len(r_flux)):
         circle=regions[i].to_mask(mode='exact')
