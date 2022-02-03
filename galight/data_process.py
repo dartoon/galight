@@ -18,7 +18,7 @@ from galight.tools.cutout_tools import cut_center_auto, cutout
 from copy import deepcopy
 from matplotlib.colors import LogNorm
 from galight.tools.astro_tools import plt_fits, read_pixel_scale
-
+import photutils
 import sys
 from packaging import version
 
@@ -189,7 +189,7 @@ class DataProcess(object):
         apertures, segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
                                                   err=self.noise_map, segm_map= True, **kwargs)
         
-        if isinstance(segm_deblend, (np.ndarray)):
+        if isinstance(segm_deblend, (np.ndarray)) and version.parse(photutils.__version__) >= version.parse("1.1"):
             self.segm_deblend = segm_deblend
         else:
             self.segm_deblend = segm_deblend.data
