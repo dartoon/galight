@@ -248,7 +248,8 @@ class DataProcess(object):
             ax3.get_yaxis().set_visible(False) 
             plt.show()  
     
-    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, if_filter=False, user_option= False):
+    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
+                 if_filter=False, user_option= False, select_all=True):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -303,34 +304,18 @@ class DataProcess(object):
             if user_option == False:
                 print(FWHMs)
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
-                self.PSF_pos_list = [PSF_locs[i] for i in select_idx]            
+                # self.PSF_pos_list = [PSF_locs[i] for i in select_idx]            
             else:
-                _row = int(len(PSF_cutouts) / 5) + 1
-                if _row<=1:
-                    _row=2
-                fig, (axs) = plt.subplots(_row, 5, figsize=(15, 3 + 3 * (_row-1)))
-                import matplotlib as mat
-                mat.rcParams['font.family'] = 'STIXGeneral'
-                for i in range(len(PSF_cutouts)):
-                    _i = int(i / 5)
-                    _j = int(i % 5)
-                    axs[_i][_j].imshow(PSF_cutouts[i], origin='lower', norm=LogNorm())
-                    frame_size = len(PSF_cutouts[i])
-                    plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.87, "PSF ini_ID = {0}".format(i),
-                             fontsize=17, weight='bold', color='black')
-                    plttext.set_bbox(dict(facecolor='white', alpha=0.5))
-                    plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.05, "FWHM = {0}".format(round(FWHMs[i],3) ),
-                             fontsize=17, weight='bold', color='black')
-                    plttext.set_bbox(dict(facecolor='white', alpha=0.5))
-                    axs[_i][_j].axes.xaxis.set_visible(False)
-                    axs[_i][_j].axes.yaxis.set_visible(False)
-                for i in range( 5 - len(PSF_cutouts)%5 ):
-                    axs[-1][-(i+1)].axis('off')
-                plt.show()
-                if sys.version_info[0] == 2:
-                    select_idx = raw_input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
-                elif sys.version_info[0] == 3:
-                    select_idx = input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
+                from galight.tools.astro_tools import plt_many_fits
+                plt_many_fits(PSF_cutouts, FWHMs, 'FWHM')
+
+                if select_all is not True:
+                    if sys.version_info[0] == 2:
+                        select_idx = raw_input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
+                    elif sys.version_info[0] == 3:
+                        select_idx = input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
+                else:
+                    select_idx = ''
                 if  select_idx == '' or select_idx == 'a':
                     select_idx = [i for i in range(len(PSF_cutouts))]
                 else:
@@ -339,7 +324,9 @@ class DataProcess(object):
                         select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
                     else:
                         select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]                    
-                self.PSF_pos_list = [PSF_locs[i] for i in select_idx]                
+            self.PSF_pos_list = [PSF_locs[i] for i in select_idx]     
+            self.PSF_FWHM_list = [FWHMs[i] for i in select_idx] 
+            self.PSF_flux_list = [fluxs[i] for i in select_idx] 
         else:
             if pos_type == 'pixel':
                 self.PSF_pos_list = PSF_pos_list

@@ -152,7 +152,8 @@ def exp_grid(img,nums,drc):
     return exp_img
 
 
-def plot_overview(img, center_target,  target_label = None, c_psf_list=None, label=None, ifsave=False):
+def plot_overview(img, center_target,  target_label = None, c_psf_list=None, label=None, ifsave=False, filename='filename',
+                  if_plot = True):
     """
     Plot the overview of the image, highlight the location of the QSO and PSFs.
     
@@ -201,5 +202,22 @@ def plot_overview(img, center_target,  target_label = None, c_psf_list=None, lab
     if not label == None:
         ax.text(len(img)*0.05, len(img)*0.8, label,color='white', fontsize=30)
     if ifsave == True:
-        fig.savefig('QSO_{0}_loc.pdf'.format(name))    
-    plt.show()
+        fig.savefig(filename+'.pdf')    
+    if if_plot == True:
+        plt.show()
+    else:
+        plt.close()
+
+def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False):
+    if npixels is None:
+        npixels = int((len(psf)/13)**2)
+    import copy
+    _psf = copy.deepcopy(psf)
+    from galight.tools.measure_tools import detect_obj
+    _, seg = detect_obj(_psf*500, if_plot=if_plot, nsigma=nsigma, 
+                        npixels = npixels, contrast=contrast, 
+                        nlevels=nlevels,segm_map=True)
+    seg = seg.data
+    seg_idx = seg[int(len(psf)/2), int(len(psf)/2)]
+    _psf[ (seg!= seg_idx) * (seg!= 0)] = np.flip(_psf)[((seg!= seg_idx) * (seg!= 0))]
+    return _psf

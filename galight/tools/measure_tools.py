@@ -513,7 +513,7 @@ def cr_mask(image, filename='test_circle.reg'):
 
 def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True, segm_map = False,
                nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, 
-               thresh=2.8, err=0.001, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
+               thresh=2.8, err=None, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True, clean_param=1.0):  
     """
     Define the apeatures for all the objects in the image.
@@ -545,8 +545,8 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     """ 
     from photutils import EllipticalAperture
     apertures = []
+    from photutils import detect_threshold
     if detect_tool == 'phot':
-        from photutils import detect_threshold
         from astropy.stats import gaussian_fwhm_to_sigma
         from astropy.convolution import Gaussian2DKernel
         from photutils import detect_sources,deblend_sources   
@@ -590,6 +590,8 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         import sep
         data = image
         data = data.copy(order='C')
+        if err is None:
+            err = detect_threshold(image, nsigma=1.5)
         try:
             objects, segm_deblend = sep.extract(data, thresh=thresh, err=err.copy(order='C'), mask=mask, minarea=minarea,
                    filter_kernel=filter_kernel, filter_type=filter_type,
