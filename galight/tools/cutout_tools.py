@@ -152,7 +152,7 @@ def exp_grid(img,nums,drc):
     return exp_img
 
 
-def plot_overview(img, center_target,  target_label = None, c_psf_list=None, label=None, ifsave=False, filename='filename',
+def plot_overview(img, center_target = None,  target_label = None, c_psf_list=None, label=None, ifsave=False, filename='filename',
                   if_plot = True):
     """
     Plot the overview of the image, highlight the location of the QSO and PSFs.
@@ -176,17 +176,18 @@ def plot_overview(img, center_target,  target_label = None, c_psf_list=None, lab
     my_cmap.set_bad('black')
     vmax = 2.2
     vmin = 1.e-2
-    QSO_box_size = np.min(img.shape)/72
+    target_box_size = np.min(img.shape)/72
     PSF_box_size = np.min(img.shape)/109
     fig = plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
     ax.imshow(img,origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
-    QSO_reg = pix_region(center_target, radius= QSO_box_size)
-    QSO_mask = QSO_reg.to_mask(mode='center')
-    if target_label == None:
-        target_label = 'target'
-    ax.text(center_target[0]-2*QSO_box_size, center_target[1]+1.5*QSO_box_size, target_label,color='white', fontsize=20)
-    ax.add_patch(QSO_mask.bbox.as_artist(facecolor='none', edgecolor='white', linewidth=2))
+    if center_target is not None:
+        target_reg = pix_region(center_target, radius= target_box_size)
+        target_mask = target_reg.to_mask(mode='center')
+        if target_label == None:
+            target_label = 'target'
+        ax.text(center_target[0]-2*target_box_size, center_target[1]+1.5*target_box_size, target_label,color='white', fontsize=20)
+        ax.add_patch(target_mask.bbox.as_artist(facecolor='none', edgecolor='white', linewidth=2))
     name = 'PSF'
     count=0
     if c_psf_list is not None:

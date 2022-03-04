@@ -78,9 +78,9 @@ def plt_fits_color(imgs, savename = None, **args):
     if savename is not None:
         plt.savefig(savename)
     plt.show()
-    
+
 def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = None, hide_axes = False,
-                  if_plot=True):
+                  if_plot=True, cmap=None):
     _row = int(len(imgs) / 5) + 1
     if _row<=1:
         _row=2
@@ -90,7 +90,7 @@ def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = Non
     for i in range(len(imgs)):
         _i = int(i / 5)
         _j = int(i % 5)
-        axs[_i][_j].imshow(imgs[i], origin='lower', norm=LogNorm())
+        axs[_i][_j].imshow(imgs[i], origin='lower', norm=LogNorm(), cmap=cmap)
         frame_size = len(imgs[i])
         if labels is None:
             label = "ini_ID = {0}".format(i)
