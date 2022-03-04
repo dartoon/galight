@@ -233,10 +233,10 @@ class Measure_asy(object):
     
 
    #%%     
-import pickle
-fit_run_pkl = pickle.load(open('/Users/Dartoon/Astro/Projects/my_code/package_code/galight_example/HSC_QSO.pkl','rb'))
+# import pickle
+# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
 # fit_run_pkl.fitting_specify_class.plot_fitting_sets()
-data_process = fit_run_pkl.fitting_specify_class.data_process_class
+# data_process = fit_run_pkl.fitting_specify_class.data_process_class
 
 # asy_class = Measure_asy(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
 # asy_class.asy_segm(mask_type='aper')
@@ -580,12 +580,12 @@ class CAS(Measure_asy):
 
     def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, if_plot = False, if_plot_bkg=False ):
         self.asy_segm(mask_type=mask_type)
-        result = self.find_pos()
-        self.asy = self.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=if_remeasure_bkg ,
+        self.find_pos = self.find_pos()
+        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg ,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
         radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2
-        self.r_p_c = cal_r_petrosian(self.img, center=result["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
+        self.r_p_c = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
                                 radius=radius, if_plot=True)
         try:
             q = self.fitting_process_class.final_result_galaxy[self.obj_id]['q']
@@ -597,21 +597,23 @@ class CAS(Measure_asy):
             theta = apr.theta
             xc, yc = apr.positions
         
-        self.r_p_e = cal_r_petrosian(self.img, center=result["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
+        self.r_p_e = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
                                 radius=radius, q=q, theta = theta)
         
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
-        smoothness = cal_smoothness(image= self.img, center=result["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
-        concentration = cal_concentration(image = self.img_bkg, r_p_c=self.r_p_c, center=result["x"])
+        smoothness = cal_smoothness(image= self.img, center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
+        concentration = cal_concentration(image = self.img_bkg, r_p_c=self.r_p_c, center=self.find_pos["x"])
         print(theta, q, xc, yc)
         gini = cal_gini(self.img, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.r_p_c, smoothness, concentration, gini
 
+import pickle
+fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
 CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
-# CAS_class.asy_segm(mask_type='aper')
+CAS_class.asy_segm(mask_type='aper')
 # result = CAS_class.find_pos()
 # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
 # print(asy)
-# plt_fits(CAS_class.img,colorbar=True)
+plt_fits(CAS_class.img,colorbar=True)
 cas = CAS_class.cal_CAS(mask_type='aper')
 print(cas)
