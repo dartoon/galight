@@ -43,6 +43,7 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
     r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
     r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
+    print('len(r_SB_annu), len(r_grids))
     if if_plot == True:
         minorLocator = AutoMinorLocator()
         fig, ax = plt.subplots()
@@ -584,7 +585,7 @@ class CAS(Measure_asy):
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg ,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
-        radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2
+        radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5
         self.r_p_c = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
                                 radius=radius, if_plot=True)
         try:
