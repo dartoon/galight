@@ -320,7 +320,7 @@ def SB_profile(image, center, radius=35, start_p=1.5, grids=20,
         plt.show()
     return r_SB, r_grids
 
-def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None ,
+def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None, radius = 6,
                      grids = 20,  norm_pix = 3, if_annuli=False,
                      y_log=False, scale_list=None):
     '''
@@ -343,7 +343,7 @@ def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None ,
         The plot of SB comparison.
     '''
     if x_gridspace == None:
-        radius = 6
+        radius = radius
     elif x_gridspace == 'log':
         radius = len(prf_list[1])/2
     if scale_list == None:
