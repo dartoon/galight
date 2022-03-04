@@ -38,15 +38,18 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
     if radius is None:
         radius = len(image)/2*0.8
     seeding_num = np.min([int(radius*2), 100])
+    if radius > len(image)/2:
+        radius = len(image)/2-1
     r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = if_plot, if_annuli= False, grids=seeding_num )
     r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
+    
     r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
-    print('len(r_SB_annu), len(r_grids))
     if if_plot == True:
         minorLocator = AutoMinorLocator()
         fig, ax = plt.subplots()
+        print(len(r_grids), len(r_SB_annu), len(r_SB))
         plt.plot(r_grids, r_SB, 'x-', label = 'Ave SB in radius')
         plt.plot(r_grids, r_SB_annu, 'x--', label = 'SB in annuli')
         plt.scatter(r_p, r_SB[np.sum(r_SB_annu/r_SB>eta)]*eta,s=100,c = 'r', marker='o',
@@ -423,7 +426,7 @@ def _segmap_gini(image, r_p_e, q,theta, xc, yc):
         """
         # Smooth image
         petro_sigma = 0.2 * r_p_e #fractiongini=0.2, 
-        print('petro_sigma',petro_sigma)
+        # print('petro_sigma',petro_sigma)
         cutout_smooth = ndimage.gaussian_filter(image, petro_sigma)
         #xc = morph.xc_centroid - morph.xmin_stamp
         #yc = morph.yc_centroid - morph.ymin_stamp 
@@ -585,7 +588,7 @@ class CAS(Measure_asy):
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg ,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
-        radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5
+        radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
         self.r_p_c = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
                                 radius=radius, if_plot=True)
         try:
@@ -608,14 +611,14 @@ class CAS(Measure_asy):
         gini = cal_gini(self.img, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.r_p_c, smoothness, concentration, gini
 
-# import pickle
-# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
+import pickle
+#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
 # CAS_class.asy_segm(mask_type='aper')
-# # result = CAS_class.find_pos()
-# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# # print(asy)
-# plt_fits(CAS_class.img,colorbar=True)
-# cas = CAS_class.cal_CAS(mask_type='aper')
-# print(cas)
+# result = CAS_class.find_pos()
+# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# print(asy)
+plt_fits(CAS_class.img,colorbar=True)
+cas = CAS_class.cal_CAS(mask_type='aper')
+print(cas)
