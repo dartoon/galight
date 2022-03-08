@@ -36,10 +36,10 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
         mask = np.ones_like(image)
     center = center + np.array([len(image)/2]*2)
     if radius is None:
-        radius = len(image)/2*0.8
+        radius = len(image)/2*0.95
     seeding_num = np.min([int(radius*2), 100])
-    if radius > len(image)/2:
-        radius = len(image)/2-1
+    # if radius > len(image)/2:
+    #     radius = len(image)/2-1
     r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = if_plot, if_annuli= False, grids=seeding_num )
     r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
