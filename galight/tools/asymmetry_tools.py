@@ -52,8 +52,8 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
         r_p = r_p_list[0]
         r_SB_p = r_SB_list[0]
     except:
-        r_p = r_p_list[-1]
-        r_SB_p = r_SB_list[-1]
+        r_p = r_grids[-1]
+        r_SB_p = r_SB[-1]
         warnings.warn("Couldn't find the SB_annu/SB_rad below eta, and use the last annu instead...",
                       AstropyUserWarning)
     # try:
