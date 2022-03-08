@@ -45,15 +45,33 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
     r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
                                  if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
     
-    r_p = r_grids[np.sum(r_SB_annu/r_SB>eta)]
+    ratio_bl_eta = r_SB_annu/r_SB<eta
+    r_p_list = r_grids[ratio_bl_eta]
+    r_SB_list = r_SB[ratio_bl_eta]
+    try:
+        r_p = r_p_list[0]
+        r_SB_p = r_SB_list[0]
+    except:
+        r_p = r_p_list[-1]
+        r_SB_p = r_SB_list[-1]
+        warnings.warn("Couldn't find the SB_annu/SB_rad below eta, and use the last annu instead...",
+                      AstropyUserWarning)
+    # try:
+    #     idx = np.sum(r_SB_annu/r_SB>eta)
+    #     r_p = r_grids[idx]
+    # except:
+    #     idx = -1
+    #     r_p = r_grids[-1]
     if if_plot == True:
         minorLocator = AutoMinorLocator()
         fig, ax = plt.subplots()
         print(len(r_grids), len(r_SB_annu), len(r_SB))
         plt.plot(r_grids, r_SB, 'x-', label = 'Ave SB in radius')
         plt.plot(r_grids, r_SB_annu, 'x--', label = 'SB in annuli')
-        plt.scatter(r_p, r_SB[np.sum(r_SB_annu/r_SB>eta)]*eta,s=100,c = 'r', marker='o',
+        plt.scatter(r_p, r_SB_p*eta,s=100,c = 'r', marker='o',
                     label='Ave SB times eta ({0})'.format(eta))
+        # plt.scatter(r_p, r_SB[idx]*eta,s=100,c = 'r', marker='o',
+        #             label='Ave SB times eta ({0})'.format(eta))
         ax.xaxis.set_minor_locator(minorLocator)
         plt.tick_params(which='both', width=2)
         plt.tick_params(which='major', length=7)
@@ -607,18 +625,19 @@ class CAS(Measure_asy):
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
         smoothness = cal_smoothness(image= self.img, center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
         concentration = cal_concentration(image = self.img_bkg, r_p_c=self.r_p_c, center=self.find_pos["x"])
-        print(theta, q, xc, yc)
+        # print(theta, q, xc, yc)
         gini = cal_gini(self.img, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.r_p_c, smoothness, concentration, gini
 
-import pickle
-#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
-# CAS_class.asy_segm(mask_type='aper')
-# result = CAS_class.find_pos()
-# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# print(asy)
-plt_fits(CAS_class.img,colorbar=True)
-cas = CAS_class.cal_CAS(mask_type='aper')
-print(cas)
+#%%
+# import pickle
+# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
+# # CAS_class.asy_segm(mask_type='aper')
+# # result = CAS_class.find_pos()
+# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# # print(asy)
+# plt_fits(CAS_class.img,colorbar=True)
+# cas = CAS_class.cal_CAS(mask_type='aper')
+# print(cas)
