@@ -624,7 +624,7 @@ class CAS(Measure_asy):
         
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
         smoothness = cal_smoothness(image= self.img, center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
-        concentration = cal_concentration(image = self.img_bkg, r_p_c=self.r_p_c, center=self.find_pos["x"])
+        concentration = cal_concentration(image = self.img, r_p_c=self.r_p_c, center=self.find_pos["x"])
         # print(theta, q, xc, yc)
         gini = cal_gini(self.img, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.r_p_c, smoothness, concentration, gini
