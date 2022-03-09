@@ -193,9 +193,9 @@ class DataProcess(object):
         #     self.segm_deblend = segm_deblend
         # else:
         try:
-            self.segm_deblend = segm_deblend.data
+            self.segm_deblend = np.array(segm_deblend.data)
         except:
-            self.segm_deblend = segm_deblend
+            self.segm_deblend = np.array(segm_deblend)
         
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
