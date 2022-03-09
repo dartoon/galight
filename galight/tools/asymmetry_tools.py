@@ -107,7 +107,7 @@ def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
 
 class Measure_asy(object):
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                 consider_petrosian=False, extend=1.5, eta = 0.2):
+                 consider_petrosian=False, extend=1., eta = 0.2):
         self.fitting_process_class = fitting_process_class
         self.interp_order = interp_order
         self.seg_cal_reg = seg_cal_reg
@@ -146,7 +146,7 @@ class Measure_asy(object):
         cal_areas, masks, punish = self.segm_to_mask(rotate_pix)
         rotate_ = rotate_image(self.img, rotate_pix, order = self.interp_order)
         res_ = self.img - rotate_  #Consider resdiual as data-model, where model is the rotation.
-        self.cal_areas, self.masks, self.punish = cal_areas, masks, punish
+        # self.cal_areas, self.masks, self.punish = cal_areas, masks, punish
         if if_plot == True:
             print("Plot the minimized abs residual:")
             plt_fits(abs(res_*cal_areas),norm='log')
@@ -195,8 +195,33 @@ class Measure_asy(object):
             mask_areas = mask + mask_
             cal_areas = cal_areas*(1-mask_areas)
         return cal_areas, mask_areas, punish
-        
-    def cal_asymmetry(self, rotate_pix, bkg_asy_dens=None, obj_flux = None, if_remeasure_bkg=False, 
+
+    def run_bkg(self, rotate_pix, img_bkg=None, if_remeasure_bkg=False):
+        self.cal_areas, self.masks, _ = self.segm_to_mask(rotate_pix)
+        if if_remeasure_bkg == False:
+            obj_masks = self.cal_areas + self.masks
+            obj_masks = obj_masks == False
+            if img_bkg is not None:
+                self.img_bkg = img_bkg
+            else:
+                img_bkg = self.img * obj_masks
+            img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
+            rot_mask = img_bkg_!=0
+            obj_masks = obj_masks * rot_mask
+        elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
+                # data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
+                img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
+                                              num_pix=np.sum(self.cal_areas),
+                                              rotate_pix=rotate_pix,
+                                              ini_pix = self.ini_pix)
+                img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix-self.ini_pix), order =1)
+        else:
+            raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
+        self.img_bkg = img_bkg
+        self.img_bkg_ = img_bkg_
+        self.obj_masks = obj_masks
+    
+    def cal_asymmetry(self, rotate_pix, obj_flux = None,
                       if_plot = True, if_plot_bkg = False):
         '''
         Parameters
@@ -219,44 +244,27 @@ class Measure_asy(object):
 
         '''
         asy = self.abs_res(rotate_pix, if_plot=if_plot)
-        cal_areas, masks = self.cal_areas, self.masks
+        cal_areas = self.cal_areas
         
         if obj_flux is None:
             self.obj_flux = np.sum(self.img * cal_areas)
         else:
             self.obj_flux = obj_flux
-        if bkg_asy_dens is None:
-            if if_remeasure_bkg == False:
-                obj_masks = cal_areas + masks
-                obj_masks = obj_masks == False
-                img_bkg = self.img * obj_masks
-                img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
-                rot_mask = img_bkg_!=0
-                obj_masks = obj_masks * rot_mask
-            elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
-                    # data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
-                    img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
-                                                  num_pix=np.sum(cal_areas),
-                                                  rotate_pix=rotate_pix,
-                                                  ini_pix = self.ini_pix)
-                    img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix-self.ini_pix), order =1)
-            else:
-                raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
-            bkg_asy_2d = abs(img_bkg - img_bkg_) * obj_masks
-            bkg_asy = np.sum(bkg_asy_2d)
-            self.bkg_asy_dens = bkg_asy/np.sum(obj_masks) #The density of the background asymmetry.
-        else:
-            assert 0 < bkg_asy_dens < 1.0
-            self.bkg_asy_dens = bkg_asy_dens
+        
+        bkg_asy_2d = abs(self.img_bkg - self.img_bkg_) * self.obj_masks
+        bkg_asy = np.sum(bkg_asy_2d)
+        self.bkg_asy_dens = bkg_asy/np.sum(self.obj_masks) #The density of the background asymmetry.
+        # else:
+        #     assert 0 < bkg_asy_dens < 1.0
+        #     self.bkg_asy_dens = bkg_asy_dens
             
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
             plt_fits(bkg_asy_2d,norm='linear')
-        self.img_bkg = img_bkg
         return asy/self.obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/self.obj_flux  
     
 
-   #%%     
+#    #%%     
 # import pickle
 # fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
 # fit_run_pkl.fitting_specify_class.plot_fitting_sets()
@@ -267,8 +275,10 @@ class Measure_asy(object):
 # result = asy_class.find_pos()
 # print(result["x"])
 # plt_fits(asy_class.img,colorbar=True)
-# asy = asy_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=True, if_plot_bkg=True)
+# asy_class.run_bkg(rotate_pix = result["x"], if_remeasure_bkg=False ,)
+# asy = asy_class.cal_asymmetry(rotate_pix = result["x"], if_plot=True, if_plot_bkg=True)
 # print('asymmetry :', asy)
+
 #%%
 def skysmoothness(bkg, r_p_c):
 #bkg refers to background image
@@ -277,9 +287,12 @@ def skysmoothness(bkg, r_p_c):
 
     # If the smoothing "boxcar" is larger than the skybox itself,
     # this just sets all values equal to the mean:
-    boxcar_size = int(0.25 * r_p_c)#circular petrosian radius goes here
+    # boxcar_size = np.max([int(0.25 * r_p_c),2])#circular petrosian radius goes here
+    boxcar_size = 0.25 * r_p_c
     bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
-
+    # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
+    # plt_fits(bkg)
+    # plt_fits(bkg_smooth)
 
     bkg_diff = bkg - bkg_smooth
     bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
@@ -287,7 +300,7 @@ def skysmoothness(bkg, r_p_c):
     skysmooth= np.sum(bkg_diff) / float(bkg.size)
     return skysmooth
 
-def cal_smoothness(image, center, r_p_c, skysmooth):
+def cal_smoothness(image, center, r_p_c, skysmooth, if_plot=False):
     """
     Calculate smoothness (a.k.a. clumpiness) as defined in eq. (11)
     from Lotz et al. (2004). Note that the original definition by
@@ -300,12 +313,19 @@ def cal_smoothness(image, center, r_p_c, skysmooth):
     r_out = 1.5 * r_p_c#circular petrosian radius goes here
     ap = photutils.CircularAnnulus((center), r_in, r_out)
 
-    boxcar_size = int(0.25 * r_p_c)
+    # boxcar_size = 0.25 * r_p_c
+    boxcar_size = np.max([int(0.25 * r_p_c),2])
     image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
     #with image sliced
     image_diff = image - image_smooth
-    image_diff[image_diff < 0] = 0.0  # set negative pixels to zero
-
+    # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
+    image_diff = abs(image_diff)
+    # if if_plot==False:
+    #     from galight.tools.astro_tools import plt_many_fits
+    #     plt_many_fits([image, image_smooth, image_diff], texts = ['image', 'image_smooth', 'image_diff'])
+    #     plt_fits(image)
+    #     plt_fits(image_smooth)
+    #     plt_fits(image_diff)
     ap_flux = ap.do_photometry(image, method='exact')[0][0]
     ap_diff = ap.do_photometry(image_diff, method='exact')[0][0]
     flag = 0
@@ -318,7 +338,8 @@ def cal_smoothness(image, center, r_p_c, skysmooth):
     if skysmooth == -99.0:  # invalid skybox
         S = ap_diff / ap_flux
     else:
-        # print(ap)
+        # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
+        # # print(ap)
         # print(ap_diff)
         # print(ap.area)
         # print(skysmooth)
@@ -330,89 +351,6 @@ def cal_smoothness(image, center, r_p_c, skysmooth):
         flag = 1
         S= -99.0  # invalid
     return S, flag
-
-# #%%for Concentration:
-# def _radius_at_fraction_of_total_cas(image, r_p_c, fraction, center):
-#     """
-#     Specialization of ``_radius_at_fraction_of_total_circ`` for
-#     the CAS calculations.
-#     """
-#     #image = np.where(~mask_stamp, image[slice_stamp], 0.0)
-#     #center = #asymmetry center gallight
-#     r_upper = 1.5 * r_p_c #self_petro_extent=1.5 in statmorph,r_p_c as defined in function
-#     r, flag = _radius_at_fraction_of_total_circ(image, center, r_upper, fraction)
-#     #self.flag = max(self.flag, flag)
-#     if np.isnan(r) or (r <= 0.0):
-#         warnings.warn('[CAS] Invalid radius_at_fraction_of_total.',
-#                       AstropyUserWarning)
-#         #self.flag = 1
-#         r = -99.0  # invalid
-#     return r
-
-# def _fraction_of_total_function_circ(r, image, center, fraction, total_sum):
-#     """
-#     Helper function to calculate ``_radius_at_fraction_of_total_circ``.
-#     """
-#     assert (r >= 0) & (fraction >= 0) & (fraction <= 1) & (total_sum > 0)
-#     if r == 0:
-#         cur_fraction = 0.0
-#     else:
-#         ap = photutils.CircularAperture(center, r)
-#         # Force flux sum to be positive:
-#         ap_sum = np.abs(ap.do_photometry(image, method='exact')[0][0])
-#         cur_fraction = ap_sum / total_sum
-#     return cur_fraction - fraction
-
-# # import scipy.optimize as opt
-# def _radius_at_fraction_of_total_circ(image, center, r_total, fraction):
-#     """
-#     Return the radius (in pixels) of a concentric circle that
-#     contains a given fraction of the light within ``r_total``.
-#     """
-#     flag = 0  # flag=1 indicates a problem
-
-#     ap_total = photutils.CircularAperture(center, r_total)
-
-#     total_sum = ap_total.do_photometry(image, method='exact')[0][0]
-#     assert total_sum != 0
-#     if total_sum < 0:
-#         warnings.warn('[r_circ] Total flux sum is negative.', AstropyUserWarning)
-#         flag = 1
-#         total_sum = np.abs(total_sum)
-
-#     # Find appropriate range for root finder
-#     npoints = 100
-#     r_grid = np.linspace(0.0, r_total, num=npoints)
-#     i = 0  # initial value
-#     while True:
-#         assert i < npoints, 'Root not found within range.'
-#         r = r_grid[i]
-#         curval = _fraction_of_total_function_circ(
-#             r, image, center, fraction, total_sum)
-#         if curval <= 0:
-#             r_min = r
-#         elif curval > 0:
-#             r_max = r
-#             break
-#         i += 1
-#     r = op.brentq(_fraction_of_total_function_circ, r_min, r_max,
-#                    args=(image, center, fraction, total_sum), xtol=1e-6)
-#     return r, flag
-# def cal_concentration(image, r_p_c, center):
-#     """
-#     Calculate concentration as described in Lotz et al. (2004).
-#     """
-#     #mask_stamp is masking everything that is background or is not source
-#     #image[slice_stamp] is image sliced appropriately
-#     #rpetro_circ is circular petrosian radius
-#     #center is asymmetry center
-#     r80=_radius_at_fraction_of_total_cas(image, r_p_c, 0.8, (center))
-#     r20=_radius_at_fraction_of_total_cas(image,  r_p_c, 0.2, (center))
-#     if (r20 == -99.0) or (r80 == -99.0):
-#         C = -99.0  # invalid
-#     else:
-#         C = 5.0 * np.log10(r80/r20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
-#     return C
 
 #%%
 def cal_gini(image,r_p_e, theta, q, xc, yc):
@@ -601,16 +539,18 @@ class CAS(Measure_asy):
     Inherit Measure_asy and calculate the other CAS parameters including smoothness, concentration and gini.
     """
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                 consider_petrosian=False, extend=1.5, eta = 0.2):
+                  consider_petrosian=False, extend=1.5, eta = 0.2):
         Measure_asy.__init__(self, fitting_process_class=fitting_process_class, obj_id=obj_id, 
-                             interp_order=interp_order, seg_cal_reg = seg_cal_reg, 
-                             consider_petrosian=consider_petrosian, 
-                             extend=extend, eta =eta)
+                              interp_order=interp_order, seg_cal_reg = seg_cal_reg, 
+                              consider_petrosian=consider_petrosian, 
+                              extend=extend, eta =eta)
 
-    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, if_plot = False, if_plot_bkg=False ):
+    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, if_plot = False, if_plot_bkg=False,
+                img_bkg=None):
         self.asy_segm(mask_type=mask_type)
         self.find_pos = self.find_pos()
-        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg ,
+        self.run_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg, img_bkg = img_bkg)
+        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], 
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
         # radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
@@ -640,42 +580,36 @@ class CAS(Measure_asy):
         self.smoothness = cal_smoothness(image= self.img * self.cal_areas, 
                                     center=center, r_p_c=self.r_p_c,skysmooth=skysmooth)
 
-        
-        
         self.concentration = self.cal_concentration(image = self.img ,#* self.cal_areas,
-                                               # mask = self.cal_areas,
-                                               mask = (1-self.masks),
-                                               center=center, radius = radius,if_plot=if_plot)
+                                                # mask = self.cal_areas,
+                                                mask = (1-self.masks),
+                                                center=center, radius = radius,if_plot=if_plot)
         # print(theta, q, xc, yc)
         self.gini = cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.smoothness, self.concentration, self.gini
 
 
-    def cal_concentration(self, image, mask, center, radius, if_plot = False):
-        #!!! Consider remove QSO?
+    def cal_concentration(self, image, mask, center, radius, tot_flux=None, if_plot = False):
         from galight.tools.measure_tools import flux_profile
         seeding_num = np.min([int(radius*2), 100])
         r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask,
-                                     if_plot=True, fits_plot = if_plot, grids=seeding_num )
-        # try:
-        #     r_flux_tot = self.fitting_process_class.final_result_galaxy[self.obj_id]['flux_within_frame']
-        # except:
-        r_flux_tot = r_flux[-1]
-        # print(r_flux_tot, r_flux[-1])  #In the example case, the PS is subtracted.
-        r_80 = r_grids[r_flux/r_flux_tot>0.8][0]
-        r_20 = r_grids[r_flux/r_flux_tot>0.2][0]
+                                      if_plot=if_plot, fits_plot = if_plot, grids=seeding_num )
+        if tot_flux is None:
+            tot_flux = r_flux[-1]
+        r_80 = r_grids[r_flux/tot_flux>0.8][0]
+        r_20 = r_grids[r_flux/tot_flux>0.2][0]
         C = 5.0 * np.log10(r_80/r_20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
         return C
 
 #%%
-# import pickle
-# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
-# # CAS_class.asy_segm(mask_type='aper')
-# # result = CAS_class.find_pos()
-# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# # print(asy)
-# # plt_fits(CAS_class.img,colorbar=True)
-# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
-# print(cas)
+import pickle
+#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
+# CAS_class.asy_segm(mask_type='aper')
+# result = CAS_class.find_pos()
+# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# print(asy)
+# plt_fits(CAS_class.img,colorbar=True)
+cas = CAS_class.cal_CAS(mask_type='aper', if_plot=False)
+print(cas)
