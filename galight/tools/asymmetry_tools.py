@@ -320,9 +320,9 @@ def cal_smoothness(image, center, r_p_c, skysmooth, if_plot=False):
     image_diff = image - image_smooth
     # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
     image_diff = abs(image_diff)
-    # if if_plot==False:
-    #     from galight.tools.astro_tools import plt_many_fits
-    #     plt_many_fits([image, image_smooth, image_diff], texts = ['image', 'image_smooth', 'image_diff'])
+    if if_plot==True:
+        from galight.tools.astro_tools import plt_many_fits
+        plt_many_fits([image, image_smooth, image_diff], labels = ['image', 'image_smooth', 'image_diff'])
     #     plt_fits(image)
     #     plt_fits(image_smooth)
     #     plt_fits(image_diff)
@@ -602,14 +602,14 @@ class CAS(Measure_asy):
         return C
 
 #%%
-import pickle
-#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
-# CAS_class.asy_segm(mask_type='aper')
-# result = CAS_class.find_pos()
-# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# print(asy)
-# plt_fits(CAS_class.img,colorbar=True)
-cas = CAS_class.cal_CAS(mask_type='aper', if_plot=False)
-print(cas)
+# import pickle
+# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
+# # CAS_class.asy_segm(mask_type='aper')
+# # result = CAS_class.find_pos()
+# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# # print(asy)
+# # plt_fits(CAS_class.img,colorbar=True)
+# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=False)
+# print(cas)
