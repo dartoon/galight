@@ -65,7 +65,6 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
     if if_plot == True:
         minorLocator = AutoMinorLocator()
         fig, ax = plt.subplots()
-        print(len(r_grids), len(r_SB_annu), len(r_SB))
         plt.plot(r_grids, r_SB, 'x-', label = 'Ave SB in radius')
         plt.plot(r_grids, r_SB_annu, 'x--', label = 'SB in annuli')
         plt.scatter(r_p, r_SB_p*eta,s=100,c = 'r', marker='o',
@@ -606,9 +605,10 @@ class CAS(Measure_asy):
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg ,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
-        radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
+        # radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
+        radius = None
         self.r_p_c = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
-                                radius=radius, if_plot=True)
+                                radius=radius, if_plot=if_plot)
         try:
             q = self.fitting_process_class.final_result_galaxy[self.obj_id]['q']
             theta = - self.fitting_process_class.final_result_galaxy[self.obj_id]['phi_G']  #Galight and apr's theta is reversed.
@@ -620,14 +620,16 @@ class CAS(Measure_asy):
             xc, yc = apr.positions
         
         self.r_p_e = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
-                                radius=radius, q=q, theta = theta)
+                                radius=radius, q=q, theta = theta, if_plot=if_plot)
         
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
-        smoothness = cal_smoothness(image= self.img, center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
-        concentration = cal_concentration(image = self.img, r_p_c=self.r_p_c, center=self.find_pos["x"])
+        self.smoothness = cal_smoothness(image= self.img,# * self.cal_areas, 
+                                    center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
+        self.concentration = cal_concentration(image = self.img, #* CAS_class.cal_areas, 
+                                          r_p_c=self.r_p_c, center=self.find_pos["x"])
         # print(theta, q, xc, yc)
-        gini = cal_gini(self.img, self.r_p_e, theta, q, xc, yc)
-        return self.asy, self.r_p_c, smoothness, concentration, gini
+        self.gini = cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
+        return self.asy, self.smoothness, self.concentration, self.gini
 
 #%%
 # import pickle
@@ -638,6 +640,6 @@ class CAS(Measure_asy):
 # # result = CAS_class.find_pos()
 # # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
 # # print(asy)
-# plt_fits(CAS_class.img,colorbar=True)
+# # plt_fits(CAS_class.img,colorbar=True)
 # cas = CAS_class.cal_CAS(mask_type='aper')
 # print(cas)
