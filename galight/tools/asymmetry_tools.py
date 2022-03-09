@@ -34,15 +34,15 @@ def cal_r_petrosian(image, center, eta=0.2, mask=None, if_plot=False, x_gridspac
     from galight.tools.measure_tools import SB_profile
     if mask is None:
         mask = np.ones_like(image)
-    center = center + np.array([len(image)/2]*2)
+    # center = center + np.array([len(image)/2]*2)
     if radius is None:
         radius = len(image)/2*0.95
     seeding_num = np.min([int(radius*2), 100])
     # if radius > len(image)/2:
     #     radius = len(image)/2-1
-    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
+    r_SB, r_grids  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta, mask_image = mask,
                                  if_plot=False, fits_plot = if_plot, if_annuli= False, grids=seeding_num )
-    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta,
+    r_SB_annu, _  =  SB_profile(image*mask, center = center, radius = radius, q=q, theta=theta, mask_image = mask,
                                  if_plot=False, fits_plot = False, if_annuli= True, grids=seeding_num )
     
     ratio_bl_eta = r_SB_annu/r_SB<eta
@@ -126,6 +126,8 @@ class Measure_asy(object):
             elif mask_type == 'aper': #!!!
                 segm_deblend = np.zeros_like(self.img)
                 for i in range(len(apertures)):
+                    apertures[obj_id].a = apertures[obj_id].a * self.extend
+                    apertures[obj_id].b = apertures[obj_id].b * self.extend
                     segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
         else:
             segm_deblend = segm
@@ -167,7 +169,8 @@ class Measure_asy(object):
         if self.consider_petrosian == True:
             rotate_pix = rotate_pix #+ np.array([len(self.img)/2]*2)
             radius = int(np.sqrt(np.sum(self.segm==segm_id)))*2
-            r_p = cal_r_petrosian(self.img, center=rotate_pix, eta=self.eta, mask= self.segm == segm_id,
+            rotate_pix_center = rotate_pix +  np.array([len(self.img)/2]*2)
+            r_p = cal_r_petrosian(self.img, center=rotate_pix_center, eta=self.eta, mask= self.segm == segm_id,
                                   radius=radius)
             apr = EllipticalAperture(rotate_pix+np.array([len(self.img)/2]*2), r_p*self.extend, r_p*self.extend)
             petro_mask = (1-mask_obj(self.img, [apr])[0])
@@ -315,6 +318,11 @@ def cal_smoothness(image, center, r_p_c, skysmooth):
     if skysmooth == -99.0:  # invalid skybox
         S = ap_diff / ap_flux
     else:
+        # print(ap)
+        # print(ap_diff)
+        # print(ap.area)
+        # print(skysmooth)
+        # print(ap_flux)
         S = (ap_diff - ap.area*skysmooth) / ap_flux
 
     if not np.isfinite(S):
@@ -323,88 +331,88 @@ def cal_smoothness(image, center, r_p_c, skysmooth):
         S= -99.0  # invalid
     return S, flag
 
-#%%for Concentration:
-def _radius_at_fraction_of_total_cas(image, r_p_c, fraction, center):
-    """
-    Specialization of ``_radius_at_fraction_of_total_circ`` for
-    the CAS calculations.
-    """
-    #image = np.where(~mask_stamp, image[slice_stamp], 0.0)
-    #center = #asymmetry center gallight
-    r_upper = 1.5 * r_p_c #self_petro_extent=1.5 in statmorph,r_p_c as defined in function
-    r, flag = _radius_at_fraction_of_total_circ(image, center, r_upper, fraction)
-    #self.flag = max(self.flag, flag)
-    if np.isnan(r) or (r <= 0.0):
-        warnings.warn('[CAS] Invalid radius_at_fraction_of_total.',
-                      AstropyUserWarning)
-        #self.flag = 1
-        r = -99.0  # invalid
-    return r
+# #%%for Concentration:
+# def _radius_at_fraction_of_total_cas(image, r_p_c, fraction, center):
+#     """
+#     Specialization of ``_radius_at_fraction_of_total_circ`` for
+#     the CAS calculations.
+#     """
+#     #image = np.where(~mask_stamp, image[slice_stamp], 0.0)
+#     #center = #asymmetry center gallight
+#     r_upper = 1.5 * r_p_c #self_petro_extent=1.5 in statmorph,r_p_c as defined in function
+#     r, flag = _radius_at_fraction_of_total_circ(image, center, r_upper, fraction)
+#     #self.flag = max(self.flag, flag)
+#     if np.isnan(r) or (r <= 0.0):
+#         warnings.warn('[CAS] Invalid radius_at_fraction_of_total.',
+#                       AstropyUserWarning)
+#         #self.flag = 1
+#         r = -99.0  # invalid
+#     return r
 
-def _fraction_of_total_function_circ(r, image, center, fraction, total_sum):
-    """
-    Helper function to calculate ``_radius_at_fraction_of_total_circ``.
-    """
-    assert (r >= 0) & (fraction >= 0) & (fraction <= 1) & (total_sum > 0)
-    if r == 0:
-        cur_fraction = 0.0
-    else:
-        ap = photutils.CircularAperture(center, r)
-        # Force flux sum to be positive:
-        ap_sum = np.abs(ap.do_photometry(image, method='exact')[0][0])
-        cur_fraction = ap_sum / total_sum
-    return cur_fraction - fraction
+# def _fraction_of_total_function_circ(r, image, center, fraction, total_sum):
+#     """
+#     Helper function to calculate ``_radius_at_fraction_of_total_circ``.
+#     """
+#     assert (r >= 0) & (fraction >= 0) & (fraction <= 1) & (total_sum > 0)
+#     if r == 0:
+#         cur_fraction = 0.0
+#     else:
+#         ap = photutils.CircularAperture(center, r)
+#         # Force flux sum to be positive:
+#         ap_sum = np.abs(ap.do_photometry(image, method='exact')[0][0])
+#         cur_fraction = ap_sum / total_sum
+#     return cur_fraction - fraction
 
-# import scipy.optimize as opt
-def _radius_at_fraction_of_total_circ(image, center, r_total, fraction):
-    """
-    Return the radius (in pixels) of a concentric circle that
-    contains a given fraction of the light within ``r_total``.
-    """
-    flag = 0  # flag=1 indicates a problem
+# # import scipy.optimize as opt
+# def _radius_at_fraction_of_total_circ(image, center, r_total, fraction):
+#     """
+#     Return the radius (in pixels) of a concentric circle that
+#     contains a given fraction of the light within ``r_total``.
+#     """
+#     flag = 0  # flag=1 indicates a problem
 
-    ap_total = photutils.CircularAperture(center, r_total)
+#     ap_total = photutils.CircularAperture(center, r_total)
 
-    total_sum = ap_total.do_photometry(image, method='exact')[0][0]
-    assert total_sum != 0
-    if total_sum < 0:
-        warnings.warn('[r_circ] Total flux sum is negative.', AstropyUserWarning)
-        flag = 1
-        total_sum = np.abs(total_sum)
+#     total_sum = ap_total.do_photometry(image, method='exact')[0][0]
+#     assert total_sum != 0
+#     if total_sum < 0:
+#         warnings.warn('[r_circ] Total flux sum is negative.', AstropyUserWarning)
+#         flag = 1
+#         total_sum = np.abs(total_sum)
 
-    # Find appropriate range for root finder
-    npoints = 100
-    r_grid = np.linspace(0.0, r_total, num=npoints)
-    i = 0  # initial value
-    while True:
-        assert i < npoints, 'Root not found within range.'
-        r = r_grid[i]
-        curval = _fraction_of_total_function_circ(
-            r, image, center, fraction, total_sum)
-        if curval <= 0:
-            r_min = r
-        elif curval > 0:
-            r_max = r
-            break
-        i += 1
-    r = op.brentq(_fraction_of_total_function_circ, r_min, r_max,
-                   args=(image, center, fraction, total_sum), xtol=1e-6)
-    return r, flag
-def cal_concentration(image, r_p_c, center):
-    """
-    Calculate concentration as described in Lotz et al. (2004).
-    """
-    #mask_stamp is masking everything that is background or is not source
-    #image[slice_stamp] is image sliced appropriately
-    #rpetro_circ is circular petrosian radius
-    #center is asymmetry center
-    r80=_radius_at_fraction_of_total_cas(image, r_p_c, 0.8, (center))
-    r20=_radius_at_fraction_of_total_cas(image,  r_p_c, 0.2, (center))
-    if (r20 == -99.0) or (r80 == -99.0):
-        C = -99.0  # invalid
-    else:
-        C = 5.0 * np.log10(r80/r20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
-    return C
+#     # Find appropriate range for root finder
+#     npoints = 100
+#     r_grid = np.linspace(0.0, r_total, num=npoints)
+#     i = 0  # initial value
+#     while True:
+#         assert i < npoints, 'Root not found within range.'
+#         r = r_grid[i]
+#         curval = _fraction_of_total_function_circ(
+#             r, image, center, fraction, total_sum)
+#         if curval <= 0:
+#             r_min = r
+#         elif curval > 0:
+#             r_max = r
+#             break
+#         i += 1
+#     r = op.brentq(_fraction_of_total_function_circ, r_min, r_max,
+#                    args=(image, center, fraction, total_sum), xtol=1e-6)
+#     return r, flag
+# def cal_concentration(image, r_p_c, center):
+#     """
+#     Calculate concentration as described in Lotz et al. (2004).
+#     """
+#     #mask_stamp is masking everything that is background or is not source
+#     #image[slice_stamp] is image sliced appropriately
+#     #rpetro_circ is circular petrosian radius
+#     #center is asymmetry center
+#     r80=_radius_at_fraction_of_total_cas(image, r_p_c, 0.8, (center))
+#     r20=_radius_at_fraction_of_total_cas(image,  r_p_c, 0.2, (center))
+#     if (r20 == -99.0) or (r80 == -99.0):
+#         C = -99.0  # invalid
+#     else:
+#         C = 5.0 * np.log10(r80/r20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
+#     return C
 
 #%%
 def cal_gini(image,r_p_e, theta, q, xc, yc):
@@ -606,8 +614,9 @@ class CAS(Measure_asy):
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
         # radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
-        radius = None
-        self.r_p_c = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
+        radius = len(self.img)/2*0.95
+        center =  np.array([len(self.img)/2]*2) + self.find_pos["x"]
+        self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
                                 radius=radius, if_plot=if_plot)
         try:
             q = self.fitting_process_class.final_result_galaxy[self.obj_id]['q']
@@ -619,27 +628,54 @@ class CAS(Measure_asy):
             theta = apr.theta
             xc, yc = apr.positions
         
-        self.r_p_e = cal_r_petrosian(self.img, center=self.find_pos["x"], eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
+        self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
                                 radius=radius, q=q, theta = theta, if_plot=if_plot)
         
+        # guess_rms = np.std(self.img)
+        # mask = (self.img>guess_rms)
+        # import sep
+        # bkg = sep.Background(self.img, mask=mask, bw=32, bh=32, fw=7, fh=7)
+        # skysmooth = skysmoothness(bkg,self.r_p_c)
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
-        self.smoothness = cal_smoothness(image= self.img,# * self.cal_areas, 
-                                    center=self.find_pos["x"], r_p_c=self.r_p_c,skysmooth=skysmooth)
-        self.concentration = cal_concentration(image = self.img, #* CAS_class.cal_areas, 
-                                          r_p_c=self.r_p_c, center=self.find_pos["x"])
+        self.smoothness = cal_smoothness(image= self.img * self.cal_areas, 
+                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth)
+
+        
+        
+        self.concentration = self.cal_concentration(image = self.img ,#* self.cal_areas,
+                                               # mask = self.cal_areas,
+                                               mask = (1-self.masks),
+                                               center=center, radius = radius,if_plot=if_plot)
         # print(theta, q, xc, yc)
         self.gini = cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.smoothness, self.concentration, self.gini
 
+
+    def cal_concentration(self, image, mask, center, radius, if_plot = False):
+        #!!! Consider remove QSO?
+        from galight.tools.measure_tools import flux_profile
+        seeding_num = np.min([int(radius*2), 100])
+        r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask,
+                                     if_plot=True, fits_plot = if_plot, grids=seeding_num )
+        # try:
+        #     r_flux_tot = self.fitting_process_class.final_result_galaxy[self.obj_id]['flux_within_frame']
+        # except:
+        r_flux_tot = r_flux[-1]
+        # print(r_flux_tot, r_flux[-1])  #In the example case, the PS is subtracted.
+        r_80 = r_grids[r_flux/r_flux_tot>0.8][0]
+        r_20 = r_grids[r_flux/r_flux_tot>0.2][0]
+        C = 5.0 * np.log10(r_80/r_20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
+        return C
+
 #%%
-# import pickle
-# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0)
-# # CAS_class.asy_segm(mask_type='aper')
-# # result = CAS_class.find_pos()
-# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# # print(asy)
-# # plt_fits(CAS_class.img,colorbar=True)
-# cas = CAS_class.cal_CAS(mask_type='aper')
-# print(cas)
+import pickle
+#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
+# CAS_class.asy_segm(mask_type='aper')
+# result = CAS_class.find_pos()
+# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# print(asy)
+# plt_fits(CAS_class.img,colorbar=True)
+cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
+print(cas)
