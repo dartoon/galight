@@ -39,3 +39,11 @@ History
 ++++++++++++++++++
 
 * Debug and update the setting for sersic_major_axis following lenstronomy.Conf
+
+
+0.1.5 (2022-03-09)
+++++++++++++++++++
+
+* Debug for no error report in detect_obj function
+* A preliminary versoin for non-parametric CAS calcuaiton
+* More functionaility with plot tools
