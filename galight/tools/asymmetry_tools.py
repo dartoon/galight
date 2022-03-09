@@ -577,7 +577,7 @@ class CAS(Measure_asy):
         # bkg = sep.Background(self.img, mask=mask, bw=32, bh=32, fw=7, fh=7)
         # skysmooth = skysmoothness(bkg,self.r_p_c)
         skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
-        self.smoothness = cal_smoothness(image= self.img * self.cal_areas, 
+        self.smoothness, self.S_flag = cal_smoothness(image= self.img * self.cal_areas, 
                                     center=center, r_p_c=self.r_p_c,skysmooth=skysmooth)
 
         self.concentration = self.cal_concentration(image = self.img ,#* self.cal_areas,
