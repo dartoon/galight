@@ -593,11 +593,29 @@ class CAS(Measure_asy):
         from galight.tools.measure_tools import flux_profile
         seeding_num = np.min([int(radius*2), 100])
         r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask,
-                                      if_plot=if_plot, fits_plot = if_plot, grids=seeding_num )
+                                      if_plot=False, fits_plot = False, grids=seeding_num )
         if tot_flux is None:
             tot_flux = r_flux[-1]
         r_80 = r_grids[r_flux/tot_flux>0.8][0]
         r_20 = r_grids[r_flux/tot_flux>0.2][0]
+        if if_plot == True:
+            minorLocator = AutoMinorLocator()
+            fig, ax = plt.subplots()
+            plt.plot(r_grids, r_flux, 'x-', label = 'Flux')
+            plt.scatter(r_80, r_flux[r_grids==r_80],s=50,c = 'r', marker='o',
+                        label='r80')
+            plt.scatter(r_20, r_flux[r_grids==r_20],s=50,c = 'b', marker='o',
+                        label='r20')
+            ax.xaxis.set_minor_locator(minorLocator)
+            plt.tick_params(which='both', width=2)
+            plt.tick_params(which='major', length=7)
+            plt.tick_params(which='minor', length=4, color='r')
+            plt.grid()
+            ax.set_ylabel("Surface Brightness")
+            ax.set_xlabel("Pixels")
+            plt.grid(which="minor")
+            plt.legend()
+            plt.show()
         C = 5.0 * np.log10(r_80/r_20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
         return C
 
@@ -611,5 +629,5 @@ class CAS(Measure_asy):
 # # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
 # # print(asy)
 # # plt_fits(CAS_class.img,colorbar=True)
-# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=False)
+# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
 # print(cas)
