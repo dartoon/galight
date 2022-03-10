@@ -107,13 +107,15 @@ def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):# **kwargs):
 
 class Measure_asy(object):
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                 consider_petrosian=False, extend=1., eta = 0.2):
+                 consider_petrosian=False, extend=1., eta = 0.2, rm_ps = False):
         self.fitting_process_class = fitting_process_class
         self.interp_order = interp_order
         self.seg_cal_reg = seg_cal_reg
         self.obj_id = obj_id
         self.interp_order = interp_order
         self.img = self.fitting_process_class.fitting_specify_class.kwargs_data['image_data']
+        if rm_ps == True:
+            self.img -= np.sum(self.fitting_process_class.image_ps_list, axis = 0)
         self.consider_petrosian = consider_petrosian
         self.extend = extend
         self.eta = eta
@@ -538,12 +540,8 @@ class CAS(Measure_asy):
     """
     Inherit Measure_asy and calculate the other CAS parameters including smoothness, concentration and gini.
     """
-    def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                  consider_petrosian=False, extend=1.5, eta = 0.2):
-        Measure_asy.__init__(self, fitting_process_class=fitting_process_class, obj_id=obj_id, 
-                              interp_order=interp_order, seg_cal_reg = seg_cal_reg, 
-                              consider_petrosian=consider_petrosian, 
-                              extend=extend, eta =eta)
+    def __init__(self, fitting_process_class, **kwargs):
+        Measure_asy.__init__(self, fitting_process_class=fitting_process_class, **kwargs)
 
     def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, if_plot = False, if_plot_bkg=False,
                 img_bkg=None):
@@ -592,7 +590,8 @@ class CAS(Measure_asy):
     def cal_concentration(self, image, mask, center, radius, tot_flux=None, if_plot = False):
         from galight.tools.measure_tools import flux_profile
         seeding_num = np.min([int(radius*2), 100])
-        r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask,
+        r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask, 
+                                            x_gridspace = 'log', start_p=1,
                                       if_plot=False, fits_plot = False, grids=seeding_num )
         if tot_flux is None:
             tot_flux = r_flux[-1]
@@ -623,7 +622,7 @@ class CAS(Measure_asy):
 # import pickle
 # #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
 # fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1)
+# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1, rm_ps=False)
 # # CAS_class.asy_segm(mask_type='aper')
 # # result = CAS_class.find_pos()
 # # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
