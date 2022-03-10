@@ -139,50 +139,54 @@ class DataProcess(object):
             if_plot = self.if_plot
             
         self.bkg_std = bkg_std
-            
-        if radius == None:
-            if radius_list == None:
-                radius_list = [30, 35, 40, 45, 50, 60, 70]
-            for rad in radius_list:
-                from galight.tools.measure_tools import fit_data_oneD_gaussian
-                _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=rad)
-                edge_data = np.concatenate([_cut_data[0,:],_cut_data[-1,:],_cut_data[:,0], _cut_data[:,-1]])
-                try:
-                    gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
-                except:
-                    gauss_mean, gauss_1sig = np.mean(edge_data), np.std(edge_data)
-                up_limit = gauss_mean + 2 * gauss_1sig
-                percent = np.sum(edge_data>up_limit)/float(len(edge_data))
-                if percent<0.03:
-                    break
-            radius = rad
-                
-        if if_plot == True:
-            print("Plot target cut out zoom in:")
-        if cut_kernel is not None:
-            target_stamp, self.target_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
-                                              kernel = cut_kernel, radius=radius,
-                                              return_center=True, if_plot=if_plot)
-        else:
-            target_stamp = cutout(image = self.fov_image, center = self.target_pos, radius=radius)
         
-        if self.fov_noise_map is not None:
-            self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
+        if radius == 'nocut':
+            target_stamp = self.fov_image
+            self.noise_map = self.fov_noise_map
+        
         else:
-            if bkg_std == None:
-                from galight.tools.measure_tools import esti_bgkstd
-                target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
-                self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
-            _exptime = deepcopy(self.exptime)
-            if _exptime is None:
-                if 'EXPTIME' in self.header.keys():
-                    _exptime = self.header['EXPTIME']
-                else:
-                    raise ValueError("No Exposure time information in the header, should input a value.")
-            if isinstance(_exptime, np.ndarray):
-                _exptime = cutout(image=self.exptime, center= self.target_pos, radius=radius)
-            noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
-            self.noise_map = noise_map
+            if radius == None:
+                if radius_list == None:
+                    radius_list = [30, 35, 40, 45, 50, 60, 70]
+                for rad in radius_list:
+                    from galight.tools.measure_tools import fit_data_oneD_gaussian
+                    _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=rad)
+                    edge_data = np.concatenate([_cut_data[0,:],_cut_data[-1,:],_cut_data[:,0], _cut_data[:,-1]])
+                    try:
+                        gauss_mean, gauss_1sig = fit_data_oneD_gaussian(edge_data, ifplot=False)
+                    except:
+                        gauss_mean, gauss_1sig = np.mean(edge_data), np.std(edge_data)
+                    up_limit = gauss_mean + 2 * gauss_1sig
+                    percent = np.sum(edge_data>up_limit)/float(len(edge_data))
+                    if percent<0.03:
+                        break
+                radius = rad
+            if if_plot == True:
+                print("Plot target cut out zoom in:")
+            if cut_kernel is not None:
+                target_stamp, self.target_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
+                                                  kernel = cut_kernel, radius=radius,
+                                                  return_center=True, if_plot=if_plot)
+            else:
+                target_stamp = cutout(image = self.fov_image, center = self.target_pos, radius=radius)
+        
+            if self.fov_noise_map is not None:
+                self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
+            else:
+                if bkg_std == None:
+                    from galight.tools.measure_tools import esti_bgkstd
+                    target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
+                    self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
+                _exptime = deepcopy(self.exptime)
+                if _exptime is None:
+                    if 'EXPTIME' in self.header.keys():
+                        _exptime = self.header['EXPTIME']
+                    else:
+                        raise ValueError("No Exposure time information in the header, should input a value.")
+                if isinstance(_exptime, np.ndarray):
+                    _exptime = cutout(image=self.exptime, center= self.target_pos, radius=radius)
+                noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
+                self.noise_map = noise_map
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
