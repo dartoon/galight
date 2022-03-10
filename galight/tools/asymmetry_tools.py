@@ -198,15 +198,12 @@ class Measure_asy(object):
             cal_areas = cal_areas*(1-mask_areas)
         return cal_areas, mask_areas, punish
 
-    def run_bkg(self, rotate_pix, img_bkg=None, if_remeasure_bkg=False):
+    def make_bkg(self, rotate_pix, if_remeasure_bkg=False):
         self.cal_areas, self.masks, _ = self.segm_to_mask(rotate_pix)
         if if_remeasure_bkg == False:
             obj_masks = self.cal_areas + self.masks
             obj_masks = obj_masks == False
-            if img_bkg is not None:
-                self.img_bkg = img_bkg
-            else:
-                img_bkg = self.img * obj_masks
+            img_bkg = self.img * obj_masks
             img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
             rot_mask = img_bkg_!=0
             obj_masks = obj_masks * rot_mask
@@ -223,8 +220,20 @@ class Measure_asy(object):
         self.img_bkg_ = img_bkg_
         self.obj_masks = obj_masks
     
-    def cal_asymmetry(self, rotate_pix, obj_flux = None,
-                      if_plot = True, if_plot_bkg = False):
+    def _sky_asymmetry(self, if_plot_bkg = False, bkg_asy_dens=None):
+        if bkg_asy_dens is None:
+            bkg_asy_2d = abs(self.img_bkg - self.img_bkg_) * self.obj_masks
+            bkg_asy = np.sum(bkg_asy_2d)
+            self.bkg_asy_dens = bkg_asy/np.sum(self.obj_masks) #The density of the background asymmetry.
+        else:
+            assert 0 < bkg_asy_dens < 1.0
+            self.bkg_asy_dens = bkg_asy_dens
+        if if_plot_bkg == True:
+            print("Plot the region to estiamte the background asymmetry:")
+            plt_fits(bkg_asy_2d,norm='linear')
+        return self.bkg_asy_dens
+
+    def cal_asymmetry(self, rotate_pix, obj_flux = None, if_plot = True, bkg_asy_dens=None, if_plot_bkg = False):
         '''
         Parameters
         ----------
@@ -236,9 +245,6 @@ class Measure_asy(object):
             if True, use a larger area up to 25 * obj pixels to calculate the bkg asymmetry. The default is False.
         if_plot : boolean, optional
             Plot the minimized abs residual. The default is True.
-        if_plot_bkg : boolean, optional
-            Plot the region to estiamte the background asymmetry. The default is False.
-
         Returns
         -------
         float
@@ -252,18 +258,9 @@ class Measure_asy(object):
             self.obj_flux = np.sum(self.img * cal_areas)
         else:
             self.obj_flux = obj_flux
-        
-        bkg_asy_2d = abs(self.img_bkg - self.img_bkg_) * self.obj_masks
-        bkg_asy = np.sum(bkg_asy_2d)
-        self.bkg_asy_dens = bkg_asy/np.sum(self.obj_masks) #The density of the background asymmetry.
-        # else:
-        #     assert 0 < bkg_asy_dens < 1.0
-        #     self.bkg_asy_dens = bkg_asy_dens
-            
-        if if_plot_bkg == True:
-            print("Plot the region to estiamte the background asymmetry:")
-            plt_fits(bkg_asy_2d,norm='linear')
-        return asy/self.obj_flux - self.bkg_asy_dens * np.sum(cal_areas)/self.obj_flux  
+
+        sky_asymmetry = self._sky_asymmetry(bkg_asy_dens=bkg_asy_dens,if_plot_bkg=if_plot_bkg)
+        return asy/self.obj_flux - sky_asymmetry * np.sum(cal_areas)/self.obj_flux  
     
 
 #    #%%     
@@ -282,178 +279,6 @@ class Measure_asy(object):
 # print('asymmetry :', asy)
 
 #%%
-def skysmoothness(bkg, r_p_c):
-#bkg refers to background image
-    if bkg.size == 0:
-        skysmooth= -99.0
-
-    # If the smoothing "boxcar" is larger than the skybox itself,
-    # this just sets all values equal to the mean:
-    # boxcar_size = np.max([int(0.25 * r_p_c),2])#circular petrosian radius goes here
-    boxcar_size = 0.25 * r_p_c
-    bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
-    # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
-    # plt_fits(bkg)
-    # plt_fits(bkg_smooth)
-
-    bkg_diff = bkg - bkg_smooth
-    bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
-
-    skysmooth= np.sum(bkg_diff) / float(bkg.size)
-    return skysmooth
-
-def cal_smoothness(image, center, r_p_c, skysmooth, if_plot=False):
-    """
-    Calculate smoothness (a.k.a. clumpiness) as defined in eq. (11)
-    from Lotz et al. (2004). Note that the original definition by
-    Conselice (2003) includes an additional factor of 10.
-    """
-
-
-    # Exclude central region during smoothness calculation:
-    r_in = 0.25 * r_p_c#circular petrosian radius goes here
-    r_out = 1.5 * r_p_c#circular petrosian radius goes here
-    ap = photutils.CircularAnnulus((center), r_in, r_out)
-
-    # boxcar_size = 0.25 * r_p_c
-    boxcar_size = np.max([int(0.25 * r_p_c),2])
-    image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
-    #with image sliced
-    image_diff = image - image_smooth
-    # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
-    image_diff = abs(image_diff)
-    if if_plot==True:
-        from galight.tools.astro_tools import plt_many_fits
-        plt_many_fits([image, image_smooth, image_diff], labels = ['image', 'image_smooth', 'image_diff'])
-    #     plt_fits(image)
-    #     plt_fits(image_smooth)
-    #     plt_fits(image_diff)
-    ap_flux = ap.do_photometry(image, method='exact')[0][0]
-    ap_diff = ap.do_photometry(image_diff, method='exact')[0][0]
-    flag = 0
-    if ap_flux <= 0:
-        warnings.warn('[smoothness] Nonpositive total flux.',
-                      AstropyUserWarning)
-        flag = 1
-        S= -99.0  # invalid
-
-    if skysmooth == -99.0:  # invalid skybox
-        S = ap_diff / ap_flux
-    else:
-        # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
-        # # print(ap)
-        # print(ap_diff)
-        # print(ap.area)
-        # print(skysmooth)
-        # print(ap_flux)
-        S = (ap_diff - ap.area*skysmooth) / ap_flux
-
-    if not np.isfinite(S):
-        warnings.warn('Invalid smoothness.', AstropyUserWarning)
-        flag = 1
-        S= -99.0  # invalid
-    return S, flag
-
-#%%
-def cal_gini(image,r_p_e, theta, q, xc, yc):
-    """
-    Calculate the Gini coefficient as described in Lotz et al. (2004).
-    """
-    #mask_stamp is masking everything that is background or is not source
-    #image[slice_stamp] is image sliced appropriately#
-    #image = np.where(~mask_stamp, image[slice_stamp], 0.0)
-    
-    # ny, nx=image.shape
-    # r_outer = np.sqrt(ny**2+nx**2)
-    #petroellip=_rpetro_ellip_generic(imagenomask, sepa, center, sepelongation, septheta, r_outer)
-    #use petrosian elliptical radius for petroellip
-    
-    # segmapraw=_segmap_gini(r_p_e, image, q,theta)
-    segmap = _segmap_gini(image,r_p_e,q,theta, xc, yc).flatten()
-    imagenomaskforgini=image.flatten()
-    
-    sorted_pixelvals = np.sort(np.abs(imagenomaskforgini[segmap]))
-    n = len(sorted_pixelvals)
-    if n <= 1 or np.sum(sorted_pixelvals) == 0:
-        warnings.warn('[gini] Not enough data for Gini calculation.',
-                      AstropyUserWarning)
-        return -99.0  # invalid
-    
-    indices = np.arange(1, n+1)  # start at i=1
-    gini = (np.sum((2*indices-n-1) * sorted_pixelvals) /
-            (float(n-1) * np.sum(sorted_pixelvals)))
-    return gini
-
-def _segmap_gini(image, r_p_e, q,theta, xc, yc):
-        """
-        Create a new segmentation map (relative to the "postage stamp")
-        based on the elliptical Petrosian radius.
-        """
-        # Smooth image
-        petro_sigma = 0.2 * r_p_e #fractiongini=0.2, 
-        # print('petro_sigma',petro_sigma)
-        cutout_smooth = ndimage.gaussian_filter(image, petro_sigma)
-        #xc = morph.xc_centroid - morph.xmin_stamp
-        #yc = morph.yc_centroid - morph.ymin_stamp 
-        
-        # Use mean flux at the Petrosian "radius" as threshold
-        a_in = r_p_e - 0.5 * 1.0
-        a_out = r_p_e + 0.5 * 1.0
-        b_out = a_out / q
-        theta = theta
-        #xc, yc is centroid 
-        ellip_annulus = photutils.EllipticalAnnulus(
-            (xc, yc), a_in, a_out, b_out, theta=theta)
-        ellip_annulus_mean_flux = _aperture_mean_nomask(
-            ellip_annulus, cutout_smooth, method='exact')
-
-        above_threshold = cutout_smooth >= ellip_annulus_mean_flux
-
-        # Grow regions with 8-connected neighbor "footprint"
-        s = ndimage.generate_binary_structure(2, 2)
-        labeled_array, num_features = ndimage.label(above_threshold, structure=s)
-
-        # In some rare cases (e.g., Pan-STARRS J020218.5+672123_g.fits.gz),
-        # this results in an empty segmap, so there is nothing to do.
-        if num_features == 0:
-            warnings.warn('[segmap_gini] Empty Gini segmap!',
-                          AstropyUserWarning)
-            #self.flag = 1
-            return above_threshold
-
-        # In other cases (e.g., object 110 from CANDELS/GOODS-S WFC/F160W),
-        # the Gini segmap occupies the entire image, which is also not OK.
-        if np.sum(above_threshold) == cutout_smooth.size:
-            warnings.warn('[segmap_gini] Full Gini segmap!',
-                          AstropyUserWarning)
-            #self.flag = 1
-            return above_threshold
-
-        # If more than one region, activate the "bad measurement" flag
-        # and only keep segment that contains the brightest pixel.
-        if num_features > 1:
-            warnings.warn('[segmap_gini] Disjoint features in Gini segmap.',
-                          AstropyUserWarning)
-            #self.flag = 1
-            ic, jc = np.argwhere(cutout_smooth == np.max(cutout_smooth))[0]
-            assert labeled_array[ic, jc] != 0
-            segmap = labeled_array == labeled_array[ic, jc]
-        else:
-            segmap = above_threshold
-
-        return segmap
-
-
-def _aperture_mean_nomask(ap, image, **kwargs):
-    """
-    Calculate the mean flux of an image for a given photutils
-    aperture object. Note that we do not use ``_aperture_area``
-    here. Instead, we divide by the full area of the
-    aperture, regardless of masked and out-of-range pixels.
-    This avoids problems when the aperture is larger than the
-    region of interest.
-    """
-    return ap.do_photometry(image, **kwargs)[0][0] / ap.area
 
 
 # def rff(image, varmap, residual, pflag, sexseg):
@@ -543,12 +368,11 @@ class CAS(Measure_asy):
     def __init__(self, fitting_process_class, **kwargs):
         Measure_asy.__init__(self, fitting_process_class=fitting_process_class, **kwargs)
 
-    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, if_plot = False, if_plot_bkg=False,
-                img_bkg=None):
+    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, if_plot = False, if_plot_bkg=False,):
         self.asy_segm(mask_type=mask_type)
         self.find_pos = self.find_pos()
-        self.run_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg, img_bkg = img_bkg)
-        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], 
+        self.make_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg)
+        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], bkg_asy_dens=bkg_asy_dens,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
         # radius = np.max([int(np.sqrt(np.sum(self.segm==segm_id)))*2 * 1.5, int(len(self.img)/2) ])
@@ -574,8 +398,8 @@ class CAS(Measure_asy):
         # import sep
         # bkg = sep.Background(self.img, mask=mask, bw=32, bh=32, fw=7, fh=7)
         # skysmooth = skysmoothness(bkg,self.r_p_c)
-        skysmooth = skysmoothness(self.img_bkg,self.r_p_c)
-        self.smoothness, self.S_flag = cal_smoothness(image= self.img * self.cal_areas, 
+        skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
+        self.smoothness, self.S_flag = self.cal_smoothness(image= self.img * self.cal_areas, 
                                     center=center, r_p_c=self.r_p_c,skysmooth=skysmooth)
 
         self.concentration = self.cal_concentration(image = self.img ,#* self.cal_areas,
@@ -583,7 +407,7 @@ class CAS(Measure_asy):
                                                 mask = (1-self.masks),
                                                 center=center, radius = radius,if_plot=if_plot)
         # print(theta, q, xc, yc)
-        self.gini = cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
+        self.gini = self.cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.smoothness, self.concentration, self.gini
 
 
@@ -617,8 +441,182 @@ class CAS(Measure_asy):
             plt.show()
         C = 5.0 * np.log10(r_80/r_20)#_radius_at_fraction_of_total_cas(0.8)#_radius_at_fraction_of_total_cas(0.2)
         return C
-
-#%%
+    
+    def _skysmoothness(self, bkg, r_p_c, skysmooth):
+        if skysmooth is None:
+            #bkg refers to background image
+            if bkg.size == 0:
+                skysmooth= -99.0
+        
+            # If the smoothing "boxcar" is larger than the skybox itself,
+            # this just sets all values equal to the mean:
+            # boxcar_size = np.max([int(0.25 * r_p_c),2])#circular petrosian radius goes here
+            boxcar_size = 0.25 * r_p_c
+            bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
+            # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
+            # plt_fits(bkg)
+            # plt_fits(bkg_smooth)
+        
+            bkg_diff = bkg - bkg_smooth
+            bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
+        
+            self.skysmooth= np.sum(bkg_diff) / float(bkg.size)
+        else:
+            self.skysmooth = skysmooth
+        return self.skysmooth
+    
+    def cal_smoothness(self, image, center, r_p_c, skysmooth, if_plot=False):
+        """
+        Calculate smoothness (a.k.a. clumpiness) as defined in eq. (11)
+        from Lotz et al. (2004). Note that the original definition by
+        Conselice (2003) includes an additional factor of 10.
+        """
+    
+    
+        # Exclude central region during smoothness calculation:
+        r_in = 0.25 * r_p_c#circular petrosian radius goes here
+        r_out = 1.5 * r_p_c#circular petrosian radius goes here
+        ap = photutils.CircularAnnulus((center), r_in, r_out)
+    
+        # boxcar_size = 0.25 * r_p_c
+        boxcar_size = np.max([int(0.25 * r_p_c),2])
+        image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
+        #with image sliced
+        image_diff = image - image_smooth
+        # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
+        image_diff = abs(image_diff)
+        if if_plot==True:
+            from galight.tools.astro_tools import plt_many_fits
+            plt_many_fits([image, image_smooth, image_diff], labels = ['image', 'image_smooth', 'image_diff'])
+        #     plt_fits(image)
+        #     plt_fits(image_smooth)
+        #     plt_fits(image_diff)
+        ap_flux = ap.do_photometry(image, method='exact')[0][0]
+        ap_diff = ap.do_photometry(image_diff, method='exact')[0][0]
+        flag = 0
+        if ap_flux <= 0:
+            warnings.warn('[smoothness] Nonpositive total flux.',
+                          AstropyUserWarning)
+            flag = 1
+            S= -99.0  # invalid
+    
+        if skysmooth == -99.0:  # invalid skybox
+            S = ap_diff / ap_flux
+        else:
+            # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
+            # # print(ap)
+            # print(ap_diff)
+            # print(ap.area)
+            # print(skysmooth)
+            # print(ap_flux)
+            S = (ap_diff - ap.area*skysmooth) / ap_flux
+    
+        if not np.isfinite(S):
+            warnings.warn('Invalid smoothness.', AstropyUserWarning)
+            flag = 1
+            S= -99.0  # invalid
+        return S, flag
+    
+    #%%
+    def cal_gini(self, image,r_p_e, theta, q, xc, yc):
+        """
+        Calculate the Gini coefficient as described in Lotz et al. (2004).
+        """
+        #mask_stamp is masking everything that is background or is not source
+        #image[slice_stamp] is image sliced appropriately#
+        #image = np.where(~mask_stamp, image[slice_stamp], 0.0)
+        
+        # ny, nx=image.shape
+        # r_outer = np.sqrt(ny**2+nx**2)
+        #petroellip=_rpetro_ellip_generic(imagenomask, sepa, center, sepelongation, septheta, r_outer)
+        #use petrosian elliptical radius for petroellip
+        
+        # segmapraw=_segmap_gini(r_p_e, image, q,theta)
+        segmap = self. _segmap_gini(image,r_p_e,q,theta, xc, yc).flatten()
+        imagenomaskforgini=image.flatten()
+        
+        sorted_pixelvals = np.sort(np.abs(imagenomaskforgini[segmap]))
+        n = len(sorted_pixelvals)
+        if n <= 1 or np.sum(sorted_pixelvals) == 0:
+            warnings.warn('[gini] Not enough data for Gini calculation.',
+                          AstropyUserWarning)
+            return -99.0  # invalid
+        
+        indices = np.arange(1, n+1)  # start at i=1
+        gini = (np.sum((2*indices-n-1) * sorted_pixelvals) /
+                (float(n-1) * np.sum(sorted_pixelvals)))
+        return gini
+    
+    def _segmap_gini(self, image, r_p_e, q,theta, xc, yc):
+        """
+        Create a new segmentation map (relative to the "postage stamp")
+        based on the elliptical Petrosian radius.
+        """
+        # Smooth image
+        petro_sigma = 0.2 * r_p_e #fractiongini=0.2, 
+        # print('petro_sigma',petro_sigma)
+        cutout_smooth = ndimage.gaussian_filter(image, petro_sigma)
+        #xc = morph.xc_centroid - morph.xmin_stamp
+        #yc = morph.yc_centroid - morph.ymin_stamp 
+        
+        # Use mean flux at the Petrosian "radius" as threshold
+        a_in = r_p_e - 0.5 * 1.0
+        a_out = r_p_e + 0.5 * 1.0
+        b_out = a_out / q
+        theta = theta
+        #xc, yc is centroid 
+        ellip_annulus = photutils.EllipticalAnnulus(
+            (xc, yc), a_in, a_out, b_out, theta=theta)
+        ellip_annulus_mean_flux = self._aperture_mean_nomask(
+            ellip_annulus, cutout_smooth, method='exact')
+    
+        above_threshold = cutout_smooth >= ellip_annulus_mean_flux
+    
+        # Grow regions with 8-connected neighbor "footprint"
+        s = ndimage.generate_binary_structure(2, 2)
+        labeled_array, num_features = ndimage.label(above_threshold, structure=s)
+    
+        # In some rare cases (e.g., Pan-STARRS J020218.5+672123_g.fits.gz),
+        # this results in an empty segmap, so there is nothing to do.
+        if num_features == 0:
+            warnings.warn('[segmap_gini] Empty Gini segmap!',
+                          AstropyUserWarning)
+            #self.flag = 1
+            return above_threshold
+    
+        # In other cases (e.g., object 110 from CANDELS/GOODS-S WFC/F160W),
+        # the Gini segmap occupies the entire image, which is also not OK.
+        if np.sum(above_threshold) == cutout_smooth.size:
+            warnings.warn('[segmap_gini] Full Gini segmap!',
+                          AstropyUserWarning)
+            #self.flag = 1
+            return above_threshold
+    
+        # If more than one region, activate the "bad measurement" flag
+        # and only keep segment that contains the brightest pixel.
+        if num_features > 1:
+            warnings.warn('[segmap_gini] Disjoint features in Gini segmap.',
+                          AstropyUserWarning)
+            #self.flag = 1
+            ic, jc = np.argwhere(cutout_smooth == np.max(cutout_smooth))[0]
+            assert labeled_array[ic, jc] != 0
+            segmap = labeled_array == labeled_array[ic, jc]
+        else:
+            segmap = above_threshold
+    
+        return segmap
+    
+    
+    def _aperture_mean_nomask(self, ap, image, **kwargs):
+        """
+        Calculate the mean flux of an image for a given photutils
+        aperture object. Note that we do not use ``_aperture_area``
+        here. Instead, we divide by the full area of the
+        aperture, regardless of masked and out-of-range pixels.
+        This avoids problems when the aperture is larger than the
+        region of interest.
+        """
+        return ap.do_photometry(image, **kwargs)[0][0] / ap.area#%%
 # import pickle
 # #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
 # fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
