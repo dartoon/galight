@@ -269,10 +269,11 @@ class FittingSpecify(object):
                           fix_center_list = None, source_params = None,
                           fix_n_list = None, fix_Re_list = None, ps_params = None, condition = None,
                           neighborhood_size = 4, threshold = 5, apertures_center_focus = False,
-                          psf_error_map = None):
+                          psf_error_map = None, mpi = False):
         """
         Key function used to prepared for the fitting. Parameters will be passed to the corresponding functions.
         """
+        self.mpi = mpi
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
         self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data, psf_error_map = psf_error_map)
@@ -294,7 +295,7 @@ class FittingSpecify(object):
         from lenstronomy.Workflow.fitting_sequence import FittingSequence
         self.fitting_seq = FittingSequence(self.kwargs_data_joint, self.kwargs_model, 
                                       self.kwargs_constraints, self.kwargs_likelihood, 
-                                      self.kwargs_params)
+                                      self.kwargs_params, mpi=self.mpi)
         # return fitting_seq, self.imageModel
     
 def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None,
