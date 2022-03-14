@@ -119,20 +119,17 @@ class Measure_asy(object):
         self.consider_petrosian = consider_petrosian
         self.extend = extend
         self.eta = eta
-    def asy_segm(self, segm = None, mask_type = 'segm'):
+    def asy_segm(self, mask_type = 'segm'):
         obj_id = self.obj_id
         apertures = self.fitting_process_class.fitting_specify_class.apertures
-        if segm is None:
-            if mask_type == 'segm':
-                segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
-            elif mask_type == 'aper': #!!!
-                segm_deblend = np.zeros_like(self.img)
-                for i in range(len(apertures)):
-                    apertures[obj_id].a = apertures[obj_id].a * self.extend
-                    apertures[obj_id].b = apertures[obj_id].b * self.extend
-                    segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
-        else:
-            segm_deblend = segm
+        if mask_type == 'segm':
+            segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
+        elif mask_type == 'aper': #!!!
+            segm_deblend = np.zeros_like(self.img)
+            for i in range(len(apertures)):
+                apertures[obj_id].a = apertures[obj_id].a * self.extend
+                apertures[obj_id].b = apertures[obj_id].b * self.extend
+                segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
         if isinstance(segm_deblend, (np.ndarray)):
             self.segm = segm_deblend
         else:
