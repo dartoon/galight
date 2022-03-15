@@ -613,13 +613,24 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         center = np.array([len(image)/2, len(image)/2])
         dis_sq = [np.sum((apertures[i].positions - center)**2) for i in range(len(apertures))]
         dis_sq = np.array(dis_sq)
-        c_idx = np.where(dis_sq == dis_sq.min())[0][0]
-        apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]
+        # c_idx = np.where(dis_sq == dis_sq.min())[0][0]
+        # apertures = [apertures[c_idx]] + [apertures[i] for i in range(len(apertures)) if i != c_idx]
+        # if detect_tool == 'phot':
+        #     cat = [cat[c_idx]] + [cat[i] for i in range(len(cat)) if i != c_idx] 
+        #     tbl['label'][0] = c_idx
+        #     tbl['label'][c_idx] = 0
+        c_order = dis_sq.argsort()
+        apertures = [apertures[c_idx] for c_idx in c_order]
+        plt.imshow(segm_deblend, origin='lower')
+        print(c_order)
+        _segm_deblend = np.zeros_like(segm_deblend)
         if detect_tool == 'phot':
-            cat = [cat[c_idx]] + [cat[i] for i in range(len(cat)) if i != c_idx] 
-            tbl['label'][0] = c_idx
-            tbl['label'][c_idx] = 0
-        
+            cat = [cat[c_idx] for c_idx in c_order]
+            tbl['label'] = [tbl['label'][c_idx] for c_idx in c_order]
+        for i in range(len(apertures)):
+            _segm_deblend += (segm_deblend == (c_order[i] + 1) ) * (i+1)
+        segm_deblend = _segm_deblend
+            
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
         vmin = 1.e-3

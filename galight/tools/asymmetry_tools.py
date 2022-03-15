@@ -119,17 +119,20 @@ class Measure_asy(object):
         self.consider_petrosian = consider_petrosian
         self.extend = extend
         self.eta = eta
-    def asy_segm(self, mask_type = 'segm'):
+    def asy_segm(self, segm = None, mask_type = 'segm'):
         obj_id = self.obj_id
         apertures = self.fitting_process_class.fitting_specify_class.apertures
-        if mask_type == 'segm':
-            segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
-        elif mask_type == 'aper': #!!!
-            segm_deblend = np.zeros_like(self.img)
-            for i in range(len(apertures)):
-                apertures[obj_id].a = apertures[obj_id].a * self.extend
-                apertures[obj_id].b = apertures[obj_id].b * self.extend
-                segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
+        if segm is None:
+            if mask_type == 'segm':
+                segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
+            elif mask_type == 'aper': #!!!
+                segm_deblend = np.zeros_like(self.img)
+                for i in range(len(apertures)):
+                    apertures[obj_id].a = apertures[obj_id].a * self.extend
+                    apertures[obj_id].b = apertures[obj_id].b * self.extend
+                    segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
+        else:
+            segm_deblend = segm
         if isinstance(segm_deblend, (np.ndarray)):
             self.segm = segm_deblend
         else:
@@ -365,8 +368,9 @@ class CAS(Measure_asy):
     def __init__(self, fitting_process_class, **kwargs):
         Measure_asy.__init__(self, fitting_process_class=fitting_process_class, **kwargs)
 
-    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, if_plot = False, if_plot_bkg=False,):
-        self.asy_segm(mask_type=mask_type)
+    def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, 
+                if_plot = False, if_plot_bkg=False, segm = None):
+        self.asy_segm(mask_type=mask_type, segm=segm)
         self.find_pos = self.find_pos()
         self.make_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg)
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], bkg_asy_dens=bkg_asy_dens,
@@ -613,7 +617,9 @@ class CAS(Measure_asy):
         This avoids problems when the aperture is larger than the
         region of interest.
         """
-        return ap.do_photometry(image, **kwargs)[0][0] / ap.area#%%
+        return ap.do_photometry(image, **kwargs)[0][0] / ap.area
+    
+#     #%%
 # import pickle
 # #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
 # fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
