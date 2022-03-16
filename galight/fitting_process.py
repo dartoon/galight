@@ -36,6 +36,7 @@ class FittingProcess(object):
                 - 'shallow', perfer a quick fitting.
     """
     def __init__(self, fitting_specify_class, savename = 'result', fitting_level='norm'):
+        fitting_specify_class.build_fitting_seq()
         self.fitting_specify_class = fitting_specify_class
         self.fitting_seq = fitting_specify_class.fitting_seq
         self.savename = savename
