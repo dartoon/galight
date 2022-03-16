@@ -19,6 +19,9 @@ from matplotlib.ticker import AutoMinorLocator
 import photutils
 import warnings
 from astropy.utils.exceptions import AstropyUserWarning
+from astropy.convolution import Box2DKernel
+from scipy.signal import convolve as scipy_convolve
+
 def shift_img(img, shift_pix, order=1):
     shift_pix = shift_pix[::-1]  #uniform the yx to xy
     shifted_digit_image=shift(img, shift_pix, order = order)
@@ -453,14 +456,20 @@ class CAS(Measure_asy):
             # this just sets all values equal to the mean:
             # boxcar_size = np.max([int(0.25 * r_p_c),2])#circular petrosian radius goes here
             boxcar_size = 0.25 * r_p_c
-            bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
+            # boxcar_size = 2
+            # print('_skysmoothness boxcar_size', boxcar_size)
+            # bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
+            kernel = Box2DKernel(0.25 * r_p_c)
+            bkg_smooth = scipy_convolve(bkg, kernel, mode='same', method='direct')
             # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
             # plt_fits(bkg)
             # plt_fits(bkg_smooth)
-        
             bkg_diff = bkg - bkg_smooth
-            bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
-        
+            
+            # bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
+            bkg_diff = abs(bkg_diff)
+            # plt_fits(bkg_diff)
+            # print(np.sum(bkg_diff))
             self.skysmooth= np.sum(bkg_diff) / float(bkg.size)
         else:
             self.skysmooth = skysmooth
@@ -472,20 +481,25 @@ class CAS(Measure_asy):
         from Lotz et al. (2004). Note that the original definition by
         Conselice (2003) includes an additional factor of 10.
         """
-    
-    
         # Exclude central region during smoothness calculation:
         r_in = 0.25 * r_p_c#circular petrosian radius goes here
         r_out = 1.5 * r_p_c#circular petrosian radius goes here
         ap = photutils.CircularAnnulus((center), r_in, r_out)
     
-        # boxcar_size = 0.25 * r_p_c
-        boxcar_size = np.max([int(0.25 * r_p_c),2])
-        image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
+        boxcar_size = 0.25 * r_p_c
+        # boxcar_size = 2
+        print('cal_smoothness boxcar_size', boxcar_size)
+        # image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
+        kernel = Box2DKernel(0.25 * r_p_c)
+        image_smooth = scipy_convolve(image, kernel, mode='same', method='direct')
         #with image sliced
         image_diff = image - image_smooth
         # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
         image_diff = abs(image_diff)
+        # plt_fits(image, colorbar = True)
+        # plt_fits(image_smooth, colorbar = True)
+        # plt_fits(image_diff)
+        # print(image.max(), image_smooth.max(),np.sum(image_diff))
         if if_plot==True:
             from galight.tools.astro_tools import plt_many_fits
             plt_many_fits([image, image_smooth, image_diff], labels = ['image', 'image_smooth', 'image_diff'])
@@ -518,7 +532,6 @@ class CAS(Measure_asy):
             S= -99.0  # invalid
         return S, flag
     
-    #%%
     def cal_gini(self, image,r_p_e, theta, q, xc, yc):
         """
         Calculate the Gini coefficient as described in Lotz et al. (2004).
@@ -619,7 +632,7 @@ class CAS(Measure_asy):
         """
         return ap.do_photometry(image, **kwargs)[0][0] / ap.area
     
-#     #%%
+    #%%
 # import pickle
 # #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
 # fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))

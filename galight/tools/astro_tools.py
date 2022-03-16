@@ -52,13 +52,13 @@ def read_fits_exp(header):
     """    
     return header['EXPTIME']
 
-def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None):
+def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None, vmin= None, vmax=None):
     """
     Directly plot a 2D image using imshow.
     """
     fig, ax = plt.subplots(figsize=figsize)
     if norm is None or norm == 'log':
-        norm = LogNorm()#np.max(img[~np.isnan(img)]))
+        norm = LogNorm(vmin=vmin, vmax=vmax)#np.max(img[~np.isnan(img)]))
     else:
         norm = None
     plt.imshow(img, norm=norm, origin='lower') 
