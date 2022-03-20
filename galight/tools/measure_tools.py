@@ -622,7 +622,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         c_order = dis_sq.argsort()
         apertures = [apertures[c_idx] for c_idx in c_order]
         plt.imshow(segm_deblend, origin='lower')
-        print(c_order)
+        # print(c_order)
         _segm_deblend = np.zeros_like(segm_deblend)
         if detect_tool == 'phot':
             cat = [cat[c_idx] for c_idx in c_order]
