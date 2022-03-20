@@ -621,7 +621,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         #     tbl['label'][c_idx] = 0
         c_order = dis_sq.argsort()
         apertures = [apertures[c_idx] for c_idx in c_order]
-        plt.imshow(segm_deblend, origin='lower')
+        # plt.imshow(segm_deblend, origin='lower')
         # print(c_order)
         _segm_deblend = np.zeros_like(segm_deblend)
         if detect_tool == 'phot':
@@ -711,7 +711,7 @@ def esti_bgkstd(image, nsigma=2, exp_sz= 1.5, npixels = 15, if_plot=False):
     """
     Estimate the value of the background rms, by first block all the light and measure empty regions.
     """
-    apertures = detect_obj(image, nsigma=nsigma , exp_sz=exp_sz, npixels = npixels)
+    apertures = detect_obj(image, nsigma=nsigma , exp_sz=exp_sz, npixels = npixels, if_plot=False)
     mask_list = mask_obj(image, apertures, if_plot=False)
     mask = np.ones_like(image)
     for i in range(len(mask_list)):
