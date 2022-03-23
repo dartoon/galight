@@ -345,7 +345,7 @@ class FittingProcess(object):
         import lenstronomy.Util.param_util as param_util
         from galight.tools.measure_tools import model_flux_cal
         self.final_result_galaxy = copy.deepcopy(self.source_result)
-        flux_sersic_model = model_flux_cal(self.final_result_galaxy)
+        flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis)
         for i in range(len(self.final_result_galaxy)):
             source = self.final_result_galaxy[i]
             source['phi_G'], source['q'] = param_util.ellipticity2phi_q(source['e1'], source['e2'])

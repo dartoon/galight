@@ -729,7 +729,7 @@ def esti_bgkstd(image, nsigma=2, exp_sz= 1.5, npixels = 15, if_plot=False):
         ax2.tick_params(labelsize=15)
     return stdd
 
-def model_flux_cal(params_list, model_list = None):
+def model_flux_cal(params_list, model_list = None, sersic_major_axis=None):
     """
     Calculate the flux of a Sersic (i.e., itergral to infinite) which is same defination as Galfit.
     
@@ -748,7 +748,7 @@ def model_flux_cal(params_list, model_list = None):
     from lenstronomy.LightModel.light_model import LightModel
     if model_list is None:
         model_list = ['SERSIC_ELLIPSE'] * len(params_list)
-    light = LightModel(model_list)
+    light = LightModel(model_list, sersic_major_axis=sersic_major_axis)
     flux = light.total_flux(params_list)
     return flux
 
