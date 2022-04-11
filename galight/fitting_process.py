@@ -19,7 +19,8 @@ from lenstronomy.Plots.model_plot import ModelPlot
 from galight.tools.plot_tools import total_compare
 from packaging import version
 import lenstronomy
-
+import lenstronomy.Util.param_util as param_util
+from galight.tools.measure_tools import model_flux_cal
 
 class FittingProcess(object):
     """
@@ -119,6 +120,8 @@ class FittingProcess(object):
             param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_source,
                           kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
+            # mcmc_sersic_model_flux = []
+            mcmc_source_result = []
             if len(fitting_specify_class.point_source_list) >0 :
                 qso_labels_new = ["Quasar_{0} flux".format(i) for i in range(len(fitting_specify_class.point_source_list))]
                 galaxy_labels_new = ["Galaxy_{0} flux".format(i) for i in range(len(fitting_specify_class.light_model_list))]
@@ -142,17 +145,22 @@ class FittingProcess(object):
                         image_ps_j = fitting_specify_class.imageModel.point_source(kwargs_ps_out, k=j)
                         flux_list_quasar.append(np.sum(image_ps_j))
                 flux_list_galaxy = []
+                mcmc_source_result.append(kwargs_light_source_out)
                 for j in range(len(fitting_specify_class.light_model_list)):
                     image_j = fitting_specify_class.imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
                     flux_list_galaxy.append(np.sum(image_j))
+                    # _flux_sersic_model = model_flux_cal(kwargs_light_source_out, sersic_major_axis=self.sersic_major_axis)
+                    # mcmc_sersic_model_flux.append(_flux_sersic_model)
                 mcmc_flux_list.append(flux_list_quasar + flux_list_galaxy )
                 if int(i/1000) > int((i-1)/1000) :
                     print(trans_steps[1]-trans_steps[0],
                           "MCMC samplers in total, finished translate:", i-trans_steps[0] )
             self.mcmc_flux_list = np.array(mcmc_flux_list)
+            # self.mcmc_sersic_model_flux = mcmc_sersic_model_flux
             self.labels_flux = labels_flux            
         self.chain_list = chain_list
         self.kwargs_result = kwargs_result
+        self.mcmc_source_result = mcmc_source_result
         self.ps_result = ps_result
         self.source_result = source_result
         self.imageLinearFit = imageLinearFit
@@ -342,8 +350,6 @@ class FittingProcess(object):
         """
         Translate some parameter results to make the fitting more readable, including the flux value, and the elliptical.
         """
-        import lenstronomy.Util.param_util as param_util
-        from galight.tools.measure_tools import model_flux_cal
         self.final_result_galaxy = copy.deepcopy(self.source_result)
         flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis)
         for i in range(len(self.final_result_galaxy)):
