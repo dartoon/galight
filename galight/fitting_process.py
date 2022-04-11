@@ -160,7 +160,17 @@ class FittingProcess(object):
             self.labels_flux = labels_flux            
         self.chain_list = chain_list
         self.kwargs_result = kwargs_result
-        self.mcmc_source_result = mcmc_source_result
+        mcmc_source_result_dict = {}
+        p_labels = mcmc_source_result[0][0].keys()
+        for i in range(len(mcmc_source_result)):
+            for j in range(len(mcmc_source_result[0])):
+                for label in p_labels:
+                    if i == 0:
+                        mcmc_source_result_dict[label+'_'+ str(j)] = []
+                    mcmc_source_result_dict[label+'_'+ str(j)].append(mcmc_source_result[i][j][label])
+        for key in mcmc_source_result_dict.keys():
+            mcmc_source_result_dict[key] = np.array(mcmc_source_result_dict[key])
+        self.mcmc_source_result = mcmc_source_result_dict
         self.ps_result = ps_result
         self.source_result = source_result
         self.imageLinearFit = imageLinearFit
