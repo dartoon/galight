@@ -634,15 +634,15 @@ class CAS(Measure_asy):
         """
         return ap.do_photometry(image, **kwargs)[0][0] / ap.area
     
-    #%%
-import pickle
-#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1, rm_ps=False)
-# CAS_class.asy_segm(mask_type='aper')
-# result = CAS_class.find_pos()
-# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# print(asy)
-# plt_fits(CAS_class.img,colorbar=True)
-cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
-print(cas)
+#     #%%
+# import pickle
+# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1, rm_ps=False)
+# # CAS_class.asy_segm(mask_type='aper')
+# # result = CAS_class.find_pos()
+# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# # print(asy)
+# # plt_fits(CAS_class.img,colorbar=True)
+# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
+# print(cas)
