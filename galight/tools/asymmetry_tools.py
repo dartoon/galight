@@ -19,7 +19,7 @@ from matplotlib.ticker import AutoMinorLocator
 import photutils
 import warnings
 from astropy.utils.exceptions import AstropyUserWarning
-from astropy.convolution import Box2DKernel
+from astropy.convolution import Tophat2DKernel
 from scipy.signal import convolve as scipy_convolve
 
 def shift_img(img, shift_pix, order=1):
@@ -277,7 +277,7 @@ class Measure_asy(object):
 # result = asy_class.find_pos()
 # print(result["x"])
 # plt_fits(asy_class.img,colorbar=True)
-# asy_class.run_bkg(rotate_pix = result["x"], if_remeasure_bkg=False ,)
+# asy_class.make_bkg(rotate_pix = result["x"], if_remeasure_bkg=False ,)
 # asy = asy_class.cal_asymmetry(rotate_pix = result["x"], if_plot=True, if_plot_bkg=True)
 # print('asymmetry :', asy)
 
@@ -372,7 +372,7 @@ class CAS(Measure_asy):
         Measure_asy.__init__(self, fitting_process_class=fitting_process_class, **kwargs)
 
     def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, 
-                if_plot = False, if_plot_bkg=False, segm = None):
+                if_plot = False, if_plot_bkg=False, segm = None, if_residual=False, image_org=None):
         self.asy_segm(mask_type=mask_type, segm=segm)
         self.find_pos = self.find_pos()
         self.make_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg)
@@ -404,7 +404,8 @@ class CAS(Measure_asy):
         # skysmooth = skysmoothness(bkg,self.r_p_c)
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
         self.smoothness, self.S_flag = self.cal_smoothness(image= self.img * self.cal_areas, 
-                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth)
+                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org,
+                                    if_residual=if_residual)
 
         self.concentration = self.cal_concentration(image = self.img ,#* self.cal_areas,
                                                 # mask = self.cal_areas,
@@ -451,7 +452,6 @@ class CAS(Measure_asy):
             #bkg refers to background image
             if bkg.size == 0:
                 skysmooth= -99.0
-        
             # If the smoothing "boxcar" is larger than the skybox itself,
             # this just sets all values equal to the mean:
             # boxcar_size = np.max([int(0.25 * r_p_c),2])#circular petrosian radius goes here
@@ -459,27 +459,29 @@ class CAS(Measure_asy):
             # boxcar_size = 2
             # print('_skysmoothness boxcar_size', boxcar_size)
             # bkg_smooth = ndimage.uniform_filter(bkg, size=boxcar_size)
-            kernel = Box2DKernel(0.25 * r_p_c)
+            kernel = Tophat2DKernel(0.25 * r_p_c)
             bkg_smooth = scipy_convolve(bkg, kernel, mode='same', method='direct')
             # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
             # plt_fits(bkg)
             # plt_fits(bkg_smooth)
             bkg_diff = bkg - bkg_smooth
-            
-            # bkg_diff[bkg_diff < 0] = 0.0  # set negative pixels to zero
-            bkg_diff = abs(bkg_diff)
-            # plt_fits(bkg_diff)
-            # print(np.sum(bkg_diff))
-            self.skysmooth= np.sum(bkg_diff) / float(bkg.size)
+            bkg_diff_abs = abs(bkg_diff)
+            skysmooth_abs= np.sum(bkg_diff_abs) / float(bkg.size)
+            bkg_diff_pos = copy.deepcopy(bkg_diff)
+            bkg_diff_pos[bkg_diff_pos < 0] = 0.0
+            skysmooth_pos= np.sum(bkg_diff_pos) / float(bkg.size)
+            self.skysmooth  = [skysmooth_abs, skysmooth_pos]
         else:
             self.skysmooth = skysmooth
         return self.skysmooth
     
-    def cal_smoothness(self, image, center, r_p_c, skysmooth, if_plot=False):
+    def cal_smoothness(self, image, center, r_p_c, skysmooth, if_plot=False, if_residual = False, image_org=None):
         """
         Calculate smoothness (a.k.a. clumpiness) as defined in eq. (11)
         from Lotz et al. (2004). Note that the original definition by
         Conselice (2003) includes an additional factor of 10.
+        
+        Return value inlcuding abs and pos abs value.
         """
         # Exclude central region during smoothness calculation:
         r_in = 0.25 * r_p_c#circular petrosian radius goes here
@@ -490,47 +492,47 @@ class CAS(Measure_asy):
         # boxcar_size = 2
         print('cal_smoothness boxcar_size', boxcar_size)
         # image_smooth = ndimage.uniform_filter(image, size=boxcar_size)
-        kernel = Box2DKernel(0.25 * r_p_c)
+        kernel = Tophat2DKernel(0.25 * r_p_c)
         image_smooth = scipy_convolve(image, kernel, mode='same', method='direct')
         #with image sliced
         image_diff = image - image_smooth
         # image_diff[image_diff < 0] = 0.0  # set negative pixels to zero  #!!!
-        image_diff = abs(image_diff)
+        image_diff_abs = abs(image_diff)
+        image_diff_pos = copy.deepcopy(image_diff)
+        image_diff_pos[image_diff_pos < 0] = 0.0
         # plt_fits(image, colorbar = True)
         # plt_fits(image_smooth, colorbar = True)
         # plt_fits(image_diff)
         # print(image.max(), image_smooth.max(),np.sum(image_diff))
         if if_plot==True:
             from galight.tools.astro_tools import plt_many_fits
-            plt_many_fits([image, image_smooth, image_diff], labels = ['image', 'image_smooth', 'image_diff'])
-        #     plt_fits(image)
-        #     plt_fits(image_smooth)
-        #     plt_fits(image_diff)
-        ap_flux = ap.do_photometry(image, method='exact')[0][0]
-        ap_diff = ap.do_photometry(image_diff, method='exact')[0][0]
+            plt_many_fits([image, image_smooth, image_diff_abs], labels = ['image', 'image_smooth', 'image_diff'])
+        if if_residual == False:
+            ap_flux = ap.do_photometry(image, method='exact')[0][0]
+        elif if_residual == True:
+            ap_flux = ap.do_photometry(image_org, method='exact')[0][0]
+            
+        ap_diff_abs = ap.do_photometry(image_diff_abs, method='exact')[0][0]
+        ap_diff_pos = ap.do_photometry(image_diff_pos, method='exact')[0][0]
         flag = 0
         if ap_flux <= 0:
             warnings.warn('[smoothness] Nonpositive total flux.',
                           AstropyUserWarning)
             flag = 1
-            S= -99.0  # invalid
+            S_abs, S_pos = -99.0, -99.0
     
-        if skysmooth == -99.0:  # invalid skybox
-            S = ap_diff / ap_flux
+        if skysmooth[0] == -99.0 or skysmooth[1] == -99.0:  # invalid skybox
+            S_abs = ap_diff_abs / ap_flux
+            S_pos = ap_diff_pos / ap_flux
         else:
-            # print('boxcar_size, r_p_c',boxcar_size, r_p_c)
-            # # print(ap)
-            # print(ap_diff)
-            # print(ap.area)
-            # print(skysmooth)
-            # print(ap_flux)
-            S = (ap_diff - ap.area*skysmooth) / ap_flux
+            S_abs = (ap_diff_abs - ap.area*skysmooth[0]) / ap_flux
+            S_pos = (ap_diff_pos - ap.area*skysmooth[1]) / ap_flux
     
-        if not np.isfinite(S):
+        if not np.isfinite(S_abs) and not np.isfinite(S_abs):
             warnings.warn('Invalid smoothness.', AstropyUserWarning)
             flag = 1
-            S= -99.0  # invalid
-        return S, flag
+            S_abs, S_pos = -99.0, -99.0
+        return (S_abs, S_pos), flag
     
     def cal_gini(self, image,r_p_e, theta, q, xc, yc):
         """
@@ -633,14 +635,14 @@ class CAS(Measure_asy):
         return ap.do_photometry(image, **kwargs)[0][0] / ap.area
     
     #%%
-# import pickle
-# #links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
-# fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
-# CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1, rm_ps=False)
-# # CAS_class.asy_segm(mask_type='aper')
-# # result = CAS_class.find_pos()
-# # asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
-# # print(asy)
-# # plt_fits(CAS_class.img,colorbar=True)
-# cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
-# print(cas)
+import pickle
+#links of file https://drive.google.com/file/d/1jE_6pZeDTHgXwmd2GW28fCRuPaQo8I61/view?usp=sharing
+fit_run_pkl = pickle.load(open('./HSC_QSO.pkl','rb'))
+CAS_class = CAS(fit_run_pkl, seg_cal_reg = 'or', obj_id=0, extend=1, rm_ps=False)
+# CAS_class.asy_segm(mask_type='aper')
+# result = CAS_class.find_pos()
+# asy = CAS_class.cal_asymmetry(rotate_pix = result["x"], if_remeasure_bkg=False ,if_plot=False, if_plot_bkg=False)
+# print(asy)
+# plt_fits(CAS_class.img,colorbar=True)
+cas = CAS_class.cal_CAS(mask_type='aper', if_plot=True)
+print(cas)
