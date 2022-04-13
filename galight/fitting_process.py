@@ -120,7 +120,6 @@ class FittingProcess(object):
             param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_source,
                           kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
-            # mcmc_sersic_model_flux = []
             mcmc_source_result = []
             if len(fitting_specify_class.point_source_list) >0 :
                 qso_labels_new = ["Quasar_{0} flux".format(i) for i in range(len(fitting_specify_class.point_source_list))]
@@ -158,19 +157,19 @@ class FittingProcess(object):
             self.mcmc_flux_list = np.array(mcmc_flux_list)
             # self.mcmc_sersic_model_flux = mcmc_sersic_model_flux
             self.labels_flux = labels_flux            
+            mcmc_source_result_dict = {}
+            p_labels = mcmc_source_result[0][0].keys()
+            for i in range(len(mcmc_source_result)):
+                for j in range(len(mcmc_source_result[0])):
+                    for label in p_labels:
+                        if i == 0:
+                            mcmc_source_result_dict[label+'_'+ str(j)] = []
+                        mcmc_source_result_dict[label+'_'+ str(j)].append(mcmc_source_result[i][j][label])
+            for key in mcmc_source_result_dict.keys():
+                mcmc_source_result_dict[key] = np.array(mcmc_source_result_dict[key])
+            self.mcmc_source_result = mcmc_source_result_dict
         self.chain_list = chain_list
         self.kwargs_result = kwargs_result
-        mcmc_source_result_dict = {}
-        p_labels = mcmc_source_result[0][0].keys()
-        for i in range(len(mcmc_source_result)):
-            for j in range(len(mcmc_source_result[0])):
-                for label in p_labels:
-                    if i == 0:
-                        mcmc_source_result_dict[label+'_'+ str(j)] = []
-                    mcmc_source_result_dict[label+'_'+ str(j)].append(mcmc_source_result[i][j][label])
-        for key in mcmc_source_result_dict.keys():
-            mcmc_source_result_dict[key] = np.array(mcmc_source_result_dict[key])
-        self.mcmc_source_result = mcmc_source_result_dict
         self.ps_result = ps_result
         self.source_result = source_result
         self.imageLinearFit = imageLinearFit
