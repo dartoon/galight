@@ -460,8 +460,8 @@ class CAS(Measure_asy):
         self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
                                 radius=radius, q=q, theta = theta, if_plot=if_plot)
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
-        self.smoothness, self.S_flag = self.cal_smoothness(image= self.img * self.cal_areas, 
-                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org* self.cal_areas,
+        self.smoothness, self.S_flag = self.cal_smoothness(image= self.img,
+                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org,
                                     if_residual=if_residual)
 
         self.concentration = self.cal_concentration(image = self.img ,
@@ -544,7 +544,7 @@ class CAS(Measure_asy):
         if if_residual == False:
             ap_flux = ap.do_photometry(image, method='exact')[0][0]
         elif if_residual == True:
-            ap_flux = ap.do_photometry(image_org, method='exact')[0][0]
+            ap_flux = ap.do_photometry(image_org * self.cal_areas, method='exact')[0][0]
             
         ap_diff_abs = ap.do_photometry(image_diff_abs, method='exact')[0][0]
         ap_diff_pos = ap.do_photometry(image_diff_pos, method='exact')[0][0]
