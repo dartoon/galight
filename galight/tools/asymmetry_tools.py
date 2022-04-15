@@ -461,7 +461,7 @@ class CAS(Measure_asy):
                                 radius=radius, q=q, theta = theta, if_plot=if_plot)
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
         self.smoothness, self.S_flag = self.cal_smoothness(image= self.img * self.cal_areas, 
-                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org,
+                                    center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org* self.cal_areas,
                                     if_residual=if_residual)
 
         self.concentration = self.cal_concentration(image = self.img ,
