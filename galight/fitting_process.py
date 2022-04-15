@@ -62,7 +62,10 @@ class FittingProcess(object):
         fitting_kwargs_list = []
         for i in range(len(algorithm_list)):
             if setting_list[i] is None:
-                setting = fitting_setting_temp(algorithm_list[i], fitting_level = self.fitting_level)
+                if isinstance(self.fitting_level, str):
+                    setting = fitting_setting_temp(algorithm_list[i], fitting_level = self.fitting_level)
+                elif isinstance(self.fitting_level, list):
+                    setting = fitting_setting_temp(algorithm_list[i], fitting_level = self.fitting_level[i])
             else:
                 setting = setting_list[i]
             if self.fitting_seq._mpi == True:
