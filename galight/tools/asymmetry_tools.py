@@ -152,15 +152,17 @@ class Measure_asy(object):
         
     """
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                 consider_petrosian=False, eta = 0.2, rm_ps = False):
+                 consider_petrosian=False, eta = 0.2, rm_ps = False, rm_model=False):
         self.fitting_process_class = fitting_process_class
         self.interp_order = interp_order
         self.seg_cal_reg = seg_cal_reg
         self.obj_id = obj_id
         self.interp_order = interp_order
-        self.img = self.fitting_process_class.fitting_specify_class.kwargs_data['image_data']
+        self.img = copy.deepcopy(self.fitting_process_class.fitting_specify_class.kwargs_data['image_data'])
         if rm_ps == True:
             self.img -= np.sum(self.fitting_process_class.image_ps_list, axis = 0)
+        elif rm_model == True:
+            self.img = self.img - np.sum(self.fitting_process_class.image_ps_list, axis = 0) - np.sum(self.fitting_process_class.image_host_list, axis = 0)
         self.consider_petrosian = consider_petrosian
         self.eta = eta
     def asy_segm(self, segm = None, mask_type = 'segm', extend=1.):
@@ -438,13 +440,13 @@ class CAS(Measure_asy):
     def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, extend=1, 
                 if_plot = False, if_plot_bkg=False, segm = None, if_residual=False, image_org=None):
         self.asy_segm(mask_type=mask_type, segm=segm, extend=extend)
-        self.find_pos = self.find_pos()
-        self.make_bkg(rotate_pix = self.find_pos["x"], if_remeasure_bkg=if_remeasure_bkg)
-        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos["x"], bkg_asy_dens=bkg_asy_dens,
+        self.find_pos_res = self.find_pos()
+        self.make_bkg(rotate_pix = self.find_pos_res["x"], if_remeasure_bkg=if_remeasure_bkg)
+        self.asy = self.cal_asymmetry(rotate_pix = self.find_pos_res["x"], bkg_asy_dens=bkg_asy_dens,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg)
         segm_id = self.segm_id
         radius = len(self.img)/2*0.95
-        center =  np.array([len(self.img)/2]*2) + self.find_pos["x"]
+        center =  np.array([len(self.img)/2]*2) + self.find_pos_res["x"]
         self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
                                 radius=radius, if_plot=if_plot)
         try:
