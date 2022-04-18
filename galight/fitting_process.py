@@ -522,7 +522,7 @@ class FittingProcess(object):
             del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
-def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'norm'):
+def fitting_setting_temp(algorithm, fitting_level = 'norm'):
     """
     Quick setting up the fitting particles for the 'PSO' and 'MCMC'.
     
@@ -536,21 +536,14 @@ def fitting_setting_temp(algorithm, fill_value_list = None, fitting_level = 'nor
         Fitting particle settings.
     """    
     if algorithm == 'PSO':
-        if fill_value_list is None:
-            if fitting_level == 'deep':
-                setting = {'sigma_scale': 0.8, 'n_particles': 100, 'n_iterations': 150}
-            else:
-                setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
+        if fitting_level == 'deep':
+            setting = {'sigma_scale': 0.8, 'n_particles': 100, 'n_iterations': 150}
         else:
-            setting = {'sigma_scale': fill_value_list[0], 'n_particles': fill_value_list[1], 'n_iterations': fill_value_list[2]}
+            setting = {'sigma_scale': 0.8, 'n_particles': 50, 'n_iterations': 50}
     elif algorithm == 'MCMC':     
-        if fill_value_list is None: 
-            if fitting_level == 'deep':            
-                setting = {'n_burn': 100, 'n_run': 200, 'walkerRatio': 10, 'sigma_scale': .1}
-            else:
-                setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
+        if fitting_level == 'deep':            
+            setting = {'n_burn': 100, 'n_run': 200, 'walkerRatio': 10, 'sigma_scale': .1}
         else:
-            setting = {'n_burn': fill_value_list[0], 'n_run': fill_value_list[1],
-                       'walkerRatio': fill_value_list[2], 'sigma_scale': fill_value_list[3]}
+            setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
     return setting
 
