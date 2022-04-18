@@ -17,7 +17,7 @@ History
 ++++++++++++++++++
 
 * Debug the aperture alignment.
-* Calcualte astrometry information for objs.
+* Calculate astrometry information for objs.
 * Remove any objs in the original fov image.
 * Include the HSC_utils by Connor.
 
@@ -45,5 +45,14 @@ History
 ++++++++++++++++++
 
 * Debug for no error report in detect_obj function
-* A preliminary versoin for non-parametric CAS calcuaiton
-* More functionaility with plot tools
+* A preliminary version for non-parametric CAS calculation
+* More functionality with plot tools
+
+
+0.1.6 (2022-04-18)
+++++++++++++++++++
+
+* Debug for 'sersic_model_flux' calculation caused by "sersic_major_axis" setting
+* Upgrade with more CAS calcuation.
+* Imporve the MCMC output with a dict of all parameters including amp values.
+
