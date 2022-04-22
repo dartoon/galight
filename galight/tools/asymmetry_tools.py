@@ -260,12 +260,14 @@ class Measure_asy(object):
         if self.seg_cal_reg == 'and':
             cal_areas = cal_area * cal_area_
             mask_areas = mask * mask_
-            if np.sum(cal_areas) < np.sum(cal_area)/3:
-                punish = True
         elif self.seg_cal_reg == 'or':
             cal_areas = cal_area + cal_area_
             mask_areas = mask + mask_
             cal_areas = cal_areas*(1-mask_areas)
+        if np.sum(cal_areas) < np.sum(cal_area)/3:
+            punish = True
+        # if np.sum(cal_areas) < 10:
+            # punish = True
         return cal_areas, mask_areas, punish
 
     def make_bkg(self, rotate_pix, if_remeasure_bkg=False):
