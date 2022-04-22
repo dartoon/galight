@@ -638,4 +638,22 @@ class CAS(Measure_asy):
         region of interest.
         """
         return ap.do_photometry(image, **kwargs)[0][0] / ap.area
-    
+
+    def cal_rff(self):
+        noise_map = self.fitting_process_class.fitting_specify_class.kwargs_data['noise_map']
+        res = self.fitting_process_class.fitting_specify_class.kwargs_data['image_data'] - np.sum(self.fitting_process_class.image_ps_list, axis = 0) - np.sum(self.fitting_process_class.image_host_list, axis = 0)
+        #mask non-source and background
+        rffmask=(self.segm!=0)*(self.segm!=1)
+        #sum image flux
+        rffdenom=np.nansum(self.img*(self.segm==1)*(1-rffmask)*(1-np.isinf(noise_map))) 
+        #sum residual flux
+        resflux = np.nansum(np.abs(res*(self.segm==1)*(1-rffmask)*(1-np.isinf(noise_map))))
+        #sum noise map flux
+        varflux = 0.8*np.nansum(noise_map*(self.segm==1)*(1-rffmask)*(1-np.isinf(noise_map)))
+        rff=(resflux - varflux) /rffdenom
+        # print(rff)
+        return rff
+        
+
+        
+        
