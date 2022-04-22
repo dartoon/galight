@@ -54,5 +54,6 @@ History
 
 * Debug for 'sersic_model_flux' calculation caused by "sersic_major_axis" setting
 * Upgrade with more CAS calcuation.
-* Imporve the MCMC output with a dict of all parameters including amp values.
+* Imporve the MCMC output using 'mcmc_source_result' dict to save all samplers with amp values.
+
 
