@@ -287,17 +287,17 @@ class Measure_asy(object):
         None.
 
         """
-        self.cal_areas, self.masks, _ = self._segm_to_mask(rotate_pix)
+        self.cal_areas, self.asy_masks, _ = self._segm_to_mask(rotate_pix)
         if if_remeasure_bkg == False:
-            obj_masks = self.cal_areas + self.masks
-            obj_masks = obj_masks == False
-            img_bkg = self.img * obj_masks
+            light_masks = self.cal_areas + self.asy_masks
+            light_masks = light_masks == False
+            img_bkg = self.img * light_masks
             img_bkg_ = rotate_image(img_bkg, np.around(rotate_pix), order =1)
             rot_mask = img_bkg_!=0
-            obj_masks = obj_masks * rot_mask
+            light_masks = light_masks * rot_mask
         elif hasattr(self.fitting_process_class.fitting_specify_class, 'data_process_class'):
                 # data_process_class = self.fitting_process_class.fitting_specify_class.data_process_class,
-                img_bkg, obj_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
+                img_bkg, light_masks = pass_bkg(data_process=self.fitting_process_class.fitting_specify_class.data_process_class, 
                                               num_pix=np.sum(self.cal_areas),
                                               rotate_pix=rotate_pix,
                                               ini_pix = self.ini_pix)
@@ -306,13 +306,13 @@ class Measure_asy(object):
             raise ValueError("data_process_class has been removed and should be re-assigned to fitting_specify_class.") 
         self.img_bkg = img_bkg
         self.img_bkg_ = img_bkg_
-        self.obj_masks = obj_masks
+        self.light_masks = light_masks
     
     def _sky_asymmetry(self, if_plot_bkg = False, bkg_asy_dens=None):
         if bkg_asy_dens is None:
-            bkg_asy_2d = abs(self.img_bkg - self.img_bkg_) * self.obj_masks
+            bkg_asy_2d = abs(self.img_bkg - self.img_bkg_) * self.light_masks
             bkg_asy = np.sum(bkg_asy_2d)
-            self.bkg_asy_dens = bkg_asy/np.sum(self.obj_masks) #The density of the background asymmetry.
+            self.bkg_asy_dens = bkg_asy/np.sum(self.light_masks) #The density of the background asymmetry.
         else:
             assert 0 < bkg_asy_dens < 1.0
             self.bkg_asy_dens = bkg_asy_dens
@@ -449,7 +449,8 @@ class CAS(Measure_asy):
         segm_id = self.segm_id
         radius = len(self.img)/2*0.95
         center =  np.array([len(self.img)/2]*2) + self.find_pos_res["x"]
-        self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0) ,
+        self._mask = (self.segm == segm_id) +  (self.segm == 0)  #A mask for the object.
+        self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask ,
                                 radius=radius, if_plot=if_plot)
         try:
             q = self.fitting_process_class.final_result_galaxy[self.obj_id]['q']
@@ -461,7 +462,7 @@ class CAS(Measure_asy):
             theta = apr.theta
             xc, yc = apr.positions
         
-        self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= (self.segm == segm_id) +  (self.segm == 0),
+        self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask,
                                 radius=radius, q=q, theta = theta, if_plot=if_plot)
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
         self.smoothness, self.S_flag = self.cal_smoothness(image= self.img,
@@ -469,7 +470,7 @@ class CAS(Measure_asy):
                                     if_residual=if_residual)
 
         self.concentration = self.cal_concentration(image = self.img ,
-                                                mask = (1-self.masks),
+                                                mask = self._mask,
                                                 center=center, radius = radius,if_plot=if_plot)
         self.gini = self.cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.smoothness, self.concentration, self.gini
@@ -480,7 +481,7 @@ class CAS(Measure_asy):
         seeding_num = np.min([int(radius*2), 100])
         r_flux, r_grids, _  =  flux_profile(image, center = center, radius = radius, mask_image = mask, 
                                             x_gridspace = 'log', start_p=1,
-                                      if_plot=False, fits_plot = False, grids=seeding_num )
+                                            if_plot=False, fits_plot = if_plot, grids=seeding_num )
         if tot_flux is None:
             tot_flux = r_flux[-1]
         r_80 = r_grids[r_flux/tot_flux>0.8][0]
@@ -654,6 +655,60 @@ class CAS(Measure_asy):
         # print(rff)
         return rff
         
+    
+    def cal_M20(self):
+        """
+        Calculate the M_20 coefficient as described in Lotz et al. (2004).
+        """
+        if np.sum(self._segmap_gini) == 0:
+            return -99.0  # invalid
+
+        # # Use the same region as in the Gini calculation
+        image = np.where(self._segmap_gini, self.img*self._mask, 0.0)  #!!! This is needed to make sure.
+        image = np.float64(image)  # skimage wants double
+        # image = self.img
+        import skimage.measure
+        # Calculate centroid
+        M = skimage.measure.moments(image, order=1)
+        if M[0, 0] <= 0:
+            warnings.warn('[deviation] Nonpositive flux within Gini segmap.',
+                          AstropyUserWarning)
+            self.flag = 1
+            return -99.0  # invalid
+        yc = M[1, 0] / M[0, 0]
+        xc = M[0, 1] / M[0, 0]
+
+        # Calculate second total central moment
+        Mc = skimage.measure.moments_central(image, center=(yc, xc), order=2)
+        second_moment_tot = Mc[0, 2] + Mc[2, 0]
+
+        # Calculate threshold pixel value
+        sorted_pixelvals = np.sort(image.flatten())
+        flux_fraction = np.cumsum(sorted_pixelvals) / np.sum(sorted_pixelvals)
+        sorted_pixelvals_20 = sorted_pixelvals[flux_fraction >= 0.8]
+        if len(sorted_pixelvals_20) == 0:
+            # This can happen when there are very few pixels.
+            warnings.warn('[m20] Not enough data for M20 calculation.',
+                          AstropyUserWarning)
+            self.flag = 1
+            return -99.0  # invalid
+        threshold = sorted_pixelvals_20[0]
+
+        # Calculate second moment of the brightest pixels
+        image_20 = np.where(image >= threshold, image, 0.0)
+        Mc_20 = skimage.measure.moments_central(image_20, center=(yc, xc), order=2)
+        second_moment_20 = Mc_20[0, 2] + Mc_20[2, 0]
+
+        if (second_moment_20 <= 0) | (second_moment_tot <= 0):
+            warnings.warn('[m20] Negative second moment(s).',
+                          AstropyUserWarning)
+            self.flag = 1
+            m20 = -99.0  # invalid
+        else:
+            m20 = np.log10(second_moment_20 / second_moment_tot)
+
+        return m20
+
 
         
         
