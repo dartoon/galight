@@ -71,6 +71,11 @@ class DataProcess(object):
                 self.target_pos = target_pos
             elif pos_type == 'wcs':
                 wcs = WCS(header)
+                if isinstance(target_pos[0], str) or isinstance(target_pos[1], str):
+                    from astropy.coordinates import SkyCoord
+                    from astropy import units as u
+                    pos = SkyCoord('{0} {1}'.format(target_pos[0], target_pos[1]), unit=(u.hourangle, u.deg))
+                    target_pos = pos.ra.degree, pos.dec.degree
                 self.target_pos = wcs.all_world2pix([[target_pos[0], target_pos[1]]], 1)[0]
             else:
                 raise ValueError("'pos_type' is should be either 'pixel' or 'wcs'.")
