@@ -80,7 +80,7 @@ def plt_fits_color(imgs, savename = None, **args):
     plt.show()
 
 def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = None, hide_axes = False,
-                  if_plot=True, cmap=None):
+                  if_plot=True, cmap=None, label_size = 17):
     _row = int(len(imgs) / 5) + 1
     if _row<=1:
         _row=2
@@ -97,11 +97,11 @@ def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = Non
         else:
             label = labels[i]
         plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.87, label,
-                 fontsize=17, weight='bold', color='black')
+                 fontsize=label_size, weight='bold', color='black')
         plttext.set_bbox(dict(facecolor='white', alpha=0.5))
         if texts is not None:
             plttext = axs[_i][_j].text(frame_size*0.05, frame_size*0.05, "{1} = {0}".format(round(texts[i],3), prop ),
-                     fontsize=17, weight='bold', color='black')
+                     fontsize=label_size, weight='bold', color='black')
             plttext.set_bbox(dict(facecolor='white', alpha=0.5))
         if hide_axes == True:
             axs[_i][_j].axes.xaxis.set_visible(False)
