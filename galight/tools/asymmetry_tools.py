@@ -174,7 +174,7 @@ class Measure_asy(object):
             segm: None or a 2D array of segm.
                 If None, the segm will be adopted using either the aperture or the original segm by galight's measure.
             
-            mask_type: 'segm' or 'aperture'. Only applied whtn segm is None.
+            mask_type: 'segm' or 'aper'. Only applied whtn segm is None.
                 The type of mask to define the region to measure.
             
             extend: float or int.
@@ -264,7 +264,7 @@ class Measure_asy(object):
             cal_areas = cal_area + cal_area_
             mask_areas = mask + mask_
             cal_areas = cal_areas*(1-mask_areas)
-        if np.sum(cal_areas) < np.sum(cal_area)/2:
+        if np.sum(cal_area * cal_area_) < np.sum(cal_area)/2:  
             punish = True
         # if np.sum(cal_areas) < 10:
             # punish = True
@@ -450,8 +450,7 @@ class CAS(Measure_asy):
         radius = len(self.img)/2*0.95
         center =  np.array([len(self.img)/2]*2) + self.find_pos_res["x"]
         self._mask = (self.segm == segm_id) +  (self.segm == 0)  #A mask for the object.
-        self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask ,
-                                radius=radius, if_plot=if_plot)
+        
         try:
             q = self.fitting_process_class.final_result_galaxy[self.obj_id]['q']
             theta = - self.fitting_process_class.final_result_galaxy[self.obj_id]['phi_G']  #Galight and apr's theta is reversed.
@@ -461,9 +460,22 @@ class CAS(Measure_asy):
             q = apr.b/apr.a
             theta = apr.theta
             xc, yc = apr.positions
+        if if_residual == False:
+            self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask ,
+                                    radius=radius, if_plot=if_plot)
+            self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask,
+                                    radius=radius, q=q, theta = theta, if_plot=if_plot)
+        if if_residual == True:
+            if image_org is None:
+                image_org = copy.deepcopy(self.fitting_process_class.fitting_specify_class.kwargs_data['image_data'])
+            self.image_org = image_org
+            self.r_p_c = cal_r_petrosian(image_org, center=center, eta=self.eta, mask= self._mask ,
+                                         radius=radius, if_plot=if_plot) 
+            
+            self.r_p_e = cal_r_petrosian(image_org, center=center, eta=self.eta, mask= self._mask,
+                                    radius=radius, q=q, theta = theta, if_plot=if_plot)
         
-        self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask,
-                                radius=radius, q=q, theta = theta, if_plot=if_plot)
+        
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
         self.smoothness, self.S_flag = self.cal_smoothness(image= self.img,
                                     center=center, r_p_c=self.r_p_c,skysmooth=skysmooth, image_org= image_org,
