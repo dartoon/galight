@@ -444,8 +444,11 @@ class CAS(Measure_asy):
         self.asy_segm(mask_type=mask_type, segm=segm, extend=extend)
         self.find_pos_res = self.find_pos()
         self.make_bkg(rotate_pix = self.find_pos_res["x"], if_remeasure_bkg=if_remeasure_bkg)
+        obj_flux = None
+        if if_residual == True and image_org is not None:
+            obj_flux = np.sum(image_org[self.cal_areas == True])
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos_res["x"], bkg_asy_dens=bkg_asy_dens,
-                                      if_plot=if_plot, if_plot_bkg=if_plot_bkg)
+                                      if_plot=if_plot, if_plot_bkg=if_plot_bkg, obj_flux = obj_flux)
         segm_id = self.segm_id
         radius = len(self.img)/2*0.95
         center =  np.array([len(self.img)/2]*2) + self.find_pos_res["x"]
