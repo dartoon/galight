@@ -264,7 +264,7 @@ class Measure_asy(object):
             cal_areas = cal_area + cal_area_
             mask_areas = mask + mask_
             cal_areas = cal_areas*(1-mask_areas)
-        if np.sum(cal_areas) < np.sum(cal_area)/3:
+        if np.sum(cal_areas) < np.sum(cal_area)/2:
             punish = True
         # if np.sum(cal_areas) < 10:
             # punish = True
