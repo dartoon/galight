@@ -14,9 +14,8 @@ multiprocess==0.70.12.2
 networkx==2.5.1
 numpy==1.19.5
 packaging==21.3
-pandas==1.3.5
+pandas==1.1.5
 photutils==1.2.0
-Pillow==8.4.0
 pkginfo==1.8.2
 pyerfa==2.0.0.1
 pyparsing==3.0.6
