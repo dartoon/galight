@@ -57,3 +57,7 @@ History
 * Imporve the MCMC output using 'mcmc_source_result' dict to save all samplers with amp values.
 
 
+0.1.7 (2022-xx-xx)
+++++++++++++++++++
+
+* Update initial Reff value based on Moments measure.

@@ -10,4 +10,9 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* John Silverman
+* Simon Birrer
+* Tommaso Treu
+* Shenli Tang
+* Lilan Yang
+* Connor Bottrell
