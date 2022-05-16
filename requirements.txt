@@ -15,19 +15,10 @@ networkx==2.5.1
 numpy==1.19.5
 packaging==21.3
 pandas==1.1.5
-photutils==1.2.0
-pkginfo==1.8.2
-pyerfa==2.0.0.1
-pyparsing==3.0.6
-python-dateutil==2.8.2
-pytz==2021.3
-PyWavelets==1.2.0
-PyYAML==6.0
-readme-renderer==30.0
+photutils==1.0.2
 regions==0.5
 requests==2.26.0
 requests-toolbelt==0.9.1
-rfc3986==1.5.0
 schwimmbad==0.3.2
 scikit-image==0.19.0
 scipy==1.7.3
@@ -36,4 +27,3 @@ six==1.16.0
 statmorph==0.4.0
 tifffile==2021.11.2
 twine==3.7.0
-urllib3==1.26.7
