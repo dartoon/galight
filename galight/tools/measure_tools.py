@@ -511,8 +511,48 @@ def cr_mask(image, filename='test_circle.reg'):
     return mask    
 
 
+def image_moments(image,sexseg,pflag,plot=False):
+    '''
+    Compute galaxy moments from galaxy pixels in [image]. The target galaxy's flag in the segmentation image [sexseg] should be [pflag]. All other source flags are irrelevant. The sky pixel flag should be 0. The moments can be computed for all flagged sources in an image iteratively for each [pflag]. Returns dictionary of image moments.
+    
+    References: 
+    
+    http://raphael.candelier.fr/?blog=Image%20Moments
+    
+    Image Moments-based Structuring and Tracking of Objects. L. Rocha, L. Velho and P.C.P. Calvalho (2002). URL=http://sibgrapi.sid.inpe.br/col/sid.inpe.br/banon/2002/10.23.11.34/doc/35.pdf
+    '''
+    mask = (sexseg==pflag)
+    y,x = np.where(mask)
+    intensities = image[tuple([y,x])]
+    M = np.sum(intensities)
+    # convert to barycentric coordinates
+    xbar = np.sum(x*intensities)/M
+    ybar = np.sum(y*intensities)/M
+    x = x-xbar
+    y = y-ybar
+    Mxx = np.sum(x**2*intensities)/M
+    Myy = np.sum(y**2*intensities)/M
+    Mxy = np.sum(x*y*intensities)/M
+    Mrr = np.sum(np.sqrt(x**2+y**2)*intensities)/M
+    a = 2*np.sqrt(2*(Mxx+Myy+np.sqrt(4*Mxy**2+(Mxx-Myy)**2)))
+    b = 2*np.sqrt(2*(Mxx+Myy-np.sqrt(4*Mxy**2+(Mxx-Myy)**2)))
+    phi_deg = 0.5*np.arctan(2*Mxy/(Mxx-Myy))*180/np.pi+(Mxx<Myy)*90.
+    if plot:
+        import matplotlib.pyplot as plt
+        _fig,_ax = plt.subplots(figsize=(5,5))
+        from matplotlib.patches import Ellipse
+        _ax.imshow(image,vmin=-1e-3,vmax=1e-3,origin='lower')
+        _ax.scatter(xbar,ybar,s=10)
+        e = Ellipse(xy=[xbar,ybar],width=Mrr,height=Mrr*b/a, 
+                    edgecolor='red',facecolor='None',alpha=1., 
+                    angle=phi_deg,transform=_ax.transData)
+        _ax.add_artist(e)
+    return {'M00':M,'X':xbar,'Y':ybar, 
+            'Mxx':Mxx,'Myy':Myy,'Mxy':Mxy,'Mrr':Mrr,
+            'a':a,'b':b,'q':b/a,'phi_deg':phi_deg}
+
 def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True, segm_map = False,
-               nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, 
+               nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, use_moments=True,
                thresh=2.8, err=None, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True, clean_param=1.0):  
     """
@@ -630,7 +670,20 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         for i in range(len(apertures)):
             _segm_deblend += (segm_deblend == (c_order[i] + 1) ) * (i+1)
         segm_deblend = _segm_deblend
-            
+
+    try:
+        segm_deblend = np.array(segm_deblend.data)
+    except:
+        segm_deblend = np.array(segm_deblend)        
+
+    if use_moments == True:
+        for i in range(np.max(segm_deblend)):
+            moments = image_moments(image, segm_deblend, i+1)
+            apertures[i].positions = [moments['X'],moments['Y']]
+            apertures[i].a  = moments['Mrr']
+            apertures[i].b = apertures[i].a * moments['q']
+            apertures[i].theta = moments['phi_deg']*np.pi/180
+
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
         vmin = 1.e-3

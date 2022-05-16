@@ -335,7 +335,7 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
     
     for i in range(len(apertures)):
         aper = apertures[i]
-        Reff = np.sqrt((aper.a**2 + aper.b**2)/2) * deltaPix
+        Reff = aper.a * deltaPix
         q = aper.b/aper.a
         phi = - aper.theta # since data_configure_simple(inverse=True), aperture is anti-clock-wise, and inverse=True means lenstronomy is clock-wise
         e1, e2 = param_util.phi_q2_ellipticity(phi, q)

@@ -21,7 +21,7 @@ from galight.tools.astro_tools import plt_fits, read_pixel_scale
 import photutils
 import sys
 from packaging import version
-
+from galight.tools.measure_tools import search_local_max, measure_FWHM
 
 class DataProcess(object):
     """
@@ -105,7 +105,7 @@ class DataProcess(object):
 
     def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
                                   bkg_std = None, if_select_obj = False, create_mask = False, 
-                                  if_plot=None, **kwargs):
+                                  if_plot=None, use_moments = True, **kwargs):
         """
         Prepare the fitting materials to used for the fitting, including the image cutout, noise map and masks (optional).
         More important, the apertures that used to define the fitting settings are also generated.
@@ -196,16 +196,8 @@ class DataProcess(object):
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
         apertures, segm_deblend = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
-                                                  err=self.noise_map, segm_map= True, **kwargs)
-        
-        # if isinstance(segm_deblend, (np.ndarray)) and version.parse(photutils.__version__) >= version.parse("1.1"):
-        #     self.segm_deblend = segm_deblend
-        # else:
-        try:
-            self.segm_deblend = np.array(segm_deblend.data)
-        except:
-            self.segm_deblend = np.array(segm_deblend)
-        
+                                                  err=self.noise_map, segm_map= True,use_moments=use_moments, **kwargs)
+        self.segm_deblend = segm_deblend
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
             if select_idx != '':
@@ -281,7 +273,6 @@ class DataProcess(object):
                 The PSF should be avoid at the edge by how many pixels.
         """
         if PSF_pos_list is None:
-            from galight.tools.measure_tools import search_local_max, measure_FWHM
             init_PSF_locs_ = search_local_max(self.fov_image, radius = psf_edge)
             init_PSF_locs, FWHMs, fluxs, PSF_cutouts = [], [], [], []
             for i in range(len(init_PSF_locs_)):
