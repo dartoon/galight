@@ -4,7 +4,6 @@ charset-normalizer==2.0.9
 configparser==5.2.0
 corner==2.2.1
 cycler==0.11.0
-dill==0.3.4
 fonttools==4.28.3
 idna==3.3
 imageio==2.13.3
