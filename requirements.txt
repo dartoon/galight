@@ -21,7 +21,7 @@ requests==2.26.0
 requests-toolbelt==0.9.1
 schwimmbad==0.3.2
 scikit-image==0.17.2
-scipy==1.7.3
+scipy==1.5.4
 sep==1.2.0
 six==1.16.0
 statmorph==0.4.0
