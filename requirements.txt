@@ -1,4 +1,4 @@
-astropy==5.0
+astropy==4.1
 certifi==2021.10.8
 charset-normalizer==2.0.9
 configparser==5.2.0
