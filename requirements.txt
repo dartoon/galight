@@ -25,5 +25,4 @@ scipy==1.5.4
 sep==1.2.0
 six==1.16.0
 statmorph==0.4.0
-tifffile==2021.11.2
 twine==3.7.0
