@@ -552,7 +552,7 @@ def image_moments(image,sexseg,pflag,plot=False):
             'a':a,'b':b,'q':b/a,'phi_deg':phi_deg}
 
 def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True, segm_map = False,
-               nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, use_moments=True,
+               nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, use_moments=True, return_cat_tbl = False,
                thresh=2.8, err=None, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True, clean_param=1.0):  
     """
@@ -710,10 +710,13 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         plt.show()    
         if detect_tool == 'phot':
             print(tbl)
-    if segm_map == False:
-        return apertures
+    if segm_map == True:
+        if return_cat_tbl == True:
+            return apertures, segm_deblend, tbl
+        else:
+            return apertures, segm_deblend
     else:
-        return apertures, segm_deblend
+        return apertures
 
 def sort_apertures(image, apertures):
     """
@@ -764,7 +767,7 @@ def esti_bgkstd(image, nsigma=2, exp_sz= 1.5, npixels = 15, if_plot=False):
     """
     Estimate the value of the background rms, by first block all the light and measure empty regions.
     """
-    apertures = detect_obj(image, nsigma=nsigma , exp_sz=exp_sz, npixels = npixels, if_plot=False)
+    apertures = detect_obj(image, nsigma=nsigma , exp_sz=exp_sz, npixels = npixels, if_plot=False, use_moments=False)
     mask_list = mask_obj(image, apertures, if_plot=False)
     mask = np.ones_like(image)
     for i in range(len(mask_list)):
