@@ -158,7 +158,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         ax_rt.invert_yaxis()
         r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi,
                                             grids = 30, mask_image=mask_image)[0])
-        r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:], axis=0), center, x_gridspace = 'log', grids = 30,radius= radi)[0])
+        r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30,radius= radi)[0])
         ind = len(r_mag_0)-(r_mag_0 == r_mag_0[-1]).sum()
         ax_rb.plot(r_grids[:ind]*deltaPix, (r_mag_0-r_mag_1)[:ind], 'ro')   
         ax_rb.set_yticks([-0.5,-0.25, 0., 0.25])
