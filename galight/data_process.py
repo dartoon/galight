@@ -105,7 +105,7 @@ class DataProcess(object):
 
     def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
                                   bkg_std = None, if_select_obj = False, create_mask = False, 
-                                  if_plot=None, use_moments = True, **kwargs):
+                                  if_plot=None, use_moments = True, plot_materials=None , **kwargs):
         """
         Prepare the fitting materials to used for the fitting, including the image cutout, noise map and masks (optional).
         More important, the apertures that used to define the fitting settings are also generated.
@@ -142,13 +142,13 @@ class DataProcess(object):
         """
         if if_plot == None:
             if_plot = self.if_plot
-            
+        if plot_materials == None:
+            plot_materials = if_plot 
+        
         self.bkg_std = bkg_std
         
         if radius == 'nocut':
             target_stamp = self.fov_image
-            self.noise_map = self.fov_noise_map
-        
         else:
             if radius == None:
                 if radius_list == None:
@@ -174,24 +174,30 @@ class DataProcess(object):
                                                   return_center=True, if_plot=if_plot)
             else:
                 target_stamp = cutout(image = self.fov_image, center = self.target_pos, radius=radius)
+        self.radius = int(len(target_stamp)/2)
         
-            if self.fov_noise_map is not None:
-                self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
+        
+        if self.fov_noise_map is not None:
+            if radius == 'nocut':
+                self.noise_map = self.fov_noise_map
             else:
-                if bkg_std == None:
-                    from galight.tools.measure_tools import esti_bgkstd
-                    target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=radius*2)
-                    self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
-                _exptime = deepcopy(self.exptime)
-                if _exptime is None:
-                    if 'EXPTIME' in self.header.keys():
-                        _exptime = self.header['EXPTIME']
-                    else:
-                        raise ValueError("No Exposure time information in the header, should input a value.")
-                if isinstance(_exptime, np.ndarray):
-                    _exptime = cutout(image=self.exptime, center= self.target_pos, radius=radius)
-                noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
-                self.noise_map = noise_map
+                self.noise_map = cutout(image = self.fov_noise_map, center = self.target_pos, radius=radius)
+        else:
+            if bkg_std == None:
+                from galight.tools.measure_tools import esti_bgkstd
+                cut_rad = np.min([self.radius*2, len(self.fov_image)/2])
+                target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=cut_rad)
+                self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
+            _exptime = deepcopy(self.exptime)
+            if _exptime is None:
+                if 'EXPTIME' in self.header.keys():
+                    _exptime = self.header['EXPTIME']
+                else:
+                    raise ValueError("No Exposure time information in the header, should input a value.")
+            if isinstance(_exptime, np.ndarray):
+                _exptime = cutout(image=self.exptime, center= self.target_pos, radius=self.radius)
+            noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
+            self.noise_map = noise_map
         
         target_mask = np.ones_like(target_stamp)
         from galight.tools.measure_tools import detect_obj, mask_obj
@@ -230,24 +236,28 @@ class DataProcess(object):
         self.apertures = apertures
         self.target_stamp = target_stamp
         self.target_mask = target_mask
-        if if_plot:
-            fig, (ax1, ax3, ax2) = plt.subplots(1, 3, figsize=(14, 10))
-            im1 = ax1.imshow(target_stamp, origin='lower', norm=LogNorm(vmax = target_stamp.max(), vmin = 1.e-4))
-            ax1.set_title('Cutout target', fontsize=25)
-            fig.colorbar(im1, ax=ax1, pad=0.01,  orientation="horizontal")
-            ax1.get_xaxis().set_visible(False)
-            ax1.get_yaxis().set_visible(False) 
-            im2 = ax2.imshow(self.noise_map, origin='lower', norm=LogNorm())
-            ax2.set_title('Noise map', fontsize=25)
-            fig.colorbar(im2, ax=ax2, pad=0.01,  orientation="horizontal")
-            ax2.get_xaxis().set_visible(False)
-            ax2.get_yaxis().set_visible(False) 
-            im3 = ax3.imshow(target_stamp * target_mask, origin='lower', norm=LogNorm(vmax = target_stamp.max(), vmin = 1.e-4))
-            ax3.set_title('data * mask', fontsize=25)
-            fig.colorbar(im3, ax=ax3, pad=0.01,  orientation="horizontal")
-            ax3.get_xaxis().set_visible(False)
-            ax3.get_yaxis().set_visible(False) 
-            plt.show()  
+        if plot_materials:
+            self.plot_material()
+            
+    def plot_materials(self):
+        fig, (ax1, ax3, ax2) = plt.subplots(1, 3, figsize=(14, 10))
+        im1 = ax1.imshow(self.target_stamp, origin='lower', norm=LogNorm(vmax = self.target_stamp.max(), vmin = 1.e-4))
+        ax1.set_title('Cutout target', fontsize=25)
+        fig.colorbar(im1, ax=ax1, pad=0.01,  orientation="horizontal")
+        ax1.get_xaxis().set_visible(False)
+        ax1.get_yaxis().set_visible(False) 
+        im2 = ax2.imshow(self.noise_map, origin='lower', norm=LogNorm())
+        ax2.set_title('Noise map', fontsize=25)
+        fig.colorbar(im2, ax=ax2, pad=0.01,  orientation="horizontal")
+        ax2.get_xaxis().set_visible(False)
+        ax2.get_yaxis().set_visible(False) 
+        im3 = ax3.imshow(self.target_stamp * self.target_mask + (self.target_mask==0)*1.e6, 
+                         origin='lower', norm=LogNorm(vmax = self.target_stamp.max(), vmin = 1.e-4))
+        ax3.set_title('data * mask', fontsize=25)
+        fig.colorbar(im3, ax=ax3, pad=0.01,  orientation="horizontal")
+        ax3.get_xaxis().set_visible(False)
+        ax3.get_yaxis().set_visible(False) 
+        plt.show() 
     
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
                  if_filter=False, user_option= False, select_all=True):

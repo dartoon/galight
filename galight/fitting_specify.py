@@ -260,7 +260,7 @@ class FittingSpecify(object):
             -Plot or not plot. Note that figure can be saved without shown.
         """
         from galight.tools.measure_tools import plot_data_apertures_point
-        plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], 
+        plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0] + (self.kwargs_likelihood['image_likelihood_mask_list'][0]==0)*1.e6 , 
                                   self.apertures, self.center_pix_pos, savename = savename, show_plot=show_plot)
 
     def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,

@@ -836,9 +836,9 @@ def plot_data_apertures_point(image, apertures, ps_center_list, savename = None,
     plt.figure(figsize=(8,6))
     # fig, ax = plt.subplots(figsize=(8,6))
     plt.title('Data and components used to fit', fontsize=25)
-    # vmin = 1.e-3
-    # vmax = 2.1 
-    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm())#, vmin=vmin, vmax=vmax)
+    vmin = 1.e-3
+    vmax = 2.1 
+    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))#, vmin=vmin, vmax=vmax)
     np.random.seed(seed = 4)
     for i in range(len(ps_center_list)):
         plt.scatter(ps_center_list[i][0], ps_center_list[i][1], 
