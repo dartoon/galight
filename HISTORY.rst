@@ -57,7 +57,9 @@ History
 * Imporve the MCMC output using 'mcmc_source_result' dict to save all samplers with amp values.
 
 
-0.1.7 (2022-xx-xx)
+0.1.7 (2022-05-30)
 ++++++++++++++++++
 
 * Update initial Reff value based on Moments measure.
+* Improve the plot to highlight masks.
+* Separate a plot_materials function in data_process.

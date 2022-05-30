@@ -29,6 +29,7 @@ class FittingSpecify(object):
         self.numPix = len(self.data_process_class.target_stamp)
         self.zp = data_process_class.zp
         self.apertures = copy.deepcopy(data_process_class.apertures)
+        self.mask_apertures = copy.deepcopy(data_process_class.mask_apertures)
         self.header = copy.deepcopy(data_process_class.header)
         self.target_pos = copy.deepcopy(data_process_class.target_pos)
         self.segm_deblend = np.array(data_process_class.segm_deblend)

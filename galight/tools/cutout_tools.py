@@ -215,7 +215,7 @@ def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot
     import copy
     _psf = copy.deepcopy(psf)
     from galight.tools.measure_tools import detect_obj
-    _, seg = detect_obj(_psf*500, if_plot=if_plot, nsigma=nsigma, 
+    _, seg, _, _ = detect_obj(_psf*500, if_plot=if_plot, nsigma=nsigma, 
                         npixels = npixels, contrast=contrast, 
                         nlevels=nlevels,segm_map=True)
     seg = seg.data

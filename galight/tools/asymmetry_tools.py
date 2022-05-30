@@ -116,8 +116,8 @@ def pass_bkg(data_process, num_pix, rotate_pix, ini_pix):
         radius = np.sqrt(num_pix*boost_list)/2
         data_process.generate_target_materials(radius=radius)
         img = data_process.target_stamp
-        apertures = detect_obj(img, nsigma=1, exp_sz=1.6, npixels = 10)
-        obj_mask = mask_obj(img, apertures, if_plot=False, sum_mask=True)
+        _, _, mask_apertures, _ = detect_obj(img, nsigma=1, exp_sz=1.6, npixels = 10)
+        obj_mask = mask_obj(img, mask_apertures, if_plot=False, sum_mask=True)
         image_masked = img*obj_mask
         obj_mask_ = rotate_image(obj_mask, rotate_pix,order =1)
         obj_masks = obj_mask*obj_mask_
@@ -182,7 +182,7 @@ class Measure_asy(object):
         """
         self.extend = extend
         obj_id = self.obj_id
-        apertures = self.fitting_process_class.fitting_specify_class.apertures
+        apertures = self.fitting_process_class.fitting_specify_class.mask_apertures
         if segm is None:
             if mask_type == 'segm':
                 segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
@@ -329,8 +329,6 @@ class Measure_asy(object):
             center of rotation.
         bkg_asy_dens : float between 0 and 1, optional
             bkg asymmetry per pixel, if given, use this value directly. The default is None.
-        if_remeasure_bkg : boolean, optional
-            if True, use a larger area up to 25 * obj pixels to calculate the bkg asymmetry. The default is False.
         if_plot : boolean, optional
             Plot the minimized abs residual. The default is True.
         Returns

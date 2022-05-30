@@ -73,7 +73,7 @@ class FittingProcess(object):
             fitting_kwargs_list.append([algorithm_list[i], setting])
         self.fitting_kwargs_list = fitting_kwargs_list
     
-    def run(self, algorithm_list = ['PSO', 'MCMC'], setting_list = None, threadCount=1):
+    def run(self, algorithm_list = ['PSO', 'PSO'], setting_list = None, threadCount=1):
         """
         Run the fitting. The algorithm_list and setting_list will be pass to 'fitting_kwargs()'
         """
