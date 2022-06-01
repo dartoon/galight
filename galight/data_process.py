@@ -204,6 +204,7 @@ class DataProcess(object):
         apertures, segm_deblend, mask_apertures, tbl = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
                                                   err=self.noise_map, use_moments=use_moments, **kwargs)
         self.segm_deblend = segm_deblend
+        self.tbl  = tbl
         _apertures_select = []
         if if_select_obj == True:
             select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
@@ -218,24 +219,17 @@ class DataProcess(object):
         _restof_i = []
         if create_mask == True:
             select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
-            # if sys.version_info.major > 2:
-            #     select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
-            # else:
             select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
             
             if '!' not in select_idx:
                 apertures_ = [mask_apertures[i] for i in select_idx_list]
                 _restof_i = [i for i in range(len(apertures)) if i not in select_idx_list]
-                # apertures = [apertures[i] for i in range(len(apertures)) if i not in select_idx_list]
             else:
                 apertures_ = [mask_apertures[i] for i in range(len(apertures)) if i not in select_idx_list]                            
                 _restof_i = [i for i in range(len(apertures)) if i in select_idx_list]      
-                # apertures = [apertures[i] for i in range(len(apertures)) if i in select_idx_list]      
             mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
             for i in range(len(mask_list)):
                 target_mask *= mask_list[i]
-        # if if_select_obj == True:
-        #     _select_i = [i for i in range(len(apertures)) if i in apertures_select]
         if _restof_i+_apertures_select != []:
             if _restof_i == [] or _apertures_select == []:
                 _common = _restof_i+_apertures_select
@@ -270,6 +264,35 @@ class DataProcess(object):
         ax3.get_yaxis().set_visible(False) 
         plt.show() 
     
+    def clean_aperture_list(self):
+        cl_list = []
+        for i in range(1,len(self.apertures)):
+            ap_rot = deepcopy(self.apertures[i])
+            ap_rot.positions = np.array([len(self.target_stamp)]*2) - self.apertures[i].positions
+            _flux = self.apertures[i].do_photometry(self.target_stamp, method='exact')[0][0]
+            _flux_rot = ap_rot.do_photometry(self.target_stamp, method='exact')[0][0]
+            if abs(_flux/_flux_rot) < 2.5:
+                cl_list.append(i)
+            ap_exp = deepcopy(self.apertures[i])
+            ap_exp.a = ap_exp.a * 1.2
+            ap_exp.b = ap_exp.b * 1.2
+            _flux_exp = ap_exp.do_photometry(self.target_stamp, method='exact')[0][0]
+            _flux_dens = _flux/(self.apertures[i].a * self.apertures[i].b)
+            _flux_dens_ext = (_flux_exp-_flux)/(ap_exp.a*ap_exp.b - (self.apertures[i].a * self.apertures[i].b))
+            if _flux_dens_ext/_flux_dens > 0.8:
+                cl_list.append(i)
+        return cl_list
+    
+    def clean_aperture(self):
+        cl_list = self.clean_aperture_list()
+        self.apertures = [self.apertures[i] for i in range(len(self.apertures)) if i not in cl_list]
+        self.mask_apertures = [self.mask_apertures[i] for i in range(len(self.mask_apertures)) if i not in cl_list]
+        cl_list = list(dict.fromkeys(cl_list)) 
+        cl_list.reverse()
+        for i in cl_list:
+            self.segm_deblend[self.segm_deblend>i]  = self.segm_deblend[self.segm_deblend>i] - 1
+            self.tbl.remove_row(i)
+            
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
                  if_filter=False, user_option= False, select_all=True):
         """
