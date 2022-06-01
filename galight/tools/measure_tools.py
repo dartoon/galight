@@ -688,7 +688,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
         vmin = 1.e-3
-        vmax = 2.1 
+        vmax = image.max()
         ax1.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
         ax1.set_title('Data', fontsize=25)
         ax1.tick_params(labelsize=15)
@@ -832,7 +832,7 @@ def plot_data_apertures_point(image, apertures, ps_center_list, savename = None,
     # fig, ax = plt.subplots(figsize=(8,6))
     plt.title('Data and components used to fit', fontsize=25)
     vmin = 1.e-3
-    vmax = 2.1 
+    vmax = image.max()
     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))#, vmin=vmin, vmax=vmax)
     np.random.seed(seed = 4)
     for i in range(len(ps_center_list)):
