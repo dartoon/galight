@@ -65,7 +65,7 @@ def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None
     if colorbar == True:
         plt.colorbar()
     if savename is not None:
-        plt.savefig(savename)
+        plt.savefig(savename,bbox_inches='tight')
     plt.show()     
     # plt.imshow(img, norm=LogNorm(), cmap = 'gist_heat', origin='low')   
     # plt.colorbar()
@@ -76,7 +76,7 @@ def plt_fits_color(imgs, savename = None, **args):
     rgb_default = make_lupton_rgb(imgs[0], imgs[1], imgs[2], **args)
     plt.imshow(rgb_default, origin='lower')
     if savename is not None:
-        plt.savefig(savename)
+        plt.savefig(savename,bbox_inches='tight')
     plt.show()
 
 def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = None, hide_axes = False,
@@ -115,7 +115,7 @@ def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = Non
     # for i in range( 5 - len(imgs)%5 ):
     #     axs[-1][-(i+1)].axis('off')
     if savename is not None:
-        plt.savefig(savename)
+        plt.savefig(savename,bbox_inches='tight')
     if if_plot == True:
         plt.show()    
     else:

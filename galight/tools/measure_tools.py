@@ -847,7 +847,7 @@ def plot_data_apertures_point(image, apertures, ps_center_list, savename = None,
     plt.legend(prop={'size':15})
     plt.tick_params(labelsize=15)
     if savename is not None:
-        plt.savefig(savename)
+        plt.savefig(savename,bbox_inches='tight')
     if show_plot == True:
         plt.show()
     else:
