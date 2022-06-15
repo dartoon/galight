@@ -479,7 +479,7 @@ class FittingProcess(object):
             fig.colorbar(im1, ax=ax1, pad=0.01,  orientation="horizontal")
             ax1.get_xaxis().set_visible(False)
             ax1.get_yaxis().set_visible(False) 
-            im2 = ax2.imshow(segmap, origin='lower')
+            im2 = ax2.imshow(data, origin='lower')
             ax2.set_title('Segmap', fontsize=25)
             fig.colorbar(im2, ax=ax2, pad=0.01,  orientation="horizontal")
             ax2.get_xaxis().set_visible(False)
@@ -491,7 +491,7 @@ class FittingProcess(object):
             ax3.get_yaxis().set_visible(False) 
             plt.show()         
         
-        source_morphs = statmorph.source_morphology(feeddata, segmap, 
+        source_morphs = statmorph.source_morphology(feeddata, data, 
                                                     weightmap=self.fitting_specify_class.kwargs_data['noise_map'], 
                                                     psf=self.fitting_specify_class.kwargs_psf['kernel_point_source'],mask = mask)
         return source_morphs[0]
