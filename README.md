@@ -51,7 +51,7 @@ and related ones to be installed...
 
 Citation:
 ---------
-@ARTICLE{2020ApJ...888...37D,
+    @ARTICLE{2020ApJ...888...37D,
        author = {{Ding}, Xuheng and {Silverman}, John and {Treu}, Tommaso and {Schulze}, Andreas and {Schramm}, Malte and {Birrer}, Simon and {Park}, Daeseong and {Jahnke}, Knud and {Bennert}, Vardha N. and {Kartaltepe}, Jeyhan S. and {Koekemoer}, Anton M. and {Malkan}, Matthew A. and {Sanders}, David},
         title = "{The Mass Relations between Supermassive Black Holes and Their Host Galaxies at 1 < z < 2 HST-WFC3}",
       journal = {\apj},
@@ -69,5 +69,6 @@ archivePrefix = {arXiv},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2020ApJ...888...37D},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
 }
+
 
 
