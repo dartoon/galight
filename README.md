@@ -48,3 +48,26 @@ packages including:
 [``photutils``](https://github.com/astropy/photutils);
 [``regions``](https://github.com/astropy/regions)
 and related ones to be installed... 
+
+Citation:
+---------
+@ARTICLE{2020ApJ...888...37D,
+       author = {{Ding}, Xuheng and {Silverman}, John and {Treu}, Tommaso and {Schulze}, Andreas and {Schramm}, Malte and {Birrer}, Simon and {Park}, Daeseong and {Jahnke}, Knud and {Bennert}, Vardha N. and {Kartaltepe}, Jeyhan S. and {Koekemoer}, Anton M. and {Malkan}, Matthew A. and {Sanders}, David},
+        title = "{The Mass Relations between Supermassive Black Holes and Their Host Galaxies at 1 < z < 2 HST-WFC3}",
+      journal = {\apj},
+     keywords = {Galaxy evolution, Active galaxies, 594, 17, Astrophysics - Astrophysics of Galaxies},
+         year = 2020,
+        month = jan,
+       volume = {888},
+       number = {1},
+          eid = {37},
+        pages = {37},
+          doi = {10.3847/1538-4357/ab5b90},
+archivePrefix = {arXiv},
+       eprint = {1910.11875},
+ primaryClass = {astro-ph.GA},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2020ApJ...888...37D},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+
