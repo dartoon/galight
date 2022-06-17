@@ -63,12 +63,12 @@ Citation:
           eid = {37},
         pages = {37},
           doi = {10.3847/1538-4357/ab5b90},
-archivePrefix = {arXiv},
+       archivePrefix = {arXiv},
        eprint = {1910.11875},
- primaryClass = {astro-ph.GA},
+        primaryClass = {astro-ph.GA},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2020ApJ...888...37D},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
+      }
 
 
 
