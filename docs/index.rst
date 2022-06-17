@@ -28,8 +28,10 @@ If you encounter any errors or problems with ``galight``, please let me know!
 Open an Issue at the GitHub http://github.com/dartoon/galight main repository.
 
 
-Citation:
+Citation
 ========
+.. code-block:: bash
+
    @ARTICLE{2020ApJ...888...37D,
    author = {{Ding}, Xuheng and {Silverman}, John and {Treu}, Tommaso and {Schulze}, Andreas and {Schramm}, Malte and {Birrer}, Simon and {Park}, Daeseong and {Jahnke}, Knud and {Bennert}, Vardha N. and {Kartaltepe}, Jeyhan S. and {Koekemoer}, Anton M. and {Malkan}, Matthew A. and {Sanders}, David},
    title = "{The Mass Relations between Supermassive Black Holes and Their Host Galaxies at 1 < z < 2 HST-WFC3}",
