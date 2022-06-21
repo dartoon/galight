@@ -404,7 +404,7 @@ class FittingProcess(object):
             self.final_result_galaxy[i]['position_xy'] = x, y
     
     def targets_subtraction(self, sub_gal_list = [], sub_qso_list = [], org_fov_data = None, 
-                           save_fitsfile = False):
+                           save_fitsfile = False, header = None, target_pos=None):
         """
         Subtract the target from the FOV image, based on the infernece. 
         
@@ -425,10 +425,12 @@ class FittingProcess(object):
         """
         if org_fov_data is None:
             target_removed_fov_data = copy.deepcopy(self.fitting_specify_class.data_process_class.fov_image)
+            header = self.fitting_specify_class.data_process_class.header
+            target_pos = self.fitting_specify_class.data_process_class.target_pos
         else:
             target_removed_fov_data = org_fov_data
-        header = self.fitting_specify_class.data_process_class.header
-        target_pos = self.fitting_specify_class.data_process_class.target_pos
+            header = header
+            target_pos = target_pos
         fmr = int(len(self.fitting_specify_class.kwargs_data['image_data'])/2)
         x_range = target_pos[0]-fmr, target_pos[0]+fmr
         y_range = target_pos[1]-fmr, target_pos[1]+fmr

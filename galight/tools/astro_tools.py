@@ -81,6 +81,19 @@ def plt_fits_color(imgs, savename = None, **args):
 
 def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = None, hide_axes = False,
                   if_plot=True, cmap=None, label_size = 17):
+    """
+    Plot many fits in a row
+    
+    Parameter
+    --------
+        imgs: Input of a list of images to show
+        texts: measured properties
+        prop: name of the properties
+        labels: string to show
+    Return
+    --------
+        A sth sth
+    """
     _row = int(len(imgs) / 5) + 1
     if _row<=1:
         _row=2
