@@ -63,3 +63,15 @@ History
 * Update initial Reff value based on Moments measure.
 * Improve the plot to highlight masks.
 * Separate a plot_materials function in data_process.
+
+
+0.1.8 (2022-xx-xx)
+++++++++++++++++++
+
+* Calculate chisq using model result to report.
+* Update for lenstronomy > 1.10.3 
+* Improve stretch of showing image and use bbox_inches='tight'.
+* Debug sigma when cal_statmorph.
+* Debug the way for fit_run.targets_subtraction with adding FOV image.
+
+

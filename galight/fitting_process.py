@@ -151,8 +151,6 @@ class FittingProcess(object):
                 for j in range(len(fitting_specify_class.light_model_list)):
                     image_j = fitting_specify_class.imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
                     flux_list_galaxy.append(np.sum(image_j))
-                    # _flux_sersic_model = model_flux_cal(kwargs_light_source_out, sersic_major_axis=self.sersic_major_axis)
-                    # mcmc_sersic_model_flux.append(_flux_sersic_model)
                 mcmc_flux_list.append(flux_list_quasar + flux_list_galaxy )
                 if int(i/1000) > int((i-1)/1000) :
                     print(trans_steps[1]-trans_steps[0],
@@ -176,10 +174,11 @@ class FittingProcess(object):
         self.ps_result = ps_result
         self.source_result = source_result
         self.imageLinearFit = imageLinearFit
-        self.reduced_Chisq =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
         self.image_host_list = image_host_list
         self.image_ps_list = image_ps_list
         self.translate_result()
+        self.reduced_Chisq_bylenstronomy =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
+        self.reduced_Chisq = self.cal_chisq()
 
     def run_diag(self, diag_list = None, show_plot = True):
         """
@@ -207,11 +206,18 @@ class FittingProcess(object):
         Show the fitting plot based on lenstronomy.Plots.model_plot.ModelPlot
         """
         # this is the linear inversion. The kwargs will be updated afterwards
-        modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
-                              self.fitting_specify_class.kwargs_model, self.kwargs_result,
-                              arrow_size=0.02, cmap_string="gist_heat", 
-                              likelihood_mask_list=self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
-        
+        try:
+            modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
+                                  self.fitting_specify_class.kwargs_model, self.kwargs_result,
+                                  arrow_size=0.02, cmap_string="gist_heat", 
+                                  image_likelihood_mask_list=self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
+        except:
+            print("Please upgrade your lenstronomy version!")
+            modelPlot = ModelPlot(self.fitting_specify_class.kwargs_data_joint['multi_band_list'],
+                                  self.fitting_specify_class.kwargs_model, self.kwargs_result,
+                                  arrow_size=0.02, cmap_string="gist_heat", 
+                                  likelihood_mask_list=self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'] )    
+            
         f, axes = plt.subplots(3, 3, figsize=(16, 16), sharex=False, sharey=False)
         modelPlot.data_plot(ax=axes[0,0], text="Data")
         modelPlot.model_plot(ax=axes[0,1])
@@ -306,7 +312,7 @@ class FittingProcess(object):
             plt.show()
         else:
             plt.close()
-
+    
     def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None):
         """
         Plot the compact fitting result, if galaxies is fitted (i.e., no point source).
@@ -345,8 +351,6 @@ class FittingProcess(object):
             -plot_params_corner()
             -plot_flux_corner()
             -plot_final_qso_fit() or plot_final_galaxy_fit(), based on if point source is included or not.
-            
-            
         """          
         self.run_diag()
         self.model_plot()
@@ -357,6 +361,17 @@ class FittingProcess(object):
             self.plot_final_qso_fit(target_ID=target_ID)
         else:
             self.plot_final_galaxy_fit(target_ID=target_ID)
+
+    def cal_chisq(self):
+        if not hasattr(self, 'flux_2d_out'):
+            if self.image_ps_list != []:
+                self.plot_final_qso_fit(show_plot=False)
+            else:
+                self.plot_final_galaxy_fit(show_plot=False)  
+        norm_residual = self.flux_2d_out['normalized residual']
+        mask = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
+        cal_chisq = np.sum((norm_residual*mask)**2)/np.sum(mask)
+        return cal_chisq
 
     def translate_result(self):
         """
