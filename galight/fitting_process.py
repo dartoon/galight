@@ -178,7 +178,7 @@ class FittingProcess(object):
         self.image_ps_list = image_ps_list
         self.translate_result()
         self.reduced_Chisq_bylenstronomy =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
-        self.reduced_Chisq = self.cal_chisq()
+        self.reduced_Chisq, self.reduced_Chisq_dof = self.cal_chisq() 
 
     def run_diag(self, diag_list = None, show_plot = True):
         """
@@ -363,6 +363,9 @@ class FittingProcess(object):
             self.plot_final_galaxy_fit(target_ID=target_ID)
 
     def cal_chisq(self):
+        num_param_nonlinear = self.fitting_seq.param_class.num_param()[0]
+        num_param_linear = self.fitting_seq.param_class.num_param_linear()
+        num_param = num_param_nonlinear + num_param_linear
         if not hasattr(self, 'flux_2d_out'):
             if self.image_ps_list != []:
                 self.plot_final_qso_fit(show_plot=False)
@@ -370,8 +373,9 @@ class FittingProcess(object):
                 self.plot_final_galaxy_fit(show_plot=False)  
         norm_residual = self.flux_2d_out['normalized residual']
         mask = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
-        cal_chisq = np.sum((norm_residual*mask)**2)/np.sum(mask)
-        return cal_chisq
+        cal_chisq_direct = np.sum((norm_residual*mask)**2)/np.sum(mask) #Chisq from data model
+        cal_chisq_dof = np.sum((norm_residual*mask)**2)/(np.sum(mask)-num_param) #Chisq from degree of freedom
+        return cal_chisq_direct, cal_chisq_dof
 
     def translate_result(self):
         """
