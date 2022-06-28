@@ -182,12 +182,13 @@ class Measure_asy(object):
         """
         self.extend = extend
         obj_id = self.obj_id
-        apertures = self.fitting_process_class.fitting_specify_class.mask_apertures
         if segm is None:
             if mask_type == 'segm':
                 segm_deblend = self.fitting_process_class.fitting_specify_class.segm_deblend
+                apertures = self.fitting_process_class.fitting_specify_class.apertures
             elif mask_type == 'aper': #!!!
                 segm_deblend = np.zeros_like(self.img)
+                apertures = self.fitting_process_class.fitting_specify_class.mask_apertures
                 for i in range(len(apertures)):
                     apertures[obj_id].a = apertures[obj_id].a * self.extend
                     apertures[obj_id].b = apertures[obj_id].b * self.extend
