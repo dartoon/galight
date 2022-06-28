@@ -533,9 +533,9 @@ def image_moments(image,sexseg,pflag,plot=False):
     Mxx = np.sum(x**2*intensities)/M
     Myy = np.sum(y**2*intensities)/M
     Mxy = np.sum(x*y*intensities)/M
-    Mrr = np.sum(np.sqrt(x**2+y**2)*intensities)/M
-    a = 2*np.sqrt(2*(Mxx+Myy+np.sqrt(4*Mxy**2+(Mxx-Myy)**2)))
-    b = 2*np.sqrt(2*(Mxx+Myy-np.sqrt(4*Mxy**2+(Mxx-Myy)**2)))
+    Mrr = abs(np.sum(np.sqrt(x**2+y**2)*intensities)/M)
+    a = 2*np.sqrt(abs(2*(Mxx+Myy+np.sqrt(4*Mxy**2+(Mxx-Myy)**2))))
+    b = 2*np.sqrt(abs(2*(Mxx+Myy-np.sqrt(4*Mxy**2+(Mxx-Myy)**2))))
     phi_deg = 0.5*np.arctan(2*Mxy/(Mxx-Myy))*180/np.pi+(Mxx<Myy)*90.
     if plot:
         import matplotlib.pyplot as plt
