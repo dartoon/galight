@@ -195,6 +195,7 @@ class Measure_asy(object):
                     segm_deblend  = segm_deblend + (1-mask_obj(self.img, [apertures[i]])[0]) * (i+1)
         else:
             segm_deblend = segm
+            apertures = self.fitting_process_class.fitting_specify_class.apertures
         if isinstance(segm_deblend, (np.ndarray)):
             self.segm = segm_deblend
         else:
