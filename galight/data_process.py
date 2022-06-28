@@ -105,7 +105,8 @@ class DataProcess(object):
 
     def generate_target_materials(self, cut_kernel = None,  radius=None, radius_list = None,
                                   bkg_std = None, if_select_obj = False, create_mask = False, 
-                                  if_plot=None, use_moments = True, show_materials=None , **kwargs):
+                                  if_plot=None, use_moments = True, show_materials=None,
+                                  skip = False, **kwargs):
         """
         Prepare the fitting materials to used for the fitting, including the image cutout, noise map and masks (optional).
         More important, the apertures that used to define the fitting settings are also generated.
@@ -199,50 +200,60 @@ class DataProcess(object):
             noise_map = np.sqrt(abs(target_stamp/_exptime) + self.bkg_std**2)
             self.noise_map = noise_map
         
-        target_mask = np.ones_like(target_stamp)
-        from galight.tools.measure_tools import detect_obj, mask_obj
-        apertures, segm_deblend, mask_apertures, tbl = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
-                                                  err=self.noise_map, use_moments=use_moments, **kwargs)
-        self.segm_deblend = segm_deblend
-        self.tbl  = tbl
-        _apertures_select = []
-        if if_select_obj == True:
-            select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
-            if select_idx != '':
-                if sys.version_info.major > 2:
-                    select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isnumeric()]
+        
+        if skip == False:
+            target_mask = np.ones_like(target_stamp)
+            from galight.tools.measure_tools import detect_obj, mask_obj
+            apertures, segm_deblend, mask_apertures, tbl = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
+                                                      err=self.noise_map, use_moments=use_moments, **kwargs)
+            self.segm_deblend = segm_deblend
+            self.tbl  = tbl
+            _apertures_select = []
+            if if_select_obj == True:
+                select_idx = str(input('Input directly the a obj idx to MODEL, use space between each id:\n'))
+                if select_idx != '':
+                    if sys.version_info.major > 2:
+                        select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isnumeric()]
+                    else:
+                        select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isdigit()]
+                    _apertures_select = [i for i in select_idx]  
                 else:
-                    select_idx = [int(obj) for obj in select_idx.split(' ') if obj.isdigit()]
-                _apertures_select = [i for i in select_idx]  
-            else:
-                _apertures_select = [i for i in range(len(apertures))]  
-        _restof_i = []
-        if create_mask == True:
-            select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
-            select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
-            
-            if '!' not in select_idx:
-                apertures_ = [mask_apertures[i] for i in select_idx_list]
-                _restof_i = [i for i in range(len(apertures)) if i not in select_idx_list]
-            else:
-                apertures_ = [mask_apertures[i] for i in range(len(apertures)) if i not in select_idx_list]                            
-                _restof_i = [i for i in range(len(apertures)) if i in select_idx_list]      
-            mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
-            for i in range(len(mask_list)):
-                target_mask *= mask_list[i]
-        if _restof_i+_apertures_select != []:
-            if _restof_i == [] or _apertures_select == []:
-                _common = _restof_i+_apertures_select
-            else:
-                _common = list(set(_restof_i).intersection(_apertures_select))
-            apertures = [apertures[i] for i in range(len(apertures)) if i in _common]
-            mask_apertures = [mask_apertures[i] for i in range(len(apertures)) if i in _common]
-        self.apertures = apertures
-        self.mask_apertures = mask_apertures
-        self.target_stamp = target_stamp
-        self.target_mask = target_mask
-        if show_materials:
-            self.plot_materials()
+                    _apertures_select = [i for i in range(len(apertures))]  
+            _restof_i = []
+            if create_mask == True:
+                select_idx = str(input('Input directly the a obj that used to create MASK, use space between each id:\n'))
+                select_idx_list = [int(s) for s in select_idx.split() if s.isdigit()]
+                
+                if '!' not in select_idx:
+                    apertures_ = [mask_apertures[i] for i in select_idx_list]
+                    _restof_i = [i for i in range(len(apertures)) if i not in select_idx_list]
+                else:
+                    apertures_ = [mask_apertures[i] for i in range(len(apertures)) if i not in select_idx_list]                            
+                    _restof_i = [i for i in range(len(apertures)) if i in select_idx_list]      
+                mask_list = mask_obj(target_stamp, apertures_, if_plot=False)
+                for i in range(len(mask_list)):
+                    target_mask *= mask_list[i]
+            if _restof_i+_apertures_select != []:
+                if _restof_i == [] or _apertures_select == []:
+                    _common = _restof_i+_apertures_select
+                else:
+                    _common = list(set(_restof_i).intersection(_apertures_select))
+                apertures = [apertures[i] for i in range(len(apertures)) if i in _common]
+                mask_apertures = [mask_apertures[i] for i in range(len(apertures)) if i in _common]
+            self.apertures = apertures
+            self.mask_apertures = mask_apertures
+            self.target_stamp = target_stamp
+            self.target_mask = target_mask
+            if show_materials:
+                self.plot_materials()
+        else:
+            self.segm_deblend = None
+            self.tbl  = None
+            from photutils import EllipticalAperture
+            self.apertures = [EllipticalAperture(self.target_pos, a=5, b=5, theta=0)]
+            self.mask_apertures = None
+            self.target_stamp = target_stamp
+            self.target_mask = np.ones_like(target_stamp)
             
     def plot_materials(self):
         fig, (ax1, ax3, ax2) = plt.subplots(1, 3, figsize=(14, 10))
