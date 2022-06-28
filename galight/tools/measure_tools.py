@@ -675,7 +675,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         segm_deblend = np.array(segm_deblend.data)
     except:
         segm_deblend = np.array(segm_deblend)        
-    mask_apertures = copy.deepcopy(apertures)
+    mask_apertures = copy.deepcopy(apertures)  #mask_apertures are those for masking purpose.
     
     if use_moments == True:
         for i in range(np.max(segm_deblend)):
