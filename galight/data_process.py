@@ -246,12 +246,12 @@ class DataProcess(object):
             self.target_mask = target_mask
             if show_materials:
                 self.plot_materials()
-        else:
+        elif skip == True:
             self.segm_deblend = None
             self.tbl  = None
             from photutils import EllipticalAperture
             self.apertures = [EllipticalAperture(self.target_pos, a=5, b=5, theta=0)]
-            self.mask_apertures = None
+            self.mask_apertures = []
             self.target_stamp = target_stamp
             self.target_mask = np.ones_like(target_stamp)
             
