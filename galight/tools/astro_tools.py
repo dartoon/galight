@@ -52,7 +52,7 @@ def read_fits_exp(header):
     """    
     return header['EXPTIME']
 
-def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None, vmin= None, vmax=None):
+def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None, vmin= None, vmax=None, hold = False):
     """
     Directly plot a 2D image using imshow.
     """
@@ -66,7 +66,8 @@ def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None
         plt.colorbar()
     if savename is not None:
         plt.savefig(savename,bbox_inches='tight')
-    plt.show()     
+    if hold == False:
+        plt.show()     
     # plt.imshow(img, norm=LogNorm(), cmap = 'gist_heat', origin='low')   
     # plt.colorbar()
     # plt.show()
