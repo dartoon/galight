@@ -305,7 +305,7 @@ class DataProcess(object):
             self.tbl.remove_row(i)
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
-                 if_filter=False, user_option= False, select_all=True):
+                 if_filter=False, user_option= False, select_all=True, **kwargs):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -326,9 +326,16 @@ class DataProcess(object):
                 
             psf_edge: int/float.
                 The PSF should be avoid at the edge by how many pixels.
+                
+            neighborhood_size (**kwargs): digit.
+                Define the region size to filter the local minima.
+            
+            threshold {**kwargs}: digit.
+                Define the significance (flux value) of the maximazation point. The lower, the more would be found.
+        
         """
         if PSF_pos_list is None:
-            init_PSF_locs_ = search_local_max(self.fov_image, radius = psf_edge)
+            init_PSF_locs_ = search_local_max(self.fov_image, radius = psf_edge,**kwargs)
             init_PSF_locs, FWHMs, fluxs, PSF_cutouts = [], [], [], []
             for i in range(len(init_PSF_locs_)):
                 cut_image = cut_center_auto(self.fov_image, center = init_PSF_locs_[i],
