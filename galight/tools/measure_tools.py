@@ -421,7 +421,9 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
     else:
         mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
     mask_1 = (np.isnan(img))
-    mask = mask_0 + mask_1
+    mask_2 = (img==0)
+    print(mask_1.shape, mask_2.shape)
+    mask = mask_0 + mask_1 + mask_2
     box_s = int(len(img)/40)
     if box_s < 10:
         box_s = 10

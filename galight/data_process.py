@@ -93,7 +93,8 @@ class DataProcess(object):
                 self.deltaPix = 1.
         if fov_image is not None and rm_bkglight == True:
             bkglight = measure_bkg(fov_image, if_plot=if_plot, **kwargs)
-            fov_image = fov_image-bkglight
+            _mask = (fov_image!=0)
+            fov_image[_mask] = fov_image[_mask]-bkglight[_mask]
         self.fov_image = fov_image
         self.fov_noise_map = fov_noise_map
         self.psf_id_for_fitting = 0 #The psf id in the PSF_list that would be used in the fitting.
