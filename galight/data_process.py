@@ -305,7 +305,7 @@ class DataProcess(object):
             self.segm_deblend[self.segm_deblend>i]  = self.segm_deblend[self.segm_deblend>i] - 1
             self.tbl.remove_row(i)
             
-    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
+    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=False,
                  if_filter=False, FWHM_filer = None, user_option= False, select_all=True,
                  nearyby_obj_filter = False , **kwargs):
         """
@@ -352,6 +352,12 @@ class DataProcess(object):
             FWHMs = np.array(FWHMs)
             fluxs = np.array(fluxs)
             PSF_cutouts = np.array(PSF_cutouts)
+            if FWHM_sort == True:
+                PSF_cutouts = PSF_cutouts[FWHMs.argsort()]
+                init_PSF_locs = init_PSF_locs[FWHMs.argsort()]
+                fluxs = fluxs[FWHMs.argsort()]
+                FWHMs = FWHMs[FWHMs.argsort()]
+            
             if hasattr(self, 'target_stamp'):
                 target_flux = np.sum(self.target_stamp)
                 dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
@@ -389,7 +395,6 @@ class DataProcess(object):
             else:
                 from galight.tools.astro_tools import plt_many_fits
                 plt_many_fits(PSF_cutouts, FWHMs, 'FWHM')
-
                 if select_all is not True:
                     if sys.version_info[0] == 2:
                         select_idx = raw_input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')
