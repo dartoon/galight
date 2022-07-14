@@ -22,7 +22,7 @@ import photutils
 import sys
 from packaging import version
 from galight.tools.measure_tools import search_local_max, measure_FWHM
-
+from galight.tools.measure_tools import detect_obj
 class DataProcess(object):
     """
     A class to Process the data, including the following feature:
@@ -306,7 +306,8 @@ class DataProcess(object):
             self.tbl.remove_row(i)
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, 
-                 if_filter=False, user_option= False, select_all=True, **kwargs):
+                 if_filter=False, FWHM_filer = None, user_option= False, select_all=True,
+                 nearyby_obj_filter = False , **kwargs):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -354,10 +355,27 @@ class DataProcess(object):
             if hasattr(self, 'target_stamp'):
                 target_flux = np.sum(self.target_stamp)
                 dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
-                select_bool = (FWHMs<np.median(FWHMs)*1.5)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
+                if FWHM_filer is None:
+                    FWHM_filer = np.median(FWHMs)*1.5
+                select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
             else:
                 select_bool = (FWHMs<np.median(FWHMs)*1.5)
             if if_filter:
+                if nearyby_obj_filter:
+                    near_bools = []
+                    for i in range(len(PSF_cutouts)):
+                        _detect= detect_obj(PSF_cutouts[i],if_plot=False, nsigma=5)
+                        tbl = _detect[3]
+                        kron_fluxes = [float(tbl[tbl['label']==j]['kron_flux']) for j in range(len(tbl))]
+                        fluxes_ratios = np.array(kron_fluxes)/kron_fluxes[0]
+                        if len(fluxes_ratios) == 1:
+                            near_bools.append(True)
+                        elif np.max(fluxes_ratios[fluxes_ratios!=1]) > 0.05:
+                            near_bools.append(False)
+                        else:
+                            near_bools.append(True)
+                    select_bool = select_bool * np.array(near_bools)
+                
                 PSF_locs = init_PSF_locs[select_bool]    
                 FWHMs = FWHMs[select_bool]
                 fluxs = fluxs[select_bool]

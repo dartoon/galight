@@ -93,7 +93,12 @@ def cut_center_auto(image, center, radius, kernel = 'center_bright', return_cent
     --------
         A cutout image; (if return_center= True, a central pixel position used for the cutout would be returned)
     """
-    from photutils import centroid_2dg
+    try:
+        from photutils.centroids import centroid_2dg
+    except:
+        from photutils import centroid_2dg
+        import warnings
+        warnings.warn("\nThe photuils are updated to 0.1.4.")
     temp_center = np.asarray(center)
 #    print temp_center.astype(int)
     radius = radius
@@ -209,16 +214,23 @@ def plot_overview(img, center_target = None,  target_label = None, c_psf_list=No
     else:
         plt.close()
 
-def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False):
+def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False, find_flux_ratio=0.03):
     if npixels is None:
         npixels = int((len(psf)/13)**2)
     import copy
     _psf = copy.deepcopy(psf)
     from galight.tools.measure_tools import detect_obj
-    _, seg, _, _ = detect_obj(_psf*500, if_plot=if_plot, nsigma=nsigma, 
+    _, seg, _, tbl = detect_obj(_psf, if_plot=if_plot, nsigma=nsigma, 
                         npixels = npixels, contrast=contrast, 
-                        nlevels=nlevels,segm_map=True)
-    seg = seg.data
-    seg_idx = seg[int(len(psf)/2), int(len(psf)/2)]
-    _psf[ (seg!= seg_idx) * (seg!= 0)] = np.flip(_psf)[((seg!= seg_idx) * (seg!= 0))]
+                        nlevels=nlevels)
+    kron_fluxes = [float(tbl[tbl['label']==j]['kron_flux']) for j in range(len(tbl))]
+    fluxes_ratios = np.array(kron_fluxes)/kron_fluxes[0]
+    for i in range(1,len(kron_fluxes)):
+        if fluxes_ratios[i] > find_flux_ratio:
+            print(seg.shape)
+            _psf[seg == i+1 ] = np.flip(_psf)[seg == i+1]
     return _psf
+
+
+
+
