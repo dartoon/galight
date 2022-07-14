@@ -353,10 +353,10 @@ class DataProcess(object):
             fluxs = np.array(fluxs)
             PSF_cutouts = np.array(PSF_cutouts)
             if FWHM_sort == True:
-                PSF_cutouts = PSF_cutouts[FWHMs.argsort()]
-                init_PSF_locs = init_PSF_locs[FWHMs.argsort()]
-                fluxs = fluxs[FWHMs.argsort()]
-                FWHMs = FWHMs[FWHMs.argsort()]
+                PSF_cutouts = PSF_cutouts[FWHMs.argsort()[::-1]]
+                init_PSF_locs = init_PSF_locs[FWHMs.argsort()[::-1]]
+                fluxs = fluxs[FWHMs.argsort()[::-1]]
+                FWHMs = FWHMs[FWHMs.argsort()[::-1]]
             
             if hasattr(self, 'target_stamp'):
                 target_flux = np.sum(self.target_stamp)
