@@ -65,13 +65,18 @@ History
 * Separate a plot_materials function in data_process.
 
 
-0.1.8 (2022-xx-xx)
+0.1.8 (2022-07-16)
 ++++++++++++++++++
 
-* Calculate chisq using model result to report.
-* Update for lenstronomy > 1.10.3 
+* Improve reduced chisq calcualtions.
 * Improve stretch of showing image and use bbox_inches='tight'.
-* Debug sigma when cal_statmorph.
-* Debug the way for fit_run.targets_subtraction with adding FOV image.
+* Debug for functions including cal_statmorph() and targets_subtraction().
+* Improve PSF selection function.
+* Update for lenstronomy > 1.10.3 and new photutils version 1.5.0
 
+
+0.1.9 (2022-xx-xx)
+++++++++++++++++++
+
+* Add PSF stacking function using photutils.EPSFBuilder 
 

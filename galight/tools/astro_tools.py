@@ -32,7 +32,7 @@ def read_pixel_scale(header):
     # pix_scale = diff_scale * 3600 / 100
     from astropy.wcs.utils import proj_plane_pixel_scales
     scales = proj_plane_pixel_scales(wcs) * 3600  #From degree to arcsec
-    if scales[0] != scales[1]:
+    if abs(scales[0]-scales[1])/scales[0]>1.e-5:
         print('Warning: Pixel scale is not the same along x and y!!!')
     pix_scale = scales[0] 
     return pix_scale
@@ -52,16 +52,23 @@ def read_fits_exp(header):
     """    
     return header['EXPTIME']
 
-def plt_fits(img, norm = None, figsize = None, colorbar = False, savename = None, vmin= None, vmax=None, hold = False):
+def plt_fits(img, norm = 'log', figsize = None, colorbar = False, savename = None, 
+             vmin= None, vmax=None, cmap = 'gist_heat', hold = False):
     """
     Directly plot a 2D image using imshow.
     """
+    import copy, matplotlib
+    if cmap == 'gist_heat':
+        my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
+        my_cmap.set_bad('black')
+    else:
+        my_cmap = None
     fig, ax = plt.subplots(figsize=figsize)
-    if norm is None or norm == 'log':
+    if norm == 'log':
         norm = LogNorm(vmin=vmin, vmax=vmax)#np.max(img[~np.isnan(img)]))
     else:
-        norm = None
-    plt.imshow(img, norm=norm, origin='lower') 
+        norm = norm
+    plt.imshow(img, norm=norm, origin='lower',cmap = my_cmap) 
     if colorbar == True:
         plt.colorbar()
     if savename is not None:
@@ -81,7 +88,7 @@ def plt_fits_color(imgs, savename = None, **args):
     plt.show()
 
 def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = None, hide_axes = False,
-                  if_plot=True, cmap=None, label_size = 17):
+                  if_plot=True, cmap=None, label_size = 17, norm = LogNorm()):
     """
     Plot many fits in a row
     
@@ -104,7 +111,7 @@ def plt_many_fits(imgs, texts = None, prop = None, savename = None, labels = Non
     for i in range(len(imgs)):
         _i = int(i / 5)
         _j = int(i % 5)
-        axs[_i][_j].imshow(imgs[i], origin='lower', norm=LogNorm(), cmap=cmap)
+        axs[_i][_j].imshow(imgs[i], origin='lower', norm=norm, cmap=cmap)
         frame_size = len(imgs[i])
         if labels is None:
             label = "ini_ID = {0}".format(i)

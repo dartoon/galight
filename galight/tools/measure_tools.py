@@ -952,3 +952,21 @@ def fit_data_oneD_gaussian(data, ifplot = False):
         plt.close()
     return peak_loc, popt[2]
 
+
+def stack_PSF(data, psf_POS_list, psf_size = 71,  oversampling=1, maxiters=10, tool = 'photutils'):
+    if tool == 'photutils':
+        from astropy.table import Table
+        from astropy.nddata import NDData
+        from photutils.psf import extract_stars
+        from photutils import EPSFBuilder 
+        stars_tbl = Table()
+        stars_tbl['x'] = np.array(psf_POS_list)[:,0]
+        stars_tbl['y'] = np.array(psf_POS_list)[:,1]
+        nddata = NDData(data=data) 
+        #nddata = NDData(data=self.fov_image) 
+        stars = extract_stars(nddata, stars_tbl, size=psf_size)  
+        epsf_builder=EPSFBuilder(oversampling=oversampling, maxiters=maxiters,progress_bar=True,shape=psf_size)
+        epsf,fitted_stars=epsf_builder(stars)        
+        stack_psf = epsf.data
+        return stack_psf
+    

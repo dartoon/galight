@@ -23,6 +23,7 @@ import sys
 from packaging import version
 from galight.tools.measure_tools import search_local_max, measure_FWHM
 from galight.tools.measure_tools import detect_obj
+from galight.tools.astro_tools import plt_many_fits
 class DataProcess(object):
     """
     A class to Process the data, including the following feature:
@@ -168,9 +169,9 @@ class DataProcess(object):
                     if percent<0.03:
                         break
                 radius = rad
-            if if_plot == True:
-                print("Plot target cut out zoom in:")
             if cut_kernel is not None:
+                if if_plot == True:
+                    print("Plot target cut out zoom in:")
                 target_stamp, self.target_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
                                                   kernel = cut_kernel, radius=radius,
                                                   return_center=True, if_plot=if_plot)
@@ -306,7 +307,7 @@ class DataProcess(object):
             self.tbl.remove_row(i)
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=False,
-                 if_filter=False, FWHM_filer = None, user_option= False, select_all=True,
+                 if_filter=False, FWHM_filer = None, user_option= False, select_all=False,
                  nearyby_obj_filter = False , **kwargs):
         """
         Find all the available PSF candidates in the field of view.
@@ -391,7 +392,6 @@ class DataProcess(object):
             if user_option == False:
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
             else:
-                from galight.tools.astro_tools import plt_many_fits
                 plt_many_fits(PSF_cutouts, FWHMs, 'FWHM')
                 if select_all is not True:
                     if sys.version_info[0] == 2:
@@ -426,6 +426,30 @@ class DataProcess(object):
         """    
         from galight.tools.measure_tools import profiles_compare    
         profiles_compare([self.target_stamp] + self.PSF_list, **kargs)
+
+
+    def stack_PSF(self,  oversampling=1, maxiters=10, tool = 'photutils',if_plot=False):
+        if hasattr(self, 'stack_PSF_done'):
+            print("WARNING: PSF has stacked already! Let's just make plot")
+        else:
+            from galight.tools.measure_tools import stack_PSF
+            stack_PSF = stack_PSF(self.fov_image, self.PSF_pos_list, psf_size=len(self.PSF_list[0]),
+                             oversampling=oversampling, maxiters=maxiters, tool = tool)
+            self.PSF_list.append(stack_PSF)
+            self.PSF_FWHM_list.append(np.mean(measure_FWHM(stack_PSF)))
+            self.psf_id_for_fitting = -1
+        # print('The stack PSF in the last:')
+        labels = ['PSF{0}'.format(i) for i in range(len(self.PSF_list))]
+        labels[-1] = 'stacked PSF'
+        plt_many_fits(self.PSF_list[:-1]+[self.PSF_list[-1]*np.sum(self.PSF_list[0])], self.PSF_FWHM_list, 'FWHM', labels = labels)
+        print('Plot residual:')
+        labels = ['stacked - PSF{0}'.format(i) for i in range(len(self.PSF_list))]
+        plt_many_fits([(self.PSF_list[-1]/np.sum(self.PSF_list[-1]) - 
+                        self.PSF_list[i]/np.sum(self.PSF_list[i]) ) for i in range(len(self.PSF_list)-1)], 
+                      labels = labels[:-1], norm = None)
+        self.stack_PSF_done = True
+
+
         
     def plot_overview(self, **kargs):
         """
