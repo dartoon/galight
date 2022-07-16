@@ -389,9 +389,7 @@ class DataProcess(object):
             else:
                 PSF_locs = init_PSF_locs
             if user_option == False:
-                print(FWHMs)
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
-                # self.PSF_pos_list = [PSF_locs[i] for i in select_idx]            
             else:
                 from galight.tools.astro_tools import plt_many_fits
                 plt_many_fits(PSF_cutouts, FWHMs, 'FWHM')
