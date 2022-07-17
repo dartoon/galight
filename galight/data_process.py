@@ -430,7 +430,7 @@ class DataProcess(object):
 
     def stack_PSF(self,  oversampling=1, maxiters=10, tool = 'photutils',if_plot=False):
         if hasattr(self, 'stack_PSF_done'):
-            print("WARNING: PSF has stacked already! Let's just make plot")
+            print("WARNING: PSF has stacked already! Let's just show the plot.")
         else:
             from galight.tools.measure_tools import stack_PSF
             stack_PSF = stack_PSF(self.fov_image, self.PSF_pos_list, psf_size=len(self.PSF_list[0]),
