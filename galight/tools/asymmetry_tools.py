@@ -83,6 +83,7 @@ def cal_r_petrosian(image, center, eta=0.2,radius=None, mask=None, q=None, theta
         warnings.warn("Couldn't find the SB_annu/SB_rad below eta, and use the last annu instead...",
                       AstropyUserWarning)
     if if_plot == True:
+        print("Plot the measure of petrosian radius:")
         minorLocator = AutoMinorLocator()
         fig, ax = plt.subplots()
         plt.plot(r_grids, r_SB, 'x-', label = 'Ave SB in radius')
@@ -152,7 +153,7 @@ class Measure_asy(object):
         
     """
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
-                 consider_petrosian=False, eta = 0.2, rm_ps = False, rm_model=False):
+                 consider_petrosian=False, eta = 0.2, rm_ps = False, rm_model=False, rm_obj=False):
         self.fitting_process_class = fitting_process_class
         self.interp_order = interp_order
         self.seg_cal_reg = seg_cal_reg
@@ -163,6 +164,8 @@ class Measure_asy(object):
             self.img -= np.sum(self.fitting_process_class.image_ps_list, axis = 0)
         elif rm_model == True:
             self.img = self.img - np.sum(self.fitting_process_class.image_ps_list, axis = 0) - np.sum(self.fitting_process_class.image_host_list, axis = 0)
+        if rm_obj == True:
+            self.img = self.img - np.sum(self.fitting_process_class.image_host_list[:obj_id] + self.fitting_process_class.image_host_list[obj_id+1:], axis = 0)
         self.consider_petrosian = consider_petrosian
         self.eta = eta
     def asy_segm(self, segm = None, mask_type = 'segm', extend=1.):
@@ -320,7 +323,7 @@ class Measure_asy(object):
             self.bkg_asy_dens = bkg_asy_dens
         if if_plot_bkg == True:
             print("Plot the region to estiamte the background asymmetry:")
-            plt_fits(bkg_asy_2d,norm='linear')
+            plt_fits(bkg_asy_2d,norm=None)
         return self.bkg_asy_dens
 
     def cal_asymmetry(self, rotate_pix, obj_flux = None, if_plot = True, bkg_asy_dens=None, if_plot_bkg = False):
@@ -440,7 +443,7 @@ class CAS(Measure_asy):
         Measure_asy.__init__(self, fitting_process_class=fitting_process_class, **kwargs)
 
     def cal_CAS(self, mask_type='segm', if_remeasure_bkg = False, bkg_asy_dens=None, skysmooth=None, extend=1, 
-                if_plot = False, if_plot_bkg=False, segm = None, if_residual=False, image_org=None):
+                if_plot = False, if_plot_bkg=False, segm = None, if_residual=False, image_org=None, radius=None):
         self.asy_segm(mask_type=mask_type, segm=segm, extend=extend)
         self.find_pos_res = self.find_pos()
         self.make_bkg(rotate_pix = self.find_pos_res["x"], if_remeasure_bkg=if_remeasure_bkg)
@@ -450,7 +453,8 @@ class CAS(Measure_asy):
         self.asy = self.cal_asymmetry(rotate_pix = self.find_pos_res["x"], bkg_asy_dens=bkg_asy_dens,
                                       if_plot=if_plot, if_plot_bkg=if_plot_bkg, obj_flux = obj_flux)
         segm_id = self.segm_id
-        radius = len(self.img)/2*0.95
+        if radius == None:
+            radius = len(self.img)/2*0.95
         center =  np.array([len(self.img)/2]*2) + self.find_pos_res["x"]
         self._mask = (self.segm == segm_id) +  (self.segm == 0)  #A mask for the object.
         
@@ -467,7 +471,7 @@ class CAS(Measure_asy):
             self.r_p_c = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask ,
                                     radius=radius, if_plot=if_plot)
             self.r_p_e = cal_r_petrosian(self.img, center=center, eta=self.eta, mask= self._mask,
-                                    radius=radius, q=q, theta = theta, if_plot=if_plot)
+                                    radius=radius, q=q, theta = theta, if_plot=False)
         if if_residual == True:
             if image_org is None:
                 image_org = copy.deepcopy(self.fitting_process_class.fitting_specify_class.kwargs_data['image_data'])
@@ -476,7 +480,7 @@ class CAS(Measure_asy):
                                          radius=radius, if_plot=if_plot) 
             
             self.r_p_e = cal_r_petrosian(image_org, center=center, eta=self.eta, mask= self._mask,
-                                    radius=radius, q=q, theta = theta, if_plot=if_plot)
+                                    radius=radius, q=q, theta = theta, if_plot=False)
         
         
         skysmooth = self._skysmoothness(bkg=self.img_bkg,r_p_c=self.r_p_c,skysmooth=skysmooth)
@@ -486,7 +490,7 @@ class CAS(Measure_asy):
 
         self.concentration = self.cal_concentration(image = self.img ,
                                                 mask = self._mask,
-                                                center=center, radius = radius,if_plot=if_plot)
+                                                center=center, radius = radius, if_plot=if_plot)
         self.gini = self.cal_gini(self.img * self.cal_areas, self.r_p_e, theta, q, xc, yc)
         return self.asy, self.smoothness, self.concentration, self.gini
 
@@ -514,7 +518,7 @@ class CAS(Measure_asy):
             plt.tick_params(which='major', length=7)
             plt.tick_params(which='minor', length=4, color='r')
             plt.grid()
-            ax.set_ylabel("Surface Brightness")
+            ax.set_ylabel("Fluxs inside")
             ax.set_xlabel("Pixels")
             plt.grid(which="minor")
             plt.legend()
