@@ -75,8 +75,8 @@ History
 * Update for lenstronomy > 1.10.3 and new photutils version 1.5.0
 
 
-0.1.9 (2022-xx-xx)
+0.1.9 (2022-07-18)
 ++++++++++++++++++
 
 * Add PSF stacking function using photutils.EPSFBuilder 
-
+* Improve the CAS measurement 

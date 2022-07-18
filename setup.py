@@ -24,7 +24,7 @@ history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
     name='galight',
-    version='0.1.8',
+    version='0.1.9',
     description='Galaxy light 2D modeling tool',
     long_description=readme,
     long_description_content_type='text/markdown',
