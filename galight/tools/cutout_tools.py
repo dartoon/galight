@@ -214,7 +214,8 @@ def plot_overview(img, center_target = None,  target_label = None, c_psf_list=No
     else:
         plt.close()
 
-def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False, find_flux_ratio=0.03):
+def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False, 
+              ratio_to_replace=0.03, print_string = 'clean PSF'):
     if npixels is None:
         npixels = int((len(psf)/13)**2)
     import copy
@@ -226,8 +227,8 @@ def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot
     kron_fluxes = [float(tbl[tbl['label']==j]['kron_flux']) for j in range(len(tbl))]
     fluxes_ratios = np.array(kron_fluxes)/kron_fluxes[0]
     for i in range(1,len(kron_fluxes)):
-        if fluxes_ratios[i] > find_flux_ratio:
-            print(seg.shape)
+        if fluxes_ratios[i] > ratio_to_replace:
+            print(print_string)
             _psf[seg == i+1 ] = np.flip(_psf)[seg == i+1]
     return _psf
 
