@@ -419,7 +419,8 @@ class DataProcess(object):
                 self.PSF_pos_list = [wcs.all_world2pix([[PSF_pos_list[i][0], PSF_pos_list[i][1]]], 1)[0] for i in range(len(PSF_pos_list))]
         self.PSF_list = [cut_center_auto(self.fov_image, center = self.PSF_pos_list[i],
                                           kernel = 'center_gaussian', radius=radius) for i in range(len(self.PSF_pos_list))]
-        del self.stack_PSF_done
+        if hasattr(self, 'stack_PSF_done'):
+            del self.stack_PSF_done
 
     def profiles_compare(self, **kargs):
         """
