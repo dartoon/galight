@@ -359,15 +359,15 @@ class DataProcess(object):
                 fluxs = fluxs[FWHMs.argsort()[::-1]]
                 FWHMs = FWHMs[FWHMs.argsort()[::-1]]
             
-            if hasattr(self, 'target_stamp'):
-                target_flux = np.sum(self.target_stamp)
-                dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
-                if FWHM_filer is None:
-                    FWHM_filer = np.median(FWHMs)*1.5
-                select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
-            else:
-                select_bool = (FWHMs<np.median(FWHMs)*1.5)
             if if_filter:
+                if hasattr(self, 'target_stamp'):
+                    target_flux = np.sum(self.target_stamp)
+                    dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
+                    if FWHM_filer is None:
+                        FWHM_filer = np.median(FWHMs)*1.5
+                    select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
+                else:
+                    select_bool = (FWHMs<np.median(FWHMs)*1.5)
                 if nearyby_obj_filter:
                     near_bools = []
                     for i in range(len(PSF_cutouts)):
@@ -382,13 +382,13 @@ class DataProcess(object):
                         else:
                             near_bools.append(True)
                     select_bool = select_bool * np.array(near_bools)
-                
                 PSF_locs = init_PSF_locs[select_bool]    
                 FWHMs = FWHMs[select_bool]
                 fluxs = fluxs[select_bool]
                 PSF_cutouts = PSF_cutouts[select_bool]
             else:
                 PSF_locs = init_PSF_locs
+                
             if user_option == False:
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
             else:
