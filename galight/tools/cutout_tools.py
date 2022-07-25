@@ -103,7 +103,7 @@ def cut_center_auto(image, center, radius, kernel = 'center_bright', return_cent
 #    print temp_center.astype(int)
     radius = radius
     img_init = cutout(image=image, center=temp_center.astype(int), radius=radius)
-    frm_q = int(len(img_init)/2.5)  #Aa quarter scale of the frame
+    frm_q = int(len(img_init)/2.5)  #A quarter scale of the frame
     ms, mew = 30, 2.
     if kernel == 'center_bright':
         test_center =  np.asarray(np.where(img_init == img_init[frm_q:-frm_q,frm_q:-frm_q].max()))[:,0]
@@ -215,7 +215,7 @@ def plot_overview(img, center_target = None,  target_label = None, c_psf_list=No
         plt.close()
 
 def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False, 
-              ratio_to_replace=0.03, print_string = 'clean PSF'):
+              ratio_to_replace=0.03, print_string = 'clean PSF', if_print_fluxratio=False):
     if npixels is None:
         npixels = int((len(psf)/13)**2)
     import copy
@@ -226,6 +226,8 @@ def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot
                         nlevels=nlevels)
     kron_fluxes = [float(tbl[tbl['label']==j]['kron_flux']) for j in range(len(tbl))]
     fluxes_ratios = np.array(kron_fluxes)/kron_fluxes[0]
+    if if_print_fluxratio==True:
+        print(fluxes_ratios[1:])
     for i in range(1,len(kron_fluxes)):
         if fluxes_ratios[i] > ratio_to_replace:
             print(print_string)
