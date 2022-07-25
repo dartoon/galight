@@ -56,7 +56,7 @@ def scale_bar(ax, d, dist=1/0.13, text='1"', color='black', flipped=False, fonts
 def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                   deltaPix = 1., zp=27.0, target_ID = 'target_ID',
                   mask_image=None, if_annuli=False,
-                  arrows=False, show_plot = True):
+                  arrows=False, show_plot = True, cmap=None):
     """
     Make quick plots to compare the flux profiles in a list and show the normalized residual.
     
@@ -88,26 +88,25 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     # norm = LogNorm() #ImageNormalize(stretch=SqrtStretch())
     cl_num = len(flux_list_2d) + 1 
     f = plt.figure(0, figsize=(6.5+ (cl_num-1)*3.5,4))    
-    # f = plt.figure(0, figsize=(17.0,4))  #3
-    # f = plt.figure(0, figsize=(20.5,4))  #4
-    # f = plt.figure(0, figsize=(24.0,4))  #5
     ax_l = [plt.subplot2grid((6,cl_num), (0,i), rowspan=6) for i in range(len(flux_list_2d)-1)] #The image plot
     ax_r = plt.subplot2grid((6,cl_num), (0,cl_num-2), rowspan=6)   #The residual plot
     ax_rt = plt.subplot2grid((6,cl_num), (0,cl_num-1), rowspan=5)
     ax_rb = plt.subplot2grid((6,cl_num), (5,cl_num-1), rowspan=1)
     frame_size = len(flux_list_2d[0])
     mask = np.ones_like(flux_list_2d[0])
+    if cmap == None:
+        cmap = my_cmap
     if mask_image is not None:
         mask = mask * mask_image
     for i in range(len(flux_list_2d)-1):
         if i >1:
             flux_list_2d[i] = flux_list_2d[i] * mask
         if i == 0:
-            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=LogNorm(vmax = flux_list_2d[0].max(), vmin = 1.e-4))
+            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=cmap, norm=LogNorm(vmax = flux_list_2d[0].max(), vmin = 1.e-4))
             clim=im_i.properties()['clim'] #To uniform the color bar scale.
             ax_l[i].set_ylabel(target_ID, fontsize=15, weight='bold')
         else:
-            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=my_cmap, norm=LogNorm(), clim=clim)
+            im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=cmap, norm=LogNorm(), clim=clim)
             ax_l[i].get_yaxis().set_visible(False)
         ax_l[i].get_xaxis().set_visible(False)
         scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white')
