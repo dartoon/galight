@@ -2,7 +2,6 @@ astropy==5.1
 corner==2.2.1
 emcee==3.1.2
 lenstronomy==1.10.3
-galight==0.1.9
 matplotlib==3.5.2
 mpmath==1.2.1
 multiprocess==0.70.13
