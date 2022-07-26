@@ -592,22 +592,28 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         from astropy.convolution import Gaussian2DKernel
         from photutils import detect_sources,deblend_sources   
         from photutils.segmentation import SourceCatalog 
+        from astropy.convolution import convolve
         if version.parse(photutils.__version__) > version.parse("0.7"):
             threshold = detect_threshold(image, nsigma=nsigma)
         else:
             threshold = detect_threshold(image, snr=nsigma)
         sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
-        kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3)
+        kernel = Gaussian2DKernel(sigma, x_size=3, y_size=3) 
         kernel.normalize()
+        convolved_image = convolve(image, kernel)
+        # The 2D array of the kernel used to filter the image before thresholding. 
+        # Filtering the image will smooth the noise and maximize detectability of 
+        # objects with a shape similar to the kernel.
+        
         if version.parse(photutils.__version__) >= version.parse("1.2.0"):
-            segm = detect_sources(image, threshold, npixels=npixels, kernel=kernel)
-            segm_deblend = deblend_sources(image, segm, npixels=npixels,
-                                            kernel=kernel, nlevels=nlevels,
+            segm = detect_sources(convolved_image, threshold, npixels=npixels, kernel=None)
+            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+                                            kernel=None, nlevels=nlevels,
                                             contrast=contrast)
         else:
-            segm = detect_sources(image, threshold, npixels=npixels, filter_kernel=kernel)
-            segm_deblend = deblend_sources(image, segm, npixels=npixels,
-                                            filter_kernel=kernel, nlevels=nlevels,
+            segm = detect_sources(convolved_image, threshold, npixels=npixels, filter_kernel=None)
+            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+                                            filter_kernel=None, nlevels=nlevels,
                                             contrast=contrast)
         cat = SourceCatalog(image, segm_deblend)
         tbl = cat.to_table()
