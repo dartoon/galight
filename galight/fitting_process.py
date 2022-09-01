@@ -123,7 +123,7 @@ class FittingProcess(object):
         for i in range(len(ps_result)):
             image_ps_list.append(imageModel.point_source(ps_result, k = i))
             
-        if self.fitting_kwargs_list[-1][0] == 'MCMC':
+        if self.fitting_kwargs_list[-1][0] == 'MCMC' and refresh == False:
             from lenstronomy.Sampling.parameters import Param
             try:
                 kwargs_fixed_source = fitting_specify_class.kwargs_params['lens_light_model'][2]
