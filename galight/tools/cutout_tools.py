@@ -12,6 +12,8 @@ import astropy.io.fits as pyfits
 from regions import PixCoord, CirclePixelRegion, EllipsePixelRegion
 from matplotlib.colors import LogNorm
 from astropy.coordinates import Angle
+import copy
+
 def pix_region(center=[49.0,49.0], radius=5, q = None, theta = None):
     """
     Creat a region file, in pixel units.
@@ -60,7 +62,7 @@ def cutout(image, center, radius):
     return cut_image
 
 def cut_center_auto(image, center, radius, kernel = 'center_bright', return_center=False,
-                      if_plot=False):
+                      if_plot=False, **kwargs):
     """
     Automaticlly cutout out a image, so that the central pixel is either the "center_bright" or "center_gaussian".
     
@@ -102,35 +104,41 @@ def cut_center_auto(image, center, radius, kernel = 'center_bright', return_cent
     temp_center = np.asarray(center)
 #    print temp_center.astype(int)
     radius = radius
-    img_init = cutout(image=image, center=temp_center.astype(int), radius=radius)
-    frm_q = int(len(img_init)/2.5)  #A quarter scale of the frame
+    img_cut_int = cutout(image=image, center=temp_center.astype(int), radius=radius)
+    frm_q = int(len(img_cut_int)/2.5)  #A quarter scale of the frame
     ms, mew = 30, 2.
     if kernel == 'center_bright':
-        test_center =  np.asarray(np.where(img_init == img_init[frm_q:-frm_q,frm_q:-frm_q].max()))[:,0]
+        test_center =  np.asarray(np.where(img_cut_int == img_cut_int[frm_q:-frm_q,frm_q:-frm_q].max()))[:,0]
         center_shift = np.array((test_center- radius))[::-1]
         center_pos = (temp_center.astype(int) + np.round(center_shift))
         cutout_image = cutout(image=image, center=center_pos, radius=radius)
-        plt_center = img_init[frm_q:-frm_q,frm_q:-frm_q].shape
-        if if_plot==True:
-            plt.plot(plt_center[0]/2-0.5, plt_center[1]/2-0.5, color='c', marker='+', ms=ms, mew=mew)  #-0.5 to shift the "+" to the center
-            plt.imshow(cutout_image[frm_q:-frm_q,frm_q:-frm_q], origin='lower', norm=LogNorm())
-            plt.show()
     elif kernel == 'center_gaussian':
-        # test_center = frm_q + centroid_2dg(img_init[frm_q:-frm_q,frm_q:-frm_q])
-        gauss_center = centroid_2dg(img_init)
+        # test_center = frm_q + centroid_2dg(img_cut_int[frm_q:-frm_q,frm_q:-frm_q])
+        gauss_center = centroid_2dg(img_cut_int)
         center_shift = gauss_center - radius
         center = np.asarray(center)
         center_pos = center.astype(int) + center_shift
-        img_init = cutout(image=image, center=center_pos, radius=radius)
-        if if_plot==True :
-            fig, ax = plt.subplots(1, 1)
-            plt_center = img_init[frm_q:-frm_q,frm_q:-frm_q].shape
-            plt.plot(plt_center[0]/2-0.5, plt_center[1]/2-0.5, color='r', marker='+', ms=ms, mew=mew)
-            plt.imshow(img_init[frm_q:-frm_q,frm_q:-frm_q], origin='lower', norm=LogNorm())
-            plt.show()
-        cutout_image = img_init
+        cutout_image = cutout(image=image, center=center_pos, radius=radius)
+    elif kernel == 'nearest_obj_center':
+        from galight.tools.measure_tools import detect_obj
+        apertures, segm_deblend, mask_apertures, tbl = detect_obj(img_cut_int, if_plot=False, 
+                                                                  auto_sort_center = True,
+                                                                  **kwargs)
+        pos = apertures[0].positions
+        frame_c = np.array([len(img_cut_int)/2, len(img_cut_int)/2])
+        center_shift = pos - frame_c
+        center_pos = center.astype(int) + np.round(center_shift)
+        cutout_image = cutout(image=image, center=center_pos, radius=radius)
+        # print("Check:")
+        # print(cutout_image.shape, center_pos)
     else:
         raise ValueError("kernel is not defined")
+    if if_plot==True :
+        fig, ax = plt.subplots(1, 1)
+        plt_center = cutout_image[frm_q:-frm_q,frm_q:-frm_q].shape
+        plt.plot(plt_center[0]/2-0.5, plt_center[1]/2-0.5, color='r', marker='+', ms=ms, mew=mew)
+        plt.imshow(cutout_image[frm_q:-frm_q,frm_q:-frm_q], origin='lower', norm=LogNorm())
+        plt.show()
     if return_center==False:
         return cutout_image
     elif return_center==True:
@@ -215,25 +223,113 @@ def plot_overview(img, center_target = None,  target_label = None, c_psf_list=No
         plt.close()
 
 def psf_clean(psf, nsigma=3, npixels = None, contrast=0.001, nlevels=25, if_plot=False, 
-              ratio_to_replace=0.03, print_string = 'clean PSF', if_print_fluxratio=False):
+              ratio_to_replace=0.03, print_string = 'clean segm', if_print_fluxratio=False,
+              clean_soft=True):
     if npixels is None:
         npixels = int((len(psf)/13)**2)
     import copy
     _psf = copy.deepcopy(psf)
     from galight.tools.measure_tools import detect_obj
-    _, seg, _, tbl = detect_obj(_psf, if_plot=if_plot, nsigma=nsigma, 
+    apertures, seg, _, tbl = detect_obj(_psf, if_plot=if_plot, nsigma=nsigma, 
                         npixels = npixels, contrast=contrast, 
                         nlevels=nlevels)
+    cl_list = clean_aperture_list(_psf, apertures, findsoft=(1-clean_soft) )
+    print(cl_list)
     kron_fluxes = [float(tbl[tbl['label']==j]['kron_flux']) for j in range(len(tbl))]
     fluxes_ratios = np.array(kron_fluxes)/kron_fluxes[0]
     if if_print_fluxratio==True:
         print(fluxes_ratios[1:])
     for i in range(1,len(kron_fluxes)):
-        if fluxes_ratios[i] > ratio_to_replace:
-            print(print_string)
+        if fluxes_ratios[i] > ratio_to_replace and i not in cl_list :
+            print(print_string, i)
             _psf[seg == i+1 ] = np.flip(_psf)[seg == i+1]
     return _psf
 
+def stack_PSF(data, psf_POS_list, psf_size = 71,  oversampling=1, maxiters=10, tool = 'photutils'):
+    if tool == 'photutils':
+        from astropy.table import Table
+        from astropy.nddata import NDData
+        from photutils.psf import extract_stars
+        from photutils import EPSFBuilder 
+        stars_tbl = Table()
+        stars_tbl['x'] = np.array(psf_POS_list)[:,0]
+        stars_tbl['y'] = np.array(psf_POS_list)[:,1]
+        nddata = NDData(data=data) 
+        #nddata = NDData(data=self.fov_image) 
+        stars = extract_stars(nddata, stars_tbl, size=psf_size)  
+        epsf_builder=EPSFBuilder(oversampling=oversampling, maxiters=maxiters,progress_bar=True,shape=psf_size)
+        epsf,fitted_stars=epsf_builder(stars)        
+        stack_psf = epsf.data
+        return stack_psf
+   
+def clean_aperture_list(image, apertures, findsoft=True):
+    cl_list = []
+    for i in range(1,len(apertures)):
+        #Recognize the aperture feature that is sysmetric.
+        ap_rot = copy.deepcopy(apertures[i])
+        ap_rot.positions = np.array([len(image)]*2) - apertures[i].positions
+        _flux = apertures[i].do_photometry(image, method='exact')[0][0]
+        _flux_rot = ap_rot.do_photometry(image, method='exact')[0][0]
+        if abs(_flux/_flux_rot) < 2.5:
+            cl_list.append(i)
+        if findsoft == True:
+            #Recognize the aperture feature are too flat.
+            ap_exp = copy.deepcopy(apertures[i])
+            ap_exp.a = ap_exp.a * 1.2
+            ap_exp.b = ap_exp.b * 1.2
+            _flux_exp = ap_exp.do_photometry(image, method='exact')[0][0]
+            _flux_dens = _flux/(apertures[i].a * apertures[i].b)
+            _flux_dens_ext = (_flux_exp-_flux)/(ap_exp.a*ap_exp.b - (apertures[i].a * apertures[i].b))
+            if _flux_dens_ext/_flux_dens > 0.8:
+                cl_list.append(i)
+    return cl_list
 
-
-
+   
+def common_data_class_aperture(data_process_list, l_idx = 0,  return_idx = 0):
+    """
+    From a list of data_process to generate a commen best apertures.
+    
+    Parameter
+    --------
+        l_idx: The leading idx of the aperture to start with
+        return_idx: The idx of the data_process in list, common aperture to be returned for the idx
+        
+    Return
+    --------
+        A list of common apertures
+    """
+    from galight.tools.measure_tools import mask_obj
+    _data_process_list = copy.deepcopy(data_process_list)
+    deltaPix_list = np.array([_data_process_list[i].deltaPix for i in range(len(_data_process_list))])
+    ratio_list = deltaPix_list/deltaPix_list[0]
+    apertures = copy.deepcopy(_data_process_list[l_idx].apertures)
+    target_stamp = _data_process_list[l_idx].target_stamp
+    for i in range(len(_data_process_list)):
+        if i != l_idx:
+            covers = mask_obj(target_stamp, apertures, if_plot=False, sum_mask = True)
+            for j in range(len(_data_process_list[i].apertures)):
+                aper = _data_process_list[i].apertures[j]
+                center_shift = (aper.positions - len(_data_process_list[i].target_stamp)/2) * ratio_list[i]
+                aper.positions = center_shift + len(target_stamp)/2
+                aper.a =  aper.a * ratio_list[i]
+                aper.b =  aper.b * ratio_list[i]
+                new_cover = mask_obj(target_stamp, [aper], if_plot=False, sum_mask = True)
+                if np.sum(covers - new_cover*covers) > np.sum(1-new_cover)/2 :               
+                    apertures.append(aper)
+    rm_list = []
+    #check all the collected apertures
+    for i in range(1,len(apertures)):
+        other_apertures = [apertures[j] for j in range(len(apertures)) if i!=j and i not in rm_list]
+        all_cover = mask_obj(target_stamp, other_apertures, if_plot=False, sum_mask = True)
+        one_cover = mask_obj(target_stamp, [apertures[i]], if_plot=False, sum_mask = True)
+        if np.sum(all_cover) - np.sum(all_cover*one_cover) < np.sum(1-one_cover)/1.6:
+            rm_list.append(i)
+    apertures = [apertures[i] for i in range(len(apertures)) if i not in rm_list]
+    
+    for i in range(len(apertures)):
+        aper = apertures[i]
+        center_shift = (aper.positions - len(target_stamp)/2) / ratio_list[return_idx]
+        aper.positions = center_shift + len(_data_process_list[return_idx].target_stamp)/2
+        aper.a =  aper.a / ratio_list[return_idx]
+        aper.b =  aper.b / ratio_list[return_idx]
+    return apertures

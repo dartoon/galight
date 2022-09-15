@@ -24,6 +24,7 @@ from packaging import version
 from galight.tools.measure_tools import search_local_max, measure_FWHM
 from galight.tools.measure_tools import detect_obj
 from galight.tools.astro_tools import plt_many_fits
+import lenstronomy 
 class DataProcess(object):
     """
     A class to Process the data, including the following feature:
@@ -174,7 +175,7 @@ class DataProcess(object):
                     print("Plot target cut out zoom in:")
                 target_stamp, self.target_pos = cut_center_auto(image=self.fov_image, center= self.target_pos, 
                                                   kernel = cut_kernel, radius=radius,
-                                                  return_center=True, if_plot=if_plot)
+                                                  return_center=True, if_plot=if_plot, **kwargs)
             else:
                 target_stamp = cutout(image = self.fov_image, center = self.target_pos, radius=radius)
         self.radius = int(len(target_stamp)/2)
@@ -190,7 +191,7 @@ class DataProcess(object):
                 from galight.tools.measure_tools import esti_bgkstd
                 cut_rad = np.min([self.radius*2, len(self.fov_image)/2])
                 target_2xlarger_stamp = cutout(image=self.fov_image, center= self.target_pos, radius=cut_rad)
-                self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot)
+                self.bkg_std = esti_bgkstd(target_2xlarger_stamp, if_plot=if_plot, npixels = 20)
             _exptime = deepcopy(self.exptime)
             if _exptime is None:
                 if 'EXPTIME' in self.header.keys():
@@ -277,27 +278,15 @@ class DataProcess(object):
         ax3.get_yaxis().set_visible(False) 
         plt.show() 
     
-    def clean_aperture_list(self):
-        cl_list = []
-        for i in range(1,len(self.apertures)):
-            ap_rot = deepcopy(self.apertures[i])
-            ap_rot.positions = np.array([len(self.target_stamp)]*2) - self.apertures[i].positions
-            _flux = self.apertures[i].do_photometry(self.target_stamp, method='exact')[0][0]
-            _flux_rot = ap_rot.do_photometry(self.target_stamp, method='exact')[0][0]
-            if abs(_flux/_flux_rot) < 2.5:
-                cl_list.append(i)
-            ap_exp = deepcopy(self.apertures[i])
-            ap_exp.a = ap_exp.a * 1.2
-            ap_exp.b = ap_exp.b * 1.2
-            _flux_exp = ap_exp.do_photometry(self.target_stamp, method='exact')[0][0]
-            _flux_dens = _flux/(self.apertures[i].a * self.apertures[i].b)
-            _flux_dens_ext = (_flux_exp-_flux)/(ap_exp.a*ap_exp.b - (self.apertures[i].a * self.apertures[i].b))
-            if _flux_dens_ext/_flux_dens > 0.8:
-                cl_list.append(i)
-        return cl_list
+    def plot_aperture(self, figsize=(8,6)):
+        from galight.tools.plot_tools import plot_data_apertures_point
+        plot_data_apertures_point(self.target_stamp * self.target_mask, # + (self.kwargs_likelihood['image_likelihood_mask_list'][0]==0)*1.e6 , 
+                                  self.apertures, figsize=figsize)
+        
     
     def clean_aperture(self):
-        cl_list = self.clean_aperture_list()
+        from galight.tools.cutout_tools import clean_aperture_list
+        cl_list = clean_aperture_list(self.target_stamp, self.apertures)
         self.apertures = [self.apertures[i] for i in range(len(self.apertures)) if i not in cl_list]
         self.mask_apertures = [self.mask_apertures[i] for i in range(len(self.mask_apertures)) if i not in cl_list]
         cl_list = list(dict.fromkeys(cl_list)) 
@@ -306,7 +295,7 @@ class DataProcess(object):
             self.segm_deblend[self.segm_deblend>i]  = self.segm_deblend[self.segm_deblend>i] - 1
             self.tbl.remove_row(i)
             
-    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=False,
+    def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=True,
                  if_filter=False, FWHM_filer = None, user_option= False, select_all=False,
                  nearyby_obj_filter = False , **kwargs):
         """
@@ -431,24 +420,37 @@ class DataProcess(object):
 
 
     def stack_PSF(self,  oversampling=1, maxiters=10, tool = 'photutils',if_plot=False):
+        if not hasattr(self, 'PSF_FWHM_list'):
+            self.PSF_FWHM_list = []
+            for i in range(len(self.PSF_list)):
+                self.PSF_FWHM_list.append(np.mean(measure_FWHM(self.PSF_list[i])) )
         if hasattr(self, 'stack_PSF_done'):
             print("WARNING: PSF has stacked already! Let's just show the plot.")
-        else:
+        elif tool == 'photutils':
             from galight.tools.measure_tools import stack_PSF
             stack_PSF = stack_PSF(self.fov_image, self.PSF_pos_list, psf_size=len(self.PSF_list[0]),
                              oversampling=oversampling, maxiters=maxiters, tool = tool)
-            self.PSF_list.append(stack_PSF)
-            self.PSF_FWHM_list.append(np.mean(measure_FWHM(stack_PSF)))
-            self.psf_id_for_fitting = -1
+        elif tool == 'psfr':
+            print("Stacking PSF using psfr ...")
+            from psfr.psfr import stack_psf
+            stack_PSF, center_list_psfr, mask_list = stack_psf(self.PSF_list, oversampling=1, 
+                                                              saturation_limit=None, num_iteration=50, 
+                                                              n_recenter=20)
+            
+        self.PSF_FWHM_list.append(np.mean(measure_FWHM(stack_PSF))) 
+        self.PSF_list.append(stack_PSF)
+        self.psf_id_for_fitting = -1
         # print('The stack PSF in the last:')
-        labels = ['PSF{0}'.format(i) for i in range(len(self.PSF_list))]
-        labels[-1] = 'stacked PSF'
-        plt_many_fits(self.PSF_list[:-1]+[self.PSF_list[-1]*np.sum(self.PSF_list[0])], self.PSF_FWHM_list, 'FWHM', labels = labels)
-        print('Plot residual:')
-        labels = ['stacked - PSF{0}'.format(i) for i in range(len(self.PSF_list))]
-        plt_many_fits([(self.PSF_list[-1]/np.sum(self.PSF_list[-1]) - 
-                        self.PSF_list[i]/np.sum(self.PSF_list[i]) ) for i in range(len(self.PSF_list)-1)], 
-                      labels = labels[:-1], norm = None)
+        if if_plot==True:
+            labels = ['PSF{0}'.format(i) for i in range(len(self.PSF_list))]
+            labels[-1] = 'stacked PSF'
+            plt_many_fits(self.PSF_list[:-1]+[self.PSF_list[-1]*np.sum(self.PSF_list[0])], 
+                          self.PSF_FWHM_list, 'FWHM', labels = labels)
+            print('Plot residual:')
+            labels = ['stacked - PSF{0}'.format(i) for i in range(len(self.PSF_list))]
+            plt_many_fits([(self.PSF_list[-1]/np.sum(self.PSF_list[-1]) - 
+                            self.PSF_list[i]/np.sum(self.PSF_list[i]) ) for i in range(len(self.PSF_list)-1)], 
+                          labels = labels[:-1], norm = None)
         self.stack_PSF_done = True
 
 
@@ -486,6 +488,12 @@ class DataProcess(object):
                 self.PSF_list[self.psf_id_for_fitting] /= self.PSF_list[self.psf_id_for_fitting].sum()
                 if self.PSF_list[self.psf_id_for_fitting].shape[0] != self.PSF_list[self.psf_id_for_fitting].shape[1]:
                     raise ValueError("PSF shape is not a square.")
+            if version.parse(lenstronomy.__version__) >= version.parse("1.10.4"):
+                print("The negative PSF values are corrected as 0 values.")
+                bool_ = (self.PSF_list[self.psf_id_for_fitting]<0)
+                if np.sum(bool_) >0:
+                    self.PSF_list[self.psf_id_for_fitting][bool_] = 0
+            
         else:
             print('The PSF has not been assigned yet. For a direct asymmetry measurement, it is OK.')
             #Manually input a mock PSF:

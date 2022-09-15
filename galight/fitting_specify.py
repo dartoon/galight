@@ -260,7 +260,7 @@ class FittingSpecify(object):
             show_plot: bool.
             -Plot or not plot. Note that figure can be saved without shown.
         """
-        from galight.tools.measure_tools import plot_data_apertures_point
+        from galight.tools.plot_tools import plot_data_apertures_point
         plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], # + (self.kwargs_likelihood['image_likelihood_mask_list'][0]==0)*1.e6 , 
                                   self.apertures, self.center_pix_pos, savename = savename, show_plot=show_plot)
 
@@ -297,6 +297,22 @@ class FittingSpecify(object):
         self.fitting_seq = FittingSequence(self.kwargs_data_joint, self.kwargs_model, 
                                       self.kwargs_constraints, self.kwargs_likelihood, 
                                       self.kwargs_params, mpi=self.mpi)
+        if 'linear_solver' in self.kwargs_constraints.keys():
+            if self.kwargs_constraints['linear_solver'] == False:
+                for i in range(len(self.kwargs_params['lens_light_model'][0])):
+                    if 'amp' not in self.kwargs_params['lens_light_model'][0][i].keys():
+                        self.kwargs_params['lens_light_model'][0][i]['amp'] = 1
+                        self.kwargs_params['lens_light_model'][1][i]['amp'] = 1
+                        self.kwargs_params['lens_light_model'][3][i]['amp'] = 0
+                        self.kwargs_params['lens_light_model'][4][i]['amp'] = 1.e8
+                if 'point_source_model' in self.kwargs_params.keys():
+                    for i in range(len(self.kwargs_params['point_source_model'][0])):
+                        if 'point_amp' not in self.kwargs_params['point_source_model'][0][i].keys():
+                            self.kwargs_params['point_source_model'][0][i]['point_amp'] = [1]
+                            self.kwargs_params['point_source_model'][1][i]['point_amp'] = [1]
+                            self.kwargs_params['point_source_model'][3][i]['point_amp'] = [0]
+                            self.kwargs_params['point_source_model'][4][i]['point_amp'] = [1.e8]
+                
         # return fitting_seq, self.imageModel
     
 def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None,

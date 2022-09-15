@@ -23,8 +23,9 @@ from galight.tools.astro_tools import plt_fits
 my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
 import photutils
-
+from galight.tools.cutout_tools import stack_PSF  #!!! Will be removed in next version.
 from packaging import version
+from galight.tools.cutout_tools import pix_region
 
 def find_loc_max(image, neighborhood_size = 8, threshold = 5):
     """
@@ -163,8 +164,6 @@ def flux_in_region(image,region,mode='exact'):
     data = mask.cutout(image)
     tot_flux= np.sum(mask.data * data)
     return tot_flux
-
-from galight.tools.cutout_tools import pix_region
 
 def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=None, if_plot=False,
                  fits_plot=False, mask_image=None, q=None, theta = None):
@@ -805,55 +804,6 @@ def model_flux_cal(params_list, model_list = None, sersic_major_axis=None):
     flux = light.total_flux(params_list)
     return flux
 
-def plot_data_apertures(image, apertures, if_plot=True):
-    """
-    Quickly make a image+aperture plot.
-    """
-    plt.figure(figsize=(8,6))
-    # fig, ax = plt.subplots(figsize=(8,6))
-    plt.title('Data and apertures sets')
-    vmin = 1.e-3
-    vmax = 2.1 
-    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
-    np.random.seed(seed = 3)
-    for i in range(len(apertures)):
-        aperture = apertures[i]
-        aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
-                      lw=3.5, label = 'aperture {0}'.format(i))
-    plt.legend()
-    if if_plot == True:
-        plt.show()
-    else:
-        plt.close()
-
-def plot_data_apertures_point(image, apertures, ps_center_list, savename = None, show_plot=True):
-    """
-    Quickly make a image+aperture+PS plot.
-    """    
-    plt.figure(figsize=(8,6))
-    # fig, ax = plt.subplots(figsize=(8,6))
-    plt.title('Data and components used to fit', fontsize=25)
-    vmin = 1.e-3
-    vmax = image.max()
-    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))#, vmin=vmin, vmax=vmax)
-    np.random.seed(seed = 4)
-    for i in range(len(ps_center_list)):
-        plt.scatter(ps_center_list[i][0], ps_center_list[i][1], 
-                    color=(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
-                    s=180, marker=".",label = 'PS {0}'.format(i))
-    np.random.seed(seed = 3)
-    for i in range(len(apertures)):
-        aperture = apertures[i]
-        aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
-                      lw=3.5, label = 'comp {0}'.format(i))
-    plt.legend(prop={'size':15})
-    plt.tick_params(labelsize=15)
-    if savename is not None:
-        plt.savefig(savename,bbox_inches='tight')
-    if show_plot == True:
-        plt.show()
-    else:
-        plt.close()
 
 def twoD_Gaussian(box_size, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
     """
@@ -958,21 +908,3 @@ def fit_data_oneD_gaussian(data, ifplot = False):
         plt.close()
     return peak_loc, popt[2]
 
-
-def stack_PSF(data, psf_POS_list, psf_size = 71,  oversampling=1, maxiters=10, tool = 'photutils'):
-    if tool == 'photutils':
-        from astropy.table import Table
-        from astropy.nddata import NDData
-        from photutils.psf import extract_stars
-        from photutils import EPSFBuilder 
-        stars_tbl = Table()
-        stars_tbl['x'] = np.array(psf_POS_list)[:,0]
-        stars_tbl['y'] = np.array(psf_POS_list)[:,1]
-        nddata = NDData(data=data) 
-        #nddata = NDData(data=self.fov_image) 
-        stars = extract_stars(nddata, stars_tbl, size=psf_size)  
-        epsf_builder=EPSFBuilder(oversampling=oversampling, maxiters=maxiters,progress_bar=True,shape=psf_size)
-        epsf,fitted_stars=epsf_builder(stars)        
-        stack_psf = epsf.data
-        return stack_psf
-    

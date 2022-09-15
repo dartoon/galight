@@ -150,6 +150,13 @@ class Measure_asy(object):
         
         rm_ps: bool.
             if True, the point source(s) in the image will be removed. 
+
+        rm_model: bool.
+            if True, the model will be removed. This is for to get A of the residual.
+        
+        rm_obj: bool.
+            if True, the nearby objects will be removed using fitted Sersics.
+        
         
     """
     def __init__(self, fitting_process_class, obj_id=0, interp_order=3, seg_cal_reg = 'or', 
@@ -160,7 +167,7 @@ class Measure_asy(object):
         self.obj_id = obj_id
         self.interp_order = interp_order
         self.img = copy.deepcopy(self.fitting_process_class.fitting_specify_class.kwargs_data['image_data'])
-        if rm_ps == True:
+        if rm_ps == True: 
             self.img -= np.sum(self.fitting_process_class.image_ps_list, axis = 0)
         elif rm_model == True:
             self.img = self.img - np.sum(self.fitting_process_class.image_ps_list, axis = 0) - np.sum(self.fitting_process_class.image_host_list, axis = 0)
@@ -550,7 +557,8 @@ class CAS(Measure_asy):
         from Lotz et al. (2004). Note that the original definition by
         Conselice (2003) includes an additional factor of 10.
         
-        Return value inlcuding abs and pos abs value.
+        Return value inlcuding abs and positive abs value. positive means the
+        smoothness is only account the positive fluxes.
         """
         r_in = 0.25 * r_p_c
         r_out = 1.5 * r_p_c

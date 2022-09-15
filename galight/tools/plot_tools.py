@@ -330,3 +330,53 @@ def profile_plots(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     else:
         plt.close()
     return f
+
+# def plot_data_apertures(image, apertures, if_plot=True):
+#     """
+#     Quickly make a image+aperture plot.
+#     """
+#     plt.figure(figsize=(8,6))
+#     # fig, ax = plt.subplots(figsize=(8,6))
+#     plt.title('Data and apertures sets')
+#     vmin = 1.e-3
+#     vmax = image.max()
+#     plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))
+#     np.random.seed(seed = 3)
+#     for i in range(len(apertures)):
+#         aperture = apertures[i]
+#         aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+#                       lw=3.5, label = 'aperture {0}'.format(i))
+#     plt.legend()
+#     if if_plot == True:
+#         plt.show()
+#     else:
+#         plt.close()
+
+def plot_data_apertures_point(image, apertures, ps_center_list=[], savename = None, show_plot=True, figsize=(8,6)):
+    """
+    Quickly make a image+aperture+PS plot.
+    """    
+    plt.figure(figsize=figsize)
+    # fig, ax = plt.subplots(figsize=(8,6))
+    plt.title('Data and components used to fit', fontsize=25 / 8*figsize[0])
+    vmin = 1.e-3
+    vmax = image.max()
+    plt.imshow(image, origin='lower', cmap=my_cmap, norm=LogNorm(vmin=vmin, vmax=vmax))#, vmin=vmin, vmax=vmax)
+    np.random.seed(seed = 4)
+    for i in range(len(ps_center_list)):
+        plt.scatter(ps_center_list[i][0], ps_center_list[i][1], 
+                    color=(np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+                    s=180, marker=".",label = 'PS {0}'.format(i))
+    np.random.seed(seed = 3)
+    for i in range(len(apertures)):
+        aperture = apertures[i]
+        aperture.plot(color= (np.random.uniform(0, 1), np.random.uniform(0, 1), np.random.uniform(0, 1)),
+                      lw=3.5, label = 'comp {0}'.format(i))
+    plt.legend(prop={'size':15 / 8*figsize[0]})
+    plt.tick_params(labelsize=15 / 8*figsize[0])
+    if savename is not None:
+        plt.savefig(savename,bbox_inches='tight')
+    if show_plot == True:
+        plt.show()
+    else:
+        plt.close()

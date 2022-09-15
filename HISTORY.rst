@@ -53,8 +53,8 @@ History
 ++++++++++++++++++
 
 * Debug for 'sersic_model_flux' calculation caused by "sersic_major_axis" setting
-* Upgrade with more CAS calcuation.
-* Imporve the MCMC output using 'mcmc_source_result' dict to save all samplers with amp values.
+* Upgrade with more CAS calculation.
+* Improve the MCMC output using 'mcmc_source_result' dict to save all samplers with amp values.
 
 
 0.1.7 (2022-05-30)
@@ -68,7 +68,7 @@ History
 0.1.8 (2022-07-16)
 ++++++++++++++++++
 
-* Improve reduced chisq calcualtions.
+* Improve reduced chisq calculations.
 * Improve stretch of showing image and use bbox_inches='tight'.
 * Debug for functions including cal_statmorph() and targets_subtraction().
 * Improve PSF selection function.
@@ -80,3 +80,13 @@ History
 
 * Add PSF stacking function using photutils.EPSFBuilder 
 * Improve the CAS measurement 
+
+
+0.1.10 (2022-09-15)
+++++++++++++++++++
+
+* Add refresh in fit_run.run() to allow refresh the parameters manually
+* Add stack_PSF using PSFr
+* Update to avoid PSF negative pixel issue for new lenstronomy >= 1.10.4
+* Allow linear_solver off to let 'amp' as free parameter
+ 
