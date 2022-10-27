@@ -392,7 +392,7 @@ def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list
                 fixed_source[-1]['R_sersic'] = fix_Re_value
                 kwargs_source_init[-1]['R_sersic'] = fix_Re_value
         
-        kwargs_source_sigma.append({'n_sersic': 0.3, 'R_sersic': 0.2*deltaPix, 'e1': 0.1, 'e2': 0.1, 'center_x': 0.1*deltaPix, 'center_y': 0.1*deltaPix})
+        kwargs_source_sigma.append({'n_sersic': 2, 'R_sersic': 0.2*Reff, 'e1': 0.1, 'e2': 0.1, 'center_x': 2*deltaPix, 'center_y': 2*deltaPix})
         if apertures_center_focus == False:
             kwargs_lower_source.append({'e1': -0.5, 'e2': -0.5, 'R_sersic': deltaPix*0.05, 'n_sersic': 0.3, 'center_x': c_x-10*deltaPix, 'center_y': c_y-10*deltaPix})
             kwargs_upper_source.append({'e1': 0.5, 'e2': 0.5, 'R_sersic': Reff*30, 'n_sersic': 9., 'center_x': c_x+10*deltaPix, 'center_y': c_y+10*deltaPix})        
@@ -417,7 +417,7 @@ def ps_params_generator(centers, deltaPix = 1):
         # point_amp = flux_list[i] 
         fixed_ps.append({})
         kwargs_ps_init.append({'ra_image': [center_x], 'dec_image': [center_y]}) # , 'point_amp': [point_amp]})
-        kwargs_ps_sigma.append({'ra_image': [0.5*deltaPix], 'dec_image': [0.5*deltaPix]})
+        kwargs_ps_sigma.append({'ra_image': [deltaPix], 'dec_image': [deltaPix]})
         kwargs_lower_ps.append({'ra_image': [center_x-2*deltaPix], 'dec_image': [center_y-2*deltaPix] } )
         kwargs_upper_ps.append({'ra_image': [center_x+2*deltaPix], 'dec_image': [center_y+2*deltaPix] } )
     ps_params = [kwargs_ps_init, kwargs_ps_sigma, fixed_ps, kwargs_lower_ps, kwargs_upper_ps]
