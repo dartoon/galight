@@ -398,7 +398,8 @@ class FittingProcess(object):
         Translate some parameter results to make the fitting more readable, including the flux value, and the elliptical.
         """
         self.final_result_galaxy = copy.deepcopy(self.source_result)
-        flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis)
+        flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis, 
+                                           model_list = self.fitting_specify_class.kwargs_model['lens_light_model_list'])
         for i in range(len(self.final_result_galaxy)):
             source = self.final_result_galaxy[i]
             source['phi_G'], source['q'] = param_util.ellipticity2phi_q(source['e1'], source['e2'])
