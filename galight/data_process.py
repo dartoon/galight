@@ -297,7 +297,7 @@ class DataProcess(object):
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=True,
                  if_filter=False, FWHM_filer = None, user_option= False, select_all=False,
-                 nearyby_obj_filter = False , **kwargs):
+                 nearyby_obj_filter = False , kernel= 'center_bright', **kwargs):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -407,7 +407,7 @@ class DataProcess(object):
                 wcs = WCS(self.header)
                 self.PSF_pos_list = [wcs.all_world2pix([[PSF_pos_list[i][0], PSF_pos_list[i][1]]], 1)[0] for i in range(len(PSF_pos_list))]
         self.PSF_list = [cut_center_auto(self.fov_image, center = self.PSF_pos_list[i],
-                                          kernel = 'center_gaussian', radius=radius) for i in range(len(self.PSF_pos_list))]
+                                          kernel = 'center_bright', radius=radius) for i in range(len(self.PSF_pos_list))]
         if hasattr(self, 'stack_PSF_done'):
             del self.stack_PSF_done
 
