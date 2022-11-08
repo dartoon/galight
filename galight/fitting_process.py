@@ -190,7 +190,8 @@ class FittingProcess(object):
         self.source_result = source_result
         self.image_host_list = image_host_list
         self.image_ps_list = image_ps_list
-        self.translate_result()
+        if 'lens_light_model_list' in fitting_specify_class.kwargs_model.keys():
+            self.translate_result()
         self.reduced_Chisq, self.reduced_Chisq_dof = self.cal_chisq() 
         self.linear_solver = linear_solver
 
