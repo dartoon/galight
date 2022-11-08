@@ -798,10 +798,15 @@ def model_flux_cal(params_list, model_list = None, sersic_major_axis=None):
         The flux value of Sersic.
     """    
     from lenstronomy.LightModel.light_model import LightModel
-    if model_list is None:
-        model_list = ['SERSIC_ELLIPSE'] * len(params_list)
-    light = LightModel(model_list, sersic_major_axis=sersic_major_axis)
-    flux = light.total_flux(params_list)
+    # if model_list is None:
+    #     model_list = ['SERSIC_ELLIPSE'] * len(params_list)
+    flux = []
+    for i, model in enumerate(model_list):
+        if 'LINEAR' not in model_list[i]:
+            light = LightModel([model_list[i]], sersic_major_axis=sersic_major_axis)
+            flux.append(light.total_flux(params_list)[0])
+        else:
+            flux.append(-99)
     return flux
 
 
