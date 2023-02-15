@@ -109,7 +109,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
             im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=cmap, norm=LogNorm(), clim=clim)
             ax_l[i].get_yaxis().set_visible(False)
         ax_l[i].get_xaxis().set_visible(False)
-        scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white')
+        scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white', fontsize=25)
         if arrows == True:
             coordinate_arrows(ax_l[i], frame_size, arrow_size=0.03, color = 'white')
         ticks= np.array([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])
@@ -117,20 +117,20 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                           aspect=15, ticks=ticks)
         # cb_i.ax.set_xticklabels([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])   
         if len(label_list_2d[i])>10:
-            fontsize = 17
-        else:
             fontsize = 20
-        ax_l[i].text(frame_size*0.05, frame_size*0.9, label_list_2d[i],fontsize=fontsize, weight='bold', color='white')
+        else:
+            fontsize = 25
+        ax_l[i].text(frame_size*0.02, frame_size*0.87, label_list_2d[i],fontsize=fontsize, weight='bold', color='white')
     #Plot normalized residual map:
     norm_residual = flux_list_2d[-1]
     im_r = ax_r.imshow(norm_residual * mask, origin='lower',cmap='bwr', vmin=-6, vmax=6)
-    scale_bar(ax_r, frame_size, dist=1/deltaPix, text='1"')
+    scale_bar(ax_r, frame_size, dist=1/deltaPix, text='1"', fontsize=25)
     if arrows == True:
         coordinate_arrows(ax_r, frame_size, arrow_size=0.03)
     ax_r.get_xaxis().set_visible(False)
     ax_r.get_yaxis().set_visible(False)
     f.colorbar(im_r, ax=ax_r, shrink=0.48, pad=0.01,   orientation="horizontal", aspect=15) 
-    ax_r.text(frame_size*0.05, frame_size*0.9, 'normalized residual',fontsize=17, weight='bold', color='black')
+    ax_r.text(frame_size*0.02, frame_size*0.87, 'normalized residual',fontsize=20, weight='bold', color='black')
     plt.subplots_adjust(wspace=-0.5, hspace=0)
     
     #Plot the 1D profile:
@@ -157,7 +157,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         ax_rt.invert_yaxis()
         r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi,
                                             grids = 30, mask_image=mask_image)[0])
-        r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30,radius= radi)[0])
+        r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', grids = 30,radius= radi)[0])
         ind = len(r_mag_0)-(r_mag_0 == r_mag_0[-1]).sum()
         ax_rb.plot(r_grids[:ind]*deltaPix, (r_mag_0-r_mag_1)[:ind], 'ro')   
         ax_rb.set_yticks([-0.5,-0.25, 0., 0.25])
@@ -179,7 +179,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         r_SB_0 = (SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi, if_annuli = if_annuli, 
                                             grids = 30,
                                             mask_image = mask_image)[0])
-        r_SB_1 = (SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli,radius= radi)[0])
+        r_SB_1 = (SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli,radius= radi)[0])
         ax_rb.plot(r_grids*deltaPix, (r_SB_0- r_SB_1), 'ro')   
         ax_rb.set_yticks([-5,-2.5, 0., 2.5])
         ax_rb.set_ylabel('$\Delta SB$', fontsize=15)

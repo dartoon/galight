@@ -198,6 +198,10 @@ def flux_profile(image, center, radius=35,start_p=1.5, grids=20, x_gridspace=Non
         1. A 1-D array of the tot_flux value of each 'grids' in the profile sampled radius. 
         2. The grids of each pixel radius.
         3. The region file for each radius.
+        
+    Note
+    --------
+        If a q exist, it is the major (i.e., a) value that reported.
     '''
     if x_gridspace == None:
         r_grids=(np.linspace(0,1,grids+1)*radius)[1:]

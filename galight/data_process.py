@@ -296,7 +296,7 @@ class DataProcess(object):
             self.tbl.remove_row(i)
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=True,
-                 if_filter=False, FWHM_filer = None, user_option= False, select_all=False,
+                 if_filter=False, FWHM_filer = None,flux_filter=None, user_option= False, select_all=False,
                  nearyby_obj_filter = False , kernel= 'center_bright', **kwargs):
         """
         Find all the available PSF candidates in the field of view.
@@ -332,7 +332,10 @@ class DataProcess(object):
             for i in range(len(init_PSF_locs_)):
                 cut_image = cut_center_auto(self.fov_image, center = init_PSF_locs_[i],
                                             radius=radius)
-                _fwhms = measure_FWHM(cut_image , radius = int(radius/5))
+                try:
+                    _fwhms = measure_FWHM(cut_image , radius = int(radius/5))
+                except:
+                    _fwhms = 100
                 if np.std(_fwhms)/np.mean(_fwhms) < 0.1 :  #Remove the deteced "PSFs" at the edge.
                     init_PSF_locs.append(init_PSF_locs_[i])
                     FWHMs.append(np.mean(_fwhms))
@@ -356,7 +359,13 @@ class DataProcess(object):
                         FWHM_filer = np.median(FWHMs)*1.5
                     select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
                 else:
-                    select_bool = (FWHMs<np.median(FWHMs)*1.5)
+                    if FWHM_filer is None:
+                        select_bool = (FWHMs<np.median(FWHMs)*1.5)
+                    else:
+                        select_bool = (FWHMs<FWHM_filer)
+                    if flux_filter is not None:
+                        select_bool *= (fluxs<flux_filter[1])*(fluxs>flux_filter[0])
+                    
                 if nearyby_obj_filter:
                     near_bools = []
                     for i in range(len(PSF_cutouts)):

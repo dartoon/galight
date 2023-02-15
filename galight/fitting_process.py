@@ -313,14 +313,15 @@ class FittingProcess(object):
         model = ps_image + galaxy_image
         data_removePSF = data - ps_image
         norm_residual = (data - model)/noise
-        flux_dict_2d = {'data':data, 'model':model, 'data-Point Source':data_removePSF, 'normalized residual':norm_residual}
-        self.flux_2d_out = flux_dict_2d
-        flux_dict_1d = {'data':data, 'model':model, 'Point Source':ps_image, '{0} galaxy(s)'.format(len(galaxy_list)):galaxy_image}
-        self.flux_1d_out = flux_dict_1d
+        flux_dict_2d = {'data':data, 'model':model, 'data$-$point source':data_removePSF, 'normalized residual':norm_residual}
+        flux_dict_1d = {'data':data, 'model':model, 'point source':ps_image, '{0} galaxy(s)'.format(len(galaxy_list)):galaxy_image}
         fig = total_compare(list(flux_dict_2d.values()), list(flux_dict_2d.keys()), list(flux_dict_1d.values()), list(flux_dict_1d.keys()), deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID, cmap=cmap)
+        flux_dict_2d['data-point source'] = flux_dict_2d.pop('data$-$point source')
+        self.flux_2d_out = flux_dict_2d
+        self.flux_1d_out = flux_dict_1d
         if save_plot == True:
             savename = self.savename
             fig.savefig(savename+"_qso_final_plot.pdf")   
@@ -462,12 +463,17 @@ class FittingProcess(object):
         """
         if org_fov_data is None:
             target_removed_fov_data = copy.deepcopy(self.fitting_specify_class.data_process_class.fov_image)
-            header = self.fitting_specify_class.data_process_class.header
-            target_pos = self.fitting_specify_class.data_process_class.target_pos
         else:
             target_removed_fov_data = org_fov_data
-            header = header
+        if target_pos is None:
+            target_pos = self.fitting_specify_class.data_process_class.target_pos
+        else:
             target_pos = target_pos
+        if header is None:
+            header = self.fitting_specify_class.data_process_class.header
+        else:
+            header = header
+            
         fmr = int(len(self.fitting_specify_class.kwargs_data['image_data'])/2)
         x_range = target_pos[0]-fmr, target_pos[0]+fmr
         y_range = target_pos[1]-fmr, target_pos[1]+fmr
