@@ -84,12 +84,12 @@ Citation:
           eid = {3283},
         pages = {3283},
           doi = {10.21105/joss.03283},
-archivePrefix = {arXiv},
+        archivePrefix = {arXiv},
        eprint = {2106.05976},
- primaryClass = {astro-ph.CO},
+         primaryClass = {astro-ph.CO},
        adsurl = {https://ui.adsabs.harvard.edu/abs/2021JOSS....6.3283B},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
+        }
 
 
 
