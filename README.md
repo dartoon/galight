@@ -42,6 +42,8 @@ Additional Features
 
 Requirements
 ------------
+Galight utilizes the image modeling capabilities of ``lenstronomy`` while redesigning the user interface for the analysis of large samples of extragalactic sources.
+
 packages including:
 [``lenstronomy``](https://github.com/sibirrer/lenstronomy);
 [``astropy``](https://github.com/astropy/astropy);
@@ -69,6 +71,26 @@ Citation:
        adsurl = {https://ui.adsabs.harvard.edu/abs/2020ApJ...888...37D},
       adsnote = {Provided by the SAO/NASA Astrophysics Data System}
       }
+    
+    @ARTICLE{2021JOSS....6.3283B,
+       author = {{Birrer}, Simon and {Shajib}, Anowar and {Gilman}, Daniel and {Galan}, Aymeric and {Aalbers}, Jelle and {Millon}, Martin and {Morgan}, Robert and {Pagano}, Giulia and {Park}, Ji and {Teodori}, Luca and {Tessore}, Nicolas and {Ueland}, Madison and {Van de Vyvere}, Lyne and {Wagner-Carena}, Sebastian and {Wempe}, Ewoud and {Yang}, Lilan and {Ding}, Xuheng and {Schmidt}, Thomas and {Sluse}, Dominique and {Zhang}, Ming and {Amara}, Adam},
+        title = "{lenstronomy II: A gravitational lensing software ecosystem}",
+      journal = {The Journal of Open Source Software},
+     keywords = {image simulations, Python, gravitational lensing, dynamics, astronomy, Ruby, Astrophysics - Cosmology and Nongalactic Astrophysics, Astrophysics - Astrophysics of Galaxies, Astrophysics - Instrumentation and Methods for Astrophysics},
+         year = 2021,
+        month = jun,
+       volume = {6},
+       number = {62},
+          eid = {3283},
+        pages = {3283},
+          doi = {10.21105/joss.03283},
+archivePrefix = {arXiv},
+       eprint = {2106.05976},
+ primaryClass = {astro-ph.CO},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2021JOSS....6.3283B},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
 
 
 
