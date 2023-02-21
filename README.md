@@ -44,12 +44,7 @@ Requirements
 ------------
 Galight utilizes the image modeling capabilities of ``lenstronomy`` while redesigning the user interface for the analysis of large samples of extragalactic sources.
 
-packages including:
-[``lenstronomy``](https://github.com/sibirrer/lenstronomy);
-[``astropy``](https://github.com/astropy/astropy);
-[``photutils``](https://github.com/astropy/photutils);
-[``regions``](https://github.com/astropy/regions)
-and related ones to be installed... 
+packages requirements can be found [here](https://github.com/dartoon/galight/blob/master/requirements.txt).
 
 Citation:
 ---------
