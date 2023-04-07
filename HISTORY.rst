@@ -85,8 +85,14 @@ History
 0.1.10 (2022-09-15)
 ++++++++++++++++++
 
-* Add refresh in fit_run.run() to allow refresh the parameters manually
-* Add stack_PSF using PSFr
+* Add refresh in fit_run.run() to allow refresh the parameters manually.
+* Add stack_PSF using PSFr.
 * Update to avoid PSF negative pixel issue for new lenstronomy >= 1.10.4
-* Allow linear_solver off to let 'amp' as free parameter
+* Allow linear_solver off to let 'amp' as free parameter.
+
+0.1.11 (2023-4-07)
+++++++++++++++++++
+
+ * Improve the final fitting plot.
+ * Improve the find_PSF() function with better filter.
  
