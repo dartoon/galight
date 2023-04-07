@@ -25,6 +25,7 @@ from galight.tools.measure_tools import search_local_max, measure_FWHM
 from galight.tools.measure_tools import detect_obj
 from galight.tools.astro_tools import plt_many_fits
 import lenstronomy 
+from galight.tools.measure_tools import detect_obj, mask_obj
 class DataProcess(object):
     """
     A class to Process the data, including the following feature:
@@ -170,6 +171,15 @@ class DataProcess(object):
                     if percent<0.03:
                         break
                 radius = rad
+            elif isinstance(radius, str):
+                _cut_data = cutout(image = self.fov_image, center = self.target_pos, radius=100)
+                _, segm_deblend, _, tbl = detect_obj(_cut_data,  nsigma=1, npixels = 30, if_plot=False)
+                # info = tbl[tbl['kron_flux'] == np.max(tbl['kron_flux'])]
+                info = tbl[tbl['label'] == 0]
+                size = info['semimajor_sigma'].value
+                rad = int(size*float(radius))
+                radius = rad
+                
             if cut_kernel is not None:
                 if if_plot == True:
                     print("Plot target cut out zoom in:")
@@ -206,7 +216,6 @@ class DataProcess(object):
         
         if skip == False:
             target_mask = np.ones_like(target_stamp)
-            from galight.tools.measure_tools import detect_obj, mask_obj
             apertures, segm_deblend, mask_apertures, tbl = detect_obj(target_stamp, if_plot= create_mask or if_select_obj or if_plot, 
                                                       err=self.noise_map, use_moments=use_moments, **kwargs)
             self.segm_deblend = segm_deblend
@@ -253,7 +262,7 @@ class DataProcess(object):
             self.segm_deblend = None
             self.tbl  = None
             from photutils import EllipticalAperture
-            self.apertures = [EllipticalAperture(self.target_pos, a=5, b=5, theta=0)]
+            self.apertures = [EllipticalAperture([len(target_stamp)/2]*2, a=5, b=5, theta=0)]
             self.mask_apertures = []
             self.target_stamp = target_stamp
             self.target_mask = np.ones_like(target_stamp)

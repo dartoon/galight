@@ -318,7 +318,8 @@ class FittingProcess(object):
         fig = total_compare(list(flux_dict_2d.values()), list(flux_dict_2d.keys()), list(flux_dict_1d.values()), list(flux_dict_1d.keys()), deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
-                      target_ID = target_ID, cmap=cmap)
+                      target_ID = target_ID, cmap=cmap, center_pos= [-self.final_result_ps[0]['ra_image'][0]/self.fitting_specify_class.deltaPix, 
+                                                                     self.final_result_ps[0]['dec_image'][0]/self.fitting_specify_class.deltaPix] )
         flux_dict_2d['data-point source'] = flux_dict_2d.pop('data$-$point source')
         self.flux_2d_out = flux_dict_2d
         self.flux_1d_out = flux_dict_1d
