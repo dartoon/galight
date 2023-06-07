@@ -415,9 +415,21 @@ class DataProcess(object):
                         select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isnumeric()]
                     else:
                         select_idx = [int(select_idx[i]) for i in range(len(select_idx)) if select_idx[i].isdigit()]                    
-            self.PSF_pos_list = [PSF_locs[i] for i in select_idx]     
-            self.PSF_FWHM_list = [FWHMs[i] for i in select_idx] 
-            self.PSF_flux_list = [fluxs[i] for i in select_idx] 
+            
+            # removing invalid index
+            select_idx_valid = []
+            for idx in select_idx:
+                try:
+                    t = PSF_locs[idx]
+                    select_idx_valid.append(idx)
+                except TypeError as e:
+                    print(f"Removing an invalid index, {idx}: {e}")
+                except IndexError as e:
+                    print(f"Removing an invalid index, {idx}: {e}")
+            #
+            self.PSF_pos_list = [PSF_locs[i] for i in select_idx_valid]
+            self.PSF_FWHM_list = [FWHMs[i] for i in select_idx_valid]
+            self.PSF_flux_list = [fluxs[i] for i in select_idx_valid]
         else:
             if pos_type == 'pixel':
                 self.PSF_pos_list = PSF_pos_list
