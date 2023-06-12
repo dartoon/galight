@@ -95,4 +95,11 @@ History
 
  * Improve the final fitting plot.
  * Improve the find_PSF() function with better filter.
+
+0.1.12 (2023-6-12)
+++++++++++++++++++
+
+ * Improve the find_PSF() function with random invalid string.
+ * Improve modifying kwargs_numerics in FittingSpecify to pass to FittingProcess.
+
  
