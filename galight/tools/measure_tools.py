@@ -917,3 +917,19 @@ def fit_data_oneD_gaussian(data, ifplot = False):
         plt.close()
     return peak_loc, popt[2]
 
+def fit_run_result_to_apertures(fit_run):
+    from photutils import EllipticalAperture
+    apertures = []
+    for sersic in fit_run.final_result_galaxy:
+        print(sersic)
+        deltaPix = fit_run.fitting_specify_class.deltaPix
+        a = sersic['R_sersic'] / deltaPix
+        b = a * sersic['q']
+        theta = - sersic['phi_G']
+        center = int(fit_run.fitting_specify_class.numPix/2)
+        x, y = sersic['center_x'], sersic['center_y'] 
+        pix_x =  -x/deltaPix + center
+        pix_y =  y/deltaPix + center
+        position = (pix_x, pix_y)
+        apertures.append(EllipticalAperture(position, a, b, theta=theta))  
+    return apertures
