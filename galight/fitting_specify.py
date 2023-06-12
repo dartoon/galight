@@ -221,7 +221,6 @@ class FittingSpecify(object):
         self.kwargs_params = kwargs_params
         
     def sepc_imageModel(self, sersic_major_axis):
-        from lenstronomy.ImSim.image_model import ImageModel
         from lenstronomy.Data.imaging_data import ImageData
         from lenstronomy.Data.psf import PSF
         data_class = ImageData(**self.kwargs_data)
@@ -237,15 +236,9 @@ class FittingSpecify(object):
             lightModel = LightModel(light_model_list=self.light_model_list)
             if version.parse(lenstronomy.__version__) >= version.parse("1.9.0"):
                 warnings.warn("\nWarning: The current Lenstronomy Version doesn't not allow for sersic_major_axis=True. Please update you Lenstrnomy version or change you Lenstronomy configure file.")
-        if self.light_model_list is None:
-            imageModel = ImageModel(data_class, psf_class, point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)  
-        else:
-            imageModel = ImageModel(data_class, psf_class, lens_light_model_class=lightModel,
-                                    point_source_class=pointSource, kwargs_numerics=self.kwargs_numerics)   
         self.data_class = data_class
         self.psf_class = psf_class
         self.lightModel = lightModel
-        self.imageModel = imageModel
         self.pointSource = pointSource
         
     def plot_fitting_sets(self, savename = None, show_plot=True):
@@ -313,7 +306,6 @@ class FittingSpecify(object):
                             self.kwargs_params['point_source_model'][3][i]['point_amp'] = [0]
                             self.kwargs_params['point_source_model'][4][i]['point_amp'] = [1.e8]
                 
-        # return fitting_seq, self.imageModel
     
 def source_params_generator(frame_size, apertures = [], deltaPix = 1, fix_n_list = None, fix_Re_list = None,
                             apertures_center_focus = False):

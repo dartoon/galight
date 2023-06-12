@@ -114,7 +114,17 @@ class FittingProcess(object):
                                                                                       kwargs_ps=ps_result)
             self.imageLinearFit = imageLinearFit
             self.reduced_Chisq_bylenstronomy =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
-        imageModel = fitting_specify_class.imageModel
+        
+        from lenstronomy.ImSim.image_model import ImageModel
+        if fitting_specify_class.light_model_list is None:
+            imageModel = ImageModel(fitting_specify_class.data_class, fitting_specify_class.psf_class, 
+                                    point_source_class=fitting_specify_class.pointSource, kwargs_numerics=fitting_specify_class.kwargs_numerics)  
+        else:
+            imageModel = ImageModel(fitting_specify_class.data_class, fitting_specify_class.psf_class, 
+                                    lens_light_model_class=fitting_specify_class.lightModel,
+                                    point_source_class=fitting_specify_class.pointSource, kwargs_numerics=fitting_specify_class.kwargs_numerics)   
+        
+        
         image_host_list = []  #The linear_solver before and after LensModelPlot could have different result for very faint sources.
         for i in range(len(source_result)):
             image_host_list.append(imageModel.lens_surface_brightness(source_result, unconvolved=False,k=i))

@@ -366,7 +366,7 @@ class DataProcess(object):
                     dis = np.sqrt( np.sum( (init_PSF_locs - self.target_pos)**2  , axis=1) )
                     if FWHM_filer is None:
                         FWHM_filer = np.median(FWHMs)*1.5
-                    select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/2) * (dis>5)
+                    select_bool = (FWHMs<FWHM_filer)*(fluxs<target_flux*10)*(fluxs>target_flux/10) * (dis>5)
                 else:
                     if FWHM_filer is None:
                         select_bool = (FWHMs<np.median(FWHMs)*1.5)
