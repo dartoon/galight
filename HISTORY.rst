@@ -93,13 +93,18 @@ History
 0.1.11 (2023-4-07)
 ++++++++++++++++++
 
- * Improve the final fitting plot.
- * Improve the find_PSF() function with better filter.
+* Improve the final fitting plot.
+* Improve the find_PSF() function with better filter.
 
 0.1.12 (2023-6-12)
 ++++++++++++++++++
 
- * Improve the find_PSF() function with random invalid string.
- * Improve modifying kwargs_numerics in FittingSpecify to pass to FittingProcess.
+* Improve the find_PSF() function with random invalid string.
+* Improve modifying kwargs_numerics in FittingSpecify to pass to FittingProcess.
 
+0.1.13 (2023-6-12)
+++++++++++++++++++
+  
+* Adding fit_run_result_to_apertures function to easily get the apertures properties.
+* Fix the error when running MCMC in version 0.1.12. 
  
