@@ -169,12 +169,12 @@ class FittingProcess(object):
                 flux_list_quasar = []
                 if len(fitting_specify_class.point_source_list) > 0:
                     for j in range(len(fitting_specify_class.point_source_list)):
-                        image_ps_j = fitting_specify_class.imageModel.point_source(kwargs_ps_out, k=j)
+                        image_ps_j = imageModel.point_source(kwargs_ps_out, k=j)
                         flux_list_quasar.append(np.sum(image_ps_j))
                 flux_list_galaxy = []
                 mcmc_source_result.append(kwargs_light_source_out)
                 for j in range(len(fitting_specify_class.light_model_list)):
-                    image_j = fitting_specify_class.imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
+                    image_j = imageModel.lens_surface_brightness(kwargs_light_source_out,unconvolved= False, k=j)
                     flux_list_galaxy.append(np.sum(image_j))
                 mcmc_flux_list.append(flux_list_quasar + flux_list_galaxy )
                 if int(i/1000) > int((i-1)/1000) :
