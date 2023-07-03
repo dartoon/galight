@@ -83,7 +83,7 @@ History
 
 
 0.1.10 (2022-09-15)
-++++++++++++++++++
++++++++++++++++++++
 
 * Add refresh in fit_run.run() to allow refresh the parameters manually.
 * Add stack_PSF using PSFr.
@@ -91,19 +91,19 @@ History
 * Allow linear_solver off to let 'amp' as free parameter.
 
 0.1.11 (2023-4-07)
-++++++++++++++++++
++++++++++++++++++++
 
 * Improve the final fitting plot.
 * Improve the find_PSF() function with better filter.
 
 0.1.12 (2023-6-12)
-++++++++++++++++++
++++++++++++++++++++
 
 * Improve the find_PSF() function with random invalid string.
 * Improve modifying kwargs_numerics in FittingSpecify to pass to FittingProcess.
 
-0.1.13 (2023-6-12)
-++++++++++++++++++
+0.1.13 (2023-6-27)
++++++++++++++++++++
   
 * Adding fit_run_result_to_apertures function to easily get the apertures properties.
 * Fix the error when running MCMC in version 0.1.12. 
