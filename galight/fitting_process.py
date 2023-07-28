@@ -200,8 +200,8 @@ class FittingProcess(object):
         self.source_result = source_result
         self.image_host_list = image_host_list
         self.image_ps_list = image_ps_list
-        if 'lens_light_model_list' in fitting_specify_class.kwargs_model.keys():
-            self.translate_result()
+        # if 'lens_light_model_list' in fitting_specify_class.kwargs_model.keys():
+        self.translate_result()
         self.reduced_Chisq, self.reduced_Chisq_dof = self.cal_chisq() 
         self.linear_solver = linear_solver
 
@@ -410,16 +410,17 @@ class FittingProcess(object):
         """
         Translate some parameter results to make the fitting more readable, including the flux value, and the elliptical.
         """
-        self.final_result_galaxy = copy.deepcopy(self.source_result)
-        flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis, 
-                                           model_list = self.fitting_specify_class.kwargs_model['lens_light_model_list'])
-        for i in range(len(self.final_result_galaxy)):
-            source = self.final_result_galaxy[i]
-            source['phi_G'], source['q'] = param_util.ellipticity2phi_q(source['e1'], source['e2'])
-            source['flux_sersic_model'] = flux_sersic_model[i]
-            source['flux_within_frame'] = np.sum(self.image_host_list[i])
-            source['magnitude'] = -2.5*np.log10(source['flux_within_frame']) + self.zp
-            self.final_result_galaxy[i] = source
+        if 'lens_light_model_list' in self.fitting_specify_class.kwargs_model.keys():
+            self.final_result_galaxy = copy.deepcopy(self.source_result)
+            flux_sersic_model = model_flux_cal(self.final_result_galaxy, sersic_major_axis=self.sersic_major_axis, 
+                                               model_list = self.fitting_specify_class.kwargs_model['lens_light_model_list'])
+            for i in range(len(self.final_result_galaxy)):
+                source = self.final_result_galaxy[i]
+                source['phi_G'], source['q'] = param_util.ellipticity2phi_q(source['e1'], source['e2'])
+                source['flux_sersic_model'] = flux_sersic_model[i]
+                source['flux_within_frame'] = np.sum(self.image_host_list[i])
+                source['magnitude'] = -2.5*np.log10(source['flux_within_frame']) + self.zp
+                self.final_result_galaxy[i] = source
         
         self.final_result_ps = copy.deepcopy(self.ps_result)
         for i in range(len(self.final_result_ps)):
