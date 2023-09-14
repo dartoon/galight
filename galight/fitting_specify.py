@@ -41,7 +41,7 @@ class FittingSpecify(object):
         else:
             self.sersic_major_axis = sersic_major_axis
 
-    def sepc_kwargs_data(self, supersampling_factor = 2, psf_data = None, psf_error_map = None):
+    def sepc_kwargs_data(self, supersampling_factor, point_source_supersampling_factor, psf_data = None, psf_error_map = None):
         import lenstronomy.Util.simulation_util as sim_util
         kwargs_data = sim_util.data_configure_simple(self.numPix, self.deltaPix,
                                                      inverse=True)  #inverse: if True, coordinate system is ra to the left, if False, to the right
@@ -61,6 +61,8 @@ class FittingSpecify(object):
         kwargs_numerics = {'supersampling_factor': supersampling_factor, 
                            'compute_mode': 'adaptive',
                            'supersampled_indexes': supersampled_indexes}
+        if point_source_supersampling_factor >= 1:
+            kwargs_numerics['point_source_supersampling_factor'] = point_source_supersampling_factor
         
         # kwargs_numerics = {'supersampling_factor': supersampling_factor} 
         image_band = [kwargs_data, kwargs_psf, kwargs_numerics]
@@ -257,7 +259,8 @@ class FittingSpecify(object):
         plot_data_apertures_point(self.kwargs_data['image_data'] * self.kwargs_likelihood['image_likelihood_mask_list'][0], # + (self.kwargs_likelihood['image_likelihood_mask_list'][0]==0)*1.e6 , 
                                   self.apertures, self.center_pix_pos, savename = savename, show_plot=show_plot)
 
-    def prepare_fitting_seq(self, supersampling_factor = 2, psf_data = None,
+    def prepare_fitting_seq(self, supersampling_factor = 2, point_source_supersampling_factor = 1, 
+                          psf_data = None,
                           extend_source_model = None,
                           point_source_num = 0, ps_pix_center_list = None, 
                           fix_center_list = None, source_params = None,
@@ -270,7 +273,8 @@ class FittingSpecify(object):
         self.mpi = mpi
         if extend_source_model is None:
             extend_source_model = ['SERSIC_ELLIPSE'] * len(self.apertures)
-        self.sepc_kwargs_data(supersampling_factor = supersampling_factor, psf_data = psf_data, psf_error_map = psf_error_map)
+        self.sepc_kwargs_data(supersampling_factor = supersampling_factor, point_source_supersampling_factor = point_source_supersampling_factor,
+                              psf_data = psf_data, psf_error_map = psf_error_map)
         self.sepc_kwargs_model(extend_source_model = extend_source_model, point_source_num = point_source_num)
         self.sepc_kwargs_constraints(fix_center_list = fix_center_list)
         self.sepc_kwargs_likelihood(condition)
