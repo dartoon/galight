@@ -100,7 +100,7 @@ def search_local_max(image, radius=120, view=False, **kwargs):
     
 def measure_FWHM(image, radius = 10):
     """
-    Fit image as 2D gaussion to calculate the FWHM on four directions.
+    Fit image as 1D gaussion from four direction to calculate the FWHM.
     
     Parameter
     --------
