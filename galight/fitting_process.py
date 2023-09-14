@@ -585,6 +585,35 @@ class FittingProcess(object):
             del dump_class.fitting_specify_class.kwargs_likelihood['custom_logL_addition']
         pickle.dump(dump_class, open(savename+'.pkl', 'wb'))    
     
+    def dump_result_version_free(self):
+        save_pickle = {}
+        try:
+            self.cal_astrometry()
+        except:
+            pass
+        save_pickle['sersic_major_axis'] = self.sersic_major_axis
+        save_pickle['segm_deblend'] = self.fitting_specify_class.segm_deblend
+        save_pickle['apertures'] = self.fitting_specify_class.data_process_class.apertures
+        save_pickle['zp'] = self.zp
+        save_pickle['deltaPix'] = self.fitting_specify_class.deltaPix
+        save_pickle['final_result_ps'] = self.final_result_ps
+        save_pickle['final_result_galaxy'] = self.final_result_galaxy
+        save_pickle['image_host_list'] = self.image_host_list
+        save_pickle['image_ps_list'] = self.image_ps_list
+        save_pickle['flux_2d_out'] = self.flux_2d_out
+        save_pickle['flux_1d_out'] = self.flux_1d_out
+        save_pickle['reduced_Chisq'] = self.reduced_Chisq
+        save_pickle['kwargs_likelihood'] = self.fitting_specify_class.kwargs_likelihood
+        save_pickle['kwargs_numerics'] = self.fitting_specify_class.kwargs_numerics
+        save_pickle['kwargs_result'] = self.kwargs_result
+        save_pickle['kwargs_params_init'] = self.fitting_specify_class.kwargs_params
+        save_pickle['kwargs_data'] = self.fitting_specify_class.kwargs_data
+        if self.fitting_kwargs_list[-1][0] == 'MCMC':
+            save_pickle['mcmc_source_result'] = self.mcmc_source_result
+            save_pickle['samples_mcmc'] = self.samples_mcmc
+            save_pickle['param_mcmc'] = self.param_mcmc
+        pickle.dump(save_pickle, open(self.savename+'_version_free.pkl', 'wb'))    
+        
 def fitting_setting_temp(algorithm, fitting_level = 'norm'):
     """
     Quick setting up the fitting particles for the 'PSO' and 'MCMC'.
@@ -609,4 +638,5 @@ def fitting_setting_temp(algorithm, fitting_level = 'norm'):
         else:
             setting = {'n_burn': 100, 'n_run': 30, 'walkerRatio': 10, 'sigma_scale': .1}
     return setting
+
 
