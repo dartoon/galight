@@ -107,4 +107,14 @@ History
   
 * Adding fit_run_result_to_apertures function to easily get the apertures properties.
 * Fix the error when running MCMC in version 0.1.12. 
+
+0.2.1 (2023-09-14)
++++++++++++++++++++
+  
+* Add point_source_supersampling in prepare_fitting_seq()
+* Add dump pickle version free function in fitting_process.
+* Debug error for when PS only image.
+* Update flux_sersic_model for when obj NO. > 1
+
+
  
