@@ -108,7 +108,7 @@ History
 * Adding fit_run_result_to_apertures function to easily get the apertures properties.
 * Fix the error when running MCMC in version 0.1.12. 
 
-0.2.1 (2023-09-14)
+0.2.0 (2023-09-14)
 +++++++++++++++++++
   
 * Add point_source_supersampling in prepare_fitting_seq()
