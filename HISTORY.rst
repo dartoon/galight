@@ -110,6 +110,7 @@ History
 
 0.2.0 (2023-09-14)
 ++++++++++++++++++
+
 * Add point_source_supersampling in prepare_fitting_seq()
 * Add dump pickle version free function in fitting_process.
 * Debug error for when PS only image.
