@@ -115,7 +115,6 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         ticks= np.array([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])
         cb_i = f.colorbar(im_i, ax=ax_l[i], shrink=0.48, pad=0.01,  orientation="horizontal", 
                           aspect=15, ticks=ticks)
-        # cb_i.ax.set_xticklabels([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])   
         if len(label_list_2d[i])>10:
             fontsize = 20
         else:
@@ -137,68 +136,46 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     label_SB_list = label_list_1d #Not show the residual, in order of data, model, QSO, galaxy in principle.
     flux_SB_list = flux_list_1d
     radi = len(flux_list_1d[0])/2
+    for i in range(len(label_SB_list)):
+        center = [len(flux_SB_list[i])/2, len(flux_SB_list[i])/2]
+        if center_pos is not None:
+            center = [center[0]+ center_pos[0], center[1]+ center_pos[1]]
+        if label_SB_list[i] == 'data':
+            r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
+                                        radius= radi, grids = 50,
+                                        mask_image=mask_image, fits_plot=False, if_annuli = if_annuli)
+        else:
+            r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log', radius= radi,
+                                        grids = 30, mask_image = mask_image, if_annuli = if_annuli)
+        r_mag = - 2.5 * np.log10(r_SB) + zp 
+        if label_SB_list[i] == 'data':
+            ind = len(r_mag)-(r_mag == r_mag[-1]).sum()
+            ax_rt.plot(r_grids[:ind], r_mag[:ind], 'o', color = 'whitesmoke',markeredgecolor="black", label=label_SB_list[i])
+        else:
+            ax_rt.plot(r_grids, r_mag, '-', label=label_SB_list[i])
+    r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi, if_annuli = if_annuli, 
+                                        grids = 30, mask_image=mask_image)[0])
+    if sum_rest == False:
+        r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli, radius= radi)[0])
+    else:
+        r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', if_annuli = if_annuli, grids = 30,radius= radi)[0])
+    ind = len(r_mag_0)-(r_mag_0 == r_mag_0[-1]).sum()
+    ax_rb.plot(r_grids[:ind]*deltaPix, (r_mag_0-r_mag_1)[:ind], 'ro')   
+    ax_rt.invert_yaxis()
+    ax_rb.set_yticks([-0.5,-0.25, 0., 0.25])
     if if_annuli == False:
-        for i in range(len(label_SB_list)):
-            center = [len(flux_SB_list[i])/2, len(flux_SB_list[i])/2]
-            if center_pos is not None:
-                center = [center[0]+ center_pos[0], center[1]+ center_pos[1]]
-            if label_SB_list[i] == 'data':
-                r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
-                                           radius= radi, grids = 50,
-                                           mask_image=mask_image, fits_plot=False)
-            else:
-                r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log', radius= radi,
-                                           grids = 30, mask_image = mask_image)
-            r_mag = - 2.5 * np.log10(r_SB) + zp 
-            if label_SB_list[i] == 'data':
-                ind = len(r_mag)-(r_mag == r_mag[-1]).sum()
-                ax_rt.plot(r_grids[:ind], r_mag[:ind], 'o', color = 'whitesmoke',markeredgecolor="black", label=label_SB_list[i])
-            else:
-                ax_rt.plot(r_grids, r_mag, '-', label=label_SB_list[i])
         ax_rt.set_ylabel('$\mu$(mag, pixel$^{-2}$)', fontsize=12)
-        ax_rt.invert_yaxis()
-        r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi,
-                                            grids = 30, mask_image=mask_image)[0])
-        if sum_rest == False:
-            r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30,radius= radi)[0])
-        else:
-            r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', grids = 30,radius= radi)[0])
-        ind = len(r_mag_0)-(r_mag_0 == r_mag_0[-1]).sum()
-        ax_rb.plot(r_grids[:ind]*deltaPix, (r_mag_0-r_mag_1)[:ind], 'ro')   
-        ax_rb.set_yticks([-0.5,-0.25, 0., 0.25])
         ax_rb.set_ylabel('$\Delta\mu$', fontsize=15)
-        plt.ylim([-0.5,0.5])
     elif if_annuli == True:
-        for i in range(len(label_SB_list)):
-            center = len(flux_SB_list[i])/2, len(flux_SB_list[i])/2
-            if label_SB_list[i] == 'data':
-                r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
-                                           radius = radi, grids = 50, 
-                                           mask_image = mask_image, fits_plot=False, if_annuli = if_annuli)
-                ax_rt.plot(r_grids, r_SB, 'o', color = 'whitesmoke',markeredgecolor="black", label=label_SB_list[i])
-            else:
-                r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
-                                           radius=radi,grids = 30, mask_image=mask_image, if_annuli = if_annuli)
-                ax_rt.plot(r_grids, r_SB, '-', label=label_SB_list[i])
-        ax_rt.set_ylabel('$SB_{annuli}$(counts, pixel$^{-2}$)', fontsize=12)
-        r_SB_0 = (SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi, if_annuli = if_annuli, 
-                                            grids = 30,
-                                            mask_image = mask_image)[0])
-        if sum_rest == False:
-            r_SB_1 = (SB_profile(flux_SB_list, center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli,radius= radi)[0])
-        else:
-            r_SB_1 = (SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli,radius= radi)[0])
-        ax_rb.plot(r_grids*deltaPix, (r_SB_0- r_SB_1), 'ro')   
-        ax_rb.set_yticks([-5,-2.5, 0., 2.5])
+        ax_rt.set_ylabel('$SB_{annuli}$(mag, pixel$^{-2}$)', fontsize=12)
         ax_rb.set_ylabel('$\Delta SB$', fontsize=15)
-        plt.ylim([-5,5])
+    plt.ylim([-0.5,0.5])
+    
     ax_rt.set_xlabel('pixel', fontsize=15)
     ax_rt.xaxis.set_label_position('top')
-    ax_rt.xaxis.tick_top() 
+    ax_rt.xaxis.tick_top()
     ax_rt.set_xscale('log')
-    ax_rt.set_xticks([2,4,6,10,15,20,30,50,100,150])
     ax_rt.xaxis.set_major_formatter(ScalarFormatter())
-    ax_rt.set_xlim([(r_grids).min()*0.85,r_grids.max()+6])
     ax_rt.yaxis.set_label_position('right')
     ax_rt.yaxis.tick_right()
     ax_rt.yaxis.set_ticks_position('both') 
@@ -207,12 +184,14 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     y = x * 0
     ax_rb.set_xlabel('arcsec', fontsize=15)
     ax_rb.set_xscale('log')
-    ax_rb.set_xticks([0.1, 0.2, 0.5, 1, 2,5,10,20])
     ax_rb.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-    ax_rb.plot(x, y, 'k--')  
+    ax_rb.plot(x, y, 'k--')
     ax_rb.yaxis.set_label_position('right')
     ax_rb.yaxis.tick_right()
     ax_rb.yaxis.set_ticks_position('both')
+    ax_rt.set_xticks([2,4,6,10,15,20,30,50,100,150])
+    ax_rb.set_xticks([0.1, 0.2, 0.5, 1, 2,5,10,20])
+    ax_rt.set_xlim([(r_grids).min()*0.85,r_grids.max()+6])
     ax_rb.set_xlim([(r_grids*deltaPix).min()*0.85, (r_grids.max()+6)*deltaPix])
     pos4_o = ax_rt.get_position() # get the original position
     pos5_o = ax_rb.get_position() # get the original position
