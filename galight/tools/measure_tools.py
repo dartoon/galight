@@ -556,7 +556,7 @@ def image_moments(image,sexseg,pflag,plot=False):
             'a':a,'b':b,'q':b/a,'phi_deg':phi_deg}
 
 def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sort_center = True, #segm_map = False,
-               nsigma=2.8, npixels = 15, contrast=0.001, nlevels=25, use_moments=True, #return_cat_tbl = False,
+               nsigma=2.8, error=None, npixels = 15, contrast=0.001, nlevels=25, use_moments=True, #return_cat_tbl = False,
                thresh=2.8, err=None, mask=None, minarea=5, filter_kernel=None, filter_type='matched',
                deblend_nthresh=32, deblend_cont=0.005, clean=True, clean_param=1.0):  
     """
@@ -597,7 +597,7 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         from photutils.segmentation import SourceCatalog 
         from astropy.convolution import convolve
         if version.parse(photutils.__version__) > version.parse("0.7"):
-            threshold = detect_threshold(image, nsigma=nsigma)
+            threshold = detect_threshold(image, nsigma=nsigma, error = error)
         else:
             threshold = detect_threshold(image, snr=nsigma)
         sigma = 3.0 * gaussian_fwhm_to_sigma # FWHM = 3.
