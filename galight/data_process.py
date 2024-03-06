@@ -306,7 +306,7 @@ class DataProcess(object):
             
     def find_PSF(self, radius = 50, PSF_pos_list = None, pos_type = 'pixel', psf_edge=120, FWHM_sort=True,
                  if_filter=False, FWHM_filer = None,flux_filter=None, user_option= False, select_all=False,
-                 nearyby_obj_filter = False , kernel= 'center_bright', **kwargs):
+                 nearyby_obj_filter = False , kernel= 'center_bright', norm = LogNorm(), **kwargs):
         """
         Find all the available PSF candidates in the field of view.
         
@@ -399,7 +399,7 @@ class DataProcess(object):
             if user_option == False:
                 select_idx = [np.where(FWHMs == FWHMs.min())[0][0]]
             else:
-                plt_many_fits(PSF_cutouts, FWHMs, 'FWHM')
+                plt_many_fits(PSF_cutouts, FWHMs, 'FWHM', norm = norm)
                 if select_all is not True:
                     if sys.version_info[0] == 2:
                         select_idx = raw_input('Input directly the PSF inital id to select, use space between each id:\n (press Enter to selet all)\n')

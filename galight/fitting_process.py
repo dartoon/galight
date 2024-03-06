@@ -128,7 +128,7 @@ class FittingProcess(object):
             log_l = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
                                                                   **kwargs_params)
             n_data = _imageModel.num_data_evaluate
-            self.reduced_Chisq_bylenstronomy =  log_l * 2 / n_data
+            self.reduced_Chisq_bylenstronomy = -1 * log_l * 2 / n_data
         
         from lenstronomy.ImSim.image_model import ImageModel
         if fitting_specify_class.light_model_list is None:
