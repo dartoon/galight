@@ -104,16 +104,6 @@ class FittingProcess(object):
         else:
             linear_solver = True
         if linear_solver == True:
-            # from lenstronomy.ImSim.image_linear_solve import ImageLinearFit
-            # imageLinearFit = ImageLinearFit(data_class=fitting_specify_class.data_class, 
-            #                                 psf_class=fitting_specify_class.psf_class,
-            #                                 lens_light_model_class=fitting_specify_class.lightModel,
-            #                                 point_source_class=fitting_specify_class.pointSource, 
-            #                                 kwargs_numerics=fitting_specify_class.kwargs_numerics)    
-            # image_reconstructed, error_map, _, _ = imageLinearFit.image_linear_solve(kwargs_lens_light=source_result,
-            #                                                                           kwargs_ps=ps_result, inv_bool=True)
-            # self.imageLinearFit = imageLinearFit
-            # self.reduced_Chisq_bylenstronomy =  imageLinearFit.reduced_chi2(image_reconstructed, error_map)
             import lenstronomy.Util.class_creator as class_creator
             multi_band_list = self.fitting_specify_class.kwargs_data_joint['multi_band_list']
             kwargs_model = self.fitting_specify_class.kwargs_model 
@@ -124,8 +114,9 @@ class FittingProcess(object):
                                                             bands_compute=bands_compute, linear_solver=linear_solver,
                                                             image_likelihood_mask_list=image_likelihood_mask_list)
             kwargs_params = kwargs_result
-            model, error_map, cov_param, param = _imageModel.image_linear_solve(inv_bool=True, **kwargs_params)
-            log_l = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
+            kwargs_params.pop("kwargs_tracer_source", None)
+            model, error_map, cov_param, _ = _imageModel.image_linear_solve(inv_bool=True, **kwargs_params)
+            log_l, _ = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
                                                                   **kwargs_params)
             n_data = _imageModel.num_data_evaluate
             self.reduced_Chisq_bylenstronomy = -1 * log_l * 2 / n_data
@@ -151,15 +142,15 @@ class FittingProcess(object):
         if self.fitting_kwargs_list[-1][0] == 'MCMC' and refresh == False:
             from lenstronomy.Sampling.parameters import Param
             try:
-                kwargs_fixed_source = fitting_specify_class.kwargs_params['lens_light_model'][2]
+                kwargs_fixed_lens_light = fitting_specify_class.kwargs_params['lens_light_model'][2]
             except:
-                kwargs_fixed_source = None
+                kwargs_fixed_lens_light = None
 
             try:
                 kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2]
             except:
                 kwargs_fixed_ps = None
-            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_source,
+            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_lens_light,
                           kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
             mcmc_source_result = []
@@ -176,13 +167,13 @@ class FittingProcess(object):
             print("Start transfering the Params to fluxs...")
             for i in range(trans_steps[0], trans_steps[1]):
                 kwargs_out = param.args2kwargs(self.samples_mcmc[i])
+                kwargs_out.pop("kwargs_tracer_source", None)
                 if linear_solver == True:
                     # image_reconstructed, _, _, _ = imageLinearFit.image_linear_solve(kwargs_lens_light=kwargs_light_source_out,
                     #                                                                       kwargs_ps=kwargs_ps_out)
-                    model, error_map, cov_param, param = _imageModel.image_linear_solve(inv_bool=True, **kwargs_out)
+                    model, error_map, cov_param, _ = _imageModel.image_linear_solve(inv_bool=True, **kwargs_out)
                 kwargs_light_source_out = kwargs_out['kwargs_lens_light']
                 kwargs_ps_out =  kwargs_out['kwargs_ps']
-                    
                 flux_list_quasar = []
                 if len(fitting_specify_class.point_source_list) > 0:
                     for j in range(len(fitting_specify_class.point_source_list)):
