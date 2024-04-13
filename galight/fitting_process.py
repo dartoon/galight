@@ -150,7 +150,7 @@ class FittingProcess(object):
                 kwargs_fixed_ps=fitting_specify_class.kwargs_params['point_source_model'][2]
             except:
                 kwargs_fixed_ps = None
-            param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_lens_light,
+            Param = Param(fitting_specify_class.kwargs_model, kwargs_fixed_lens_light=kwargs_fixed_lens_light,
                           kwargs_fixed_ps=kwargs_fixed_ps, **fitting_specify_class.kwargs_constraints)
             mcmc_flux_list = []
             mcmc_source_result = []
@@ -166,7 +166,7 @@ class FittingProcess(object):
                 trans_steps = [0, len(self.samples_mcmc)]
             print("Start transfering the Params to fluxs...")
             for i in range(trans_steps[0], trans_steps[1]):
-                kwargs_out = param.args2kwargs(self.samples_mcmc[i])
+                kwargs_out = Param.args2kwargs(self.samples_mcmc[i])
                 kwargs_out.pop("kwargs_tracer_source", None)
                 if linear_solver == True:
                     # image_reconstructed, _, _, _ = imageLinearFit.image_linear_solve(kwargs_lens_light=kwargs_light_source_out,
