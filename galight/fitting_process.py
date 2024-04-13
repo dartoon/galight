@@ -116,8 +116,10 @@ class FittingProcess(object):
             kwargs_params = kwargs_result
             kwargs_params.pop("kwargs_tracer_source", None)
             model, error_map, cov_param, _ = _imageModel.image_linear_solve(inv_bool=True, **kwargs_params)
-            log_l, _ = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
+            log_l = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
                                                                   **kwargs_params)
+            if len(log_l) > 1:
+                log_l = log_l[0]  #update for lenstronomy 1.11.9
             n_data = _imageModel.num_data_evaluate
             self.reduced_Chisq_bylenstronomy = -1 * log_l * 2 / n_data
         
