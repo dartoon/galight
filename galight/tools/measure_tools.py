@@ -395,7 +395,7 @@ def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None, radius 
     plt.show() 
     return fig
 
-def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
+def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     """
     Estimate the 2D background of a image, based on photutils.Background2D, with SExtractorBackground.
     Checkout: https://photutils.readthedocs.io/en/stable/background.html
@@ -425,7 +425,7 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
     # elif:
     #     mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
     
-    segment_img = detect_sources(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
+    segment_img = detect_sources(img, threshold=nsigma, npixels=npixels)
     mask_0 = segment_img.make_source_mask(footprint=None)
     
     mask_1 = (np.isnan(img))
