@@ -18,7 +18,8 @@ from matplotlib.colors import LogNorm
 from matplotlib.ticker import AutoMinorLocator
 import copy
 import matplotlib
-from photutils import make_source_mask
+# from photutils import make_source_mask
+from photutils.segmentation import detect_sources, deblend_sources
 from galight.tools.astro_tools import plt_fits 
 my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
@@ -419,10 +420,14 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
 #    else:
 #        sigma_clip = SigmaClip(sigma=3., iters=10)
     bkg_estimator = SExtractorBackground()
-    if version.parse(photutils.__version__) > version.parse("0.7"):
-        mask_0 = make_source_mask(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
-    else:
-        mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
+    # if version.parse(photutils.__version__) > version.parse("0.7"):
+    #     mask_0 = make_source_mask(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
+    # elif:
+    #     mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
+    
+    segment_img = detect_sources(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
+    mask_0 = segment_img.make_source_mask(footprint=None)
+    
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
     mask = mask_0 + mask_1 + mask_2
@@ -608,16 +613,16 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         # Filtering the image will smooth the noise and maximize detectability of 
         # objects with a shape similar to the kernel.
         
-        if version.parse(photutils.__version__) >= version.parse("1.2.0"):
-            segm = detect_sources(convolved_image, threshold, npixels=npixels, kernel=None)
-            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
-                                            kernel=None, nlevels=nlevels,
-                                            contrast=contrast)
-        else:
-            segm = detect_sources(convolved_image, threshold, npixels=npixels, filter_kernel=None)
-            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
-                                            filter_kernel=None, nlevels=nlevels,
-                                            contrast=contrast)
+        # if version.parse(photutils.__version__) >= version.parse("1.2.0"):
+        segm = detect_sources(convolved_image, threshold, npixels=npixels)
+        segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+                                        nlevels=nlevels,
+                                        contrast=contrast)
+        # else:
+        #     segm = detect_sources(convolved_image, threshold, npixels=npixels, filter_kernel=None)
+        #     segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+        #                                     filter_kernel=None, nlevels=nlevels,
+        #                                     contrast=contrast)
         cat = SourceCatalog(image, segm_deblend)
         tbl = cat.to_table()
         segm_deblend_size = segm_deblend.areas
@@ -705,12 +710,12 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
                      bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
         for i in range(len(apertures)):
             aperture = apertures[i]
-            if version.parse(photutils.__version__) > version.parse("0.7"):
-                aperture.plot(color='white', lw=1.5, axes=ax1)
-                aperture.plot(color='white', lw=1.5, axes=ax2)           
-            else:
-                aperture.plot(color='white', lw=1.5, ax=ax1)
-                aperture.plot(color='white', lw=1.5, ax=ax2)                       
+            # if version.parse(photutils.__version__) > version.parse("0.7"):
+            aperture.plot(color='white', lw=1.5, ax=ax1)
+            aperture.plot(color='white', lw=1.5, ax=ax2)           
+            # else:
+            #     aperture.plot(color='white', lw=1.5, ax=ax1)
+            #     aperture.plot(color='white', lw=1.5, ax=ax2)                       
         ax2.set_title('Segmentation Image', fontsize=25)
         ax2.tick_params(labelsize=15)
         plt.show()    
