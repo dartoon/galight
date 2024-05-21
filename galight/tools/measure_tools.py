@@ -21,7 +21,7 @@ import matplotlib
 # from photutils import make_source_mask
 from photutils.segmentation import detect_sources, deblend_sources
 from galight.tools.astro_tools import plt_fits 
-my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
+my_cmap = copy.copy(matplotlib.pyplot.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
 import photutils
 from galight.tools.cutout_tools import stack_PSF  #!!! Will be removed in next version.

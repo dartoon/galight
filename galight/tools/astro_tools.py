@@ -59,7 +59,7 @@ def plt_fits(img, norm = 'log', figsize = None, colorbar = False, savename = Non
     """
     import copy, matplotlib
     if cmap == 'gist_heat':
-        my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
+        my_cmap = copy.copy(matplotlib.pyplot.get_cmap('gist_heat')) # copy the default cmap
         my_cmap.set_bad('black')
     else:
         my_cmap = None

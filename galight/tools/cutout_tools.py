@@ -185,7 +185,7 @@ def plot_overview(img, center_target = None,  target_label = None, c_psf_list=No
             Define label if want to lable this plot.
     """    
     import copy, matplotlib
-    my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
+    my_cmap = copy.copy(matplotlib.pyplot.get_cmap('gist_heat')) # copy the default cmap
     my_cmap.set_bad('black')
     vmax = 2.2
     vmin = 1.e-2
