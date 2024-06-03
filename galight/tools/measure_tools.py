@@ -426,7 +426,9 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     #     mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
     
     segment_img = detect_sources(img, threshold=nsigma, npixels=npixels)
-    mask_0 = segment_img.make_source_mask(footprint=None)
+    from photutils.utils import circular_footprint
+    footprint = circular_footprint(radius=10)
+    mask_0 = segment_img.make_source_mask(footprint=footprint)
     
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
