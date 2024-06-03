@@ -411,10 +411,10 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     print("Estimating the background light ... ... ...")
     from astropy.stats import SigmaClip
     from photutils import Background2D, SExtractorBackground  
-    try:
-        sigma_clip = SigmaClip(sigma=3., maxiters=10)
-    except (TypeError):
-        sigma_clip = SigmaClip(sigma=3., iters=10)
+    # try:
+    #     sigma_clip = SigmaClip(sigma=3., maxiters=10)
+    # except (TypeError):
+    #     sigma_clip = SigmaClip(sigma=3., iters=10)
 #    if version.parse(astropy.__version__) >= version.parse("0.4"):
 #       sigma_clip = SigmaClip(sigma=3., maxiters=10)
 #    else:
@@ -428,16 +428,18 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     segment_img = detect_sources(img, threshold=nsigma, npixels=npixels)
     from photutils.utils import circular_footprint
     footprint = circular_footprint(radius=10)
-    mask_0 = segment_img.make_source_mask(footprint=footprint)
+    # mask_0 = segment_img.make_source_mask(footprint=footprint)
     
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
-    mask = mask_0 + mask_1 + mask_2
+    # mask = mask_0 + mask_1 + mask_2
+    mask =  mask_1 + mask_2
+    
     box_s = int(len(img)/40)
     if box_s < 10:
         box_s = 10
-    bkg = Background2D(img, (box_s, box_s), filter_size=(3, 3),
-                       sigma_clip=sigma_clip, bkg_estimator=bkg_estimator,
+    bkg = Background2D(img, (box_s, box_s), filter_size=(3, 3), bkg_estimator=bkg_estimator, 
+                       sigma_clip = SigmaClip(sigma=3., maxiters=10),
                        mask=mask)
     fig=plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
@@ -450,15 +452,15 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     else:
         plt.close()
     fig=plt.figure(figsize=(15,15))
-    ax=fig.add_subplot(1,1,1)
-    ax.imshow(mask, origin='lower') 
-    #bkg.plot_meshes(outlines=True, color='#1f77b4')
-    ax.xaxis.set_visible(False)
-    ax.yaxis.set_visible(False)
-    if if_plot:
-        plt.show()  
-    else:
-        plt.close()    
+    # ax=fig.add_subplot(1,1,1)
+    # ax.imshow(mask, origin='lower') 
+    # #bkg.plot_meshes(outlines=True, color='#1f77b4')
+    # ax.xaxis.set_visible(False)
+    # ax.yaxis.set_visible(False)
+    # if if_plot:
+    #     plt.show()  
+    # else:
+    #     plt.close()    
     bkg_light = bkg.background* ~mask_1
     fig=plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
