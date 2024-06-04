@@ -429,11 +429,13 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     from photutils.utils import circular_footprint
     footprint = circular_footprint(radius=10)
     # mask_0 = segment_img.make_source_mask(footprint=footprint)
-    
+    _, _, mask_apertures, tbl = detect_obj(img, exp_sz = 3)
+    mask_0 = mask_obj(img,mask_apertures, sum_mask=True)
+    mask_0 = 1-mask_0
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
-    # mask = mask_0 + mask_1 + mask_2
-    mask =  mask_1 + mask_2
+    mask = mask_0 + mask_1 + mask_2
+    mask = np.bool_(mask)
     
     box_s = int(len(img)/40)
     if box_s < 10:
@@ -452,15 +454,15 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     else:
         plt.close()
     fig=plt.figure(figsize=(15,15))
-    # ax=fig.add_subplot(1,1,1)
-    # ax.imshow(mask, origin='lower') 
-    # #bkg.plot_meshes(outlines=True, color='#1f77b4')
-    # ax.xaxis.set_visible(False)
-    # ax.yaxis.set_visible(False)
-    # if if_plot:
-    #     plt.show()  
-    # else:
-    #     plt.close()    
+    ax=fig.add_subplot(1,1,1)
+    ax.imshow(mask, origin='lower') 
+    #bkg.plot_meshes(outlines=True, color='#1f77b4')
+    ax.xaxis.set_visible(False)
+    ax.yaxis.set_visible(False)
+    if if_plot:
+        plt.show()  
+    else:
+        plt.close()    
     bkg_light = bkg.background* ~mask_1
     fig=plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
@@ -756,7 +758,9 @@ def mask_obj(image, apertures, if_plot = False, sum_mask = False):
         reg = EllipsePixelRegion(center=center, width=aperture.a*2, height=aperture.b*2, angle=theta)
         patch = reg.as_artist(facecolor='none', edgecolor='red', lw=2)
         mask_set = reg.to_mask(mode='center')
-        mask = mask_set.to_image((len(image),len(image)))
+        mask = mask_set.to_image((len(image),len(image.T)))
+        if mask is None:
+            continue
         mask = 1- mask
         if if_plot:
             print( "plot mask for object {0}:".format(i) )
