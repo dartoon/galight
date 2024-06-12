@@ -1,13 +1,13 @@
 astropy==5.1
 corner==2.2.1
 emcee==3.1.2
-lenstronomy==1.11.9
+lenstronomy==1.11.10
 matplotlib==3.5.2
 mpmath==1.2.1
 multiprocess==0.70.13
 numpy==1.22.4
 pandas==1.4.2
-photutils==1.4.0
+photutils==1.12.0
 regions==0.6
 schwimmbad==0.3.2
 scikit-image==0.19.3
@@ -16,3 +16,4 @@ scipy==1.8.1
 seaborn==0.11.2
 stsci.imagestats==1.6.3
 stsci.stimage==0.2.5
+numba==0.59.1
