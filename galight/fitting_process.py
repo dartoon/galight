@@ -626,6 +626,16 @@ class FittingProcess(object):
             save_pickle['param_mcmc'] = self.param_mcmc
         pickle.dump(save_pickle, open(self.savename+'_version_free.pkl', 'wb'))    
         
+    def save_image_to_fits(self, image = None, target_pos = None, savename = 'image_file.fits'):
+        if target_pos is None:
+            target_pos = self.fitting_specify_class.data_process_class.target_pos
+        if image is None:
+            image = self.flux_2d_out['model']
+        file_header = copy.deepcopy(self.fitting_specify_class.data_process_class.header)
+        file_header['CRPIX1'] = file_header['CRPIX1']- target_pos[0]+len(image)/2
+        file_header['CRPIX2'] = file_header['CRPIX2']- target_pos[1]+len(image)/2
+        pyfits.PrimaryHDU(image,header=file_header).writeto(savename,overwrite=True)
+        
 def fitting_setting_temp(algorithm, fitting_level = 'norm'):
     """
     Quick setting up the fitting particles for the 'PSO' and 'MCMC'.

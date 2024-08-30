@@ -1,7 +1,6 @@
 astropy==5.1
 corner==2.2.1
 emcee==3.1.2
-lenstronomy==1.11.9
 matplotlib==3.5.2
 mpmath==1.2.1
 multiprocess==0.70.13
@@ -16,3 +15,5 @@ scipy==1.8.1
 seaborn==0.11.2
 stsci.imagestats==1.6.3
 stsci.stimage==0.2.5
+lenstronomy==1.11.2
+numba==0.55.2
