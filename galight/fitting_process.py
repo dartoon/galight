@@ -118,7 +118,8 @@ class FittingProcess(object):
             model, error_map, cov_param, _ = _imageModel.image_linear_solve(inv_bool=True, **kwargs_params)
             log_l = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
                                                                   **kwargs_params)
-            if len(log_l) > 1:
+            # if len(log_l) > 1:
+            if isinstance(log_l, list):
                 log_l = log_l[0]  #update for lenstronomy 1.11.9
             n_data = _imageModel.num_data_evaluate
             self.reduced_Chisq_bylenstronomy = -1 * log_l * 2 / n_data
@@ -618,6 +619,7 @@ class FittingProcess(object):
         save_pickle['kwargs_result'] = self.kwargs_result
         save_pickle['kwargs_params_init'] = self.fitting_specify_class.kwargs_params
         save_pickle['kwargs_data'] = self.fitting_specify_class.kwargs_data
+        save_pickle['kwargs_psf'] = self.fitting_specify_class.kwargs_psf
         if self.fitting_kwargs_list[-1][0] == 'MCMC':
             save_pickle['mcmc_source_result'] = self.mcmc_source_result
             save_pickle['samples_mcmc'] = self.samples_mcmc
