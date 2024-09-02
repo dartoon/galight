@@ -56,7 +56,7 @@ def scale_bar(ax, d, dist=1/0.13, text='1"', color='black', flipped=False, fonts
 def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                   deltaPix = 1., zp=27.0, target_ID = 'target_ID',
                   mask_image=None, if_annuli=False, center_pos = None,
-                  arrows=False, show_plot = True, cmap=None, sum_rest = False):
+                  arrows=False, show_plot = True, cmap=None, sum_rest = False, q = None, phi_G = None):
     """
     Make quick plots to compare the flux profiles in a list and show the normalized residual.
     
@@ -136,6 +136,10 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     label_SB_list = label_list_1d #Not show the residual, in order of data, model, QSO, galaxy in principle.
     flux_SB_list = flux_list_1d
     radi = len(flux_list_1d[0])/2
+    if phi_G is None:
+        theta = None
+    else:
+        theta = - phi_G
     for i in range(len(label_SB_list)):
         center = [len(flux_SB_list[i])/2, len(flux_SB_list[i])/2]
         if center_pos is not None:
@@ -143,22 +147,22 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
         if label_SB_list[i] == 'data':
             r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log',
                                         radius= radi, grids = 50,
-                                        mask_image=mask_image, fits_plot=False, if_annuli = if_annuli)
+                                        mask_image=mask_image, fits_plot=False, if_annuli = if_annuli, q = q, theta=theta)
         else:
             r_SB, r_grids = SB_profile(flux_SB_list[i], center, x_gridspace = 'log', radius= radi,
-                                        grids = 30, mask_image = mask_image, if_annuli = if_annuli)
+                                        grids = 30, mask_image = mask_image, if_annuli = if_annuli, q = q, theta=theta)
         r_mag = - 2.5 * np.log10(r_SB) + zp 
         if label_SB_list[i] == 'data':
             ind = len(r_mag)-(r_mag == r_mag[-1]).sum()
             ax_rt.plot(r_grids[:ind], r_mag[:ind], 'o', color = 'whitesmoke',markeredgecolor="black", label=label_SB_list[i])
         else:
             ax_rt.plot(r_grids, r_mag, '-', label=label_SB_list[i])
-    r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi, if_annuli = if_annuli, 
+    r_mag_0 = 2.5 * np.log10(SB_profile(flux_SB_list[0], center, x_gridspace = 'log', radius= radi, if_annuli = if_annuli, q = q, theta=theta,
                                         grids = 30, mask_image=mask_image)[0])
     if sum_rest == False:
-        r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli, radius= radi)[0])
+        r_mag_1 = 2.5 * np.log10(SB_profile(flux_SB_list[1], center, x_gridspace = 'log', grids = 30, if_annuli = if_annuli, q = q, theta=theta, radius= radi)[0])
     else:
-        r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', if_annuli = if_annuli, grids = 30,radius= radi)[0])
+        r_mag_1 = 2.5 * np.log10(SB_profile(np.sum(flux_SB_list[1:],axis=0), center, x_gridspace = 'log', if_annuli = if_annuli,q = q, theta=theta, grids = 30,radius= radi)[0])
     ind = len(r_mag_0)-(r_mag_0 == r_mag_0[-1]).sum()
     ax_rb.plot(r_grids[:ind]*deltaPix, (r_mag_0-r_mag_1)[:ind], 'ro')   
     ax_rt.invert_yaxis()
