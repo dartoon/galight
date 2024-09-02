@@ -411,30 +411,10 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     print("Estimating the background light ... ... ...")
     from astropy.stats import SigmaClip
     from photutils import Background2D, SExtractorBackground  
-    # try:
-    #     sigma_clip = SigmaClip(sigma=3., maxiters=10)
-    # except (TypeError):
-    #     sigma_clip = SigmaClip(sigma=3., iters=10)
-#    if version.parse(astropy.__version__) >= version.parse("0.4"):
-#       sigma_clip = SigmaClip(sigma=3., maxiters=10)
-#    else:
-#        sigma_clip = SigmaClip(sigma=3., iters=10)
     bkg_estimator = SExtractorBackground()
-    # if version.parse(photutils.__version__) > version.parse("0.7"):
-    #     mask_0 = make_source_mask(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
-    # elif:
-    #     mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
-    
-    segment_img = detect_sources(img, threshold=nsigma, npixels=npixels)
-    from photutils.utils import circular_footprint
-    footprint = circular_footprint(radius=10)
-    # mask_0 = segment_img.make_source_mask(footprint=footprint)
-    _, _, mask_apertures, tbl = detect_obj(img, exp_sz = 3)
-    mask_0 = mask_obj(img,mask_apertures, sum_mask=True)
-    mask_0 = 1-mask_0
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
-    mask = mask_0 + mask_1 + mask_2
+    mask = mask_1 + mask_2
     mask = np.bool_(mask)
     
     box_s = int(len(img)/40)
@@ -696,10 +676,11 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     if use_moments == True:
         for i in range(np.max(segm_deblend)):
             moments = image_moments(image, segm_deblend, i+1)
-            apertures[i].positions = [moments['X'],moments['Y']]
-            apertures[i].a  = moments['Mrr']
-            apertures[i].b = apertures[i].a * moments['q']
-            apertures[i].theta = moments['phi_deg']*np.pi/180
+            if np.isnan(moments['M00'] ) == False:
+                apertures[i].positions = [moments['X'],moments['Y']]
+                apertures[i].a  = moments['Mrr']
+                apertures[i].b = apertures[i].a * moments['q']
+                apertures[i].theta = moments['phi_deg']*np.pi/180
 
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
