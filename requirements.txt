@@ -17,3 +17,4 @@ seaborn==0.11.2
 stsci.imagestats==1.6.3
 stsci.stimage==0.2.5
 numba==0.59.1
+statmorph==0.5.7

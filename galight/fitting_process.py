@@ -119,7 +119,7 @@ class FittingProcess(object):
             log_l = _imageModel.likelihood_data_given_model(source_marg=False, linear_prior=None,
                                                                   **kwargs_params)
             # if len(log_l) > 1:
-            if isinstance(log_l, list):
+            if isinstance(log_l, list) or isinstance(log_l, tuple):
                 log_l = log_l[0]  #update for lenstronomy 1.11.9
             n_data = _imageModel.num_data_evaluate
             self.reduced_Chisq_bylenstronomy = -1 * log_l * 2 / n_data
@@ -528,7 +528,7 @@ class FittingProcess(object):
         segmap_ = segmap_float > 0.5
         if np.sum(segmap_)>10:
             segmap = segmap_
-        mask = np.zeros_like(data, dtype=np.bool)
+        mask = np.zeros_like(data, dtype=bool)
         for i in range(1,data.max()+1):
             if i != seg_idx:
                 mask_  = data == i
