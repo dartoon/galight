@@ -116,13 +116,15 @@ History
 * Debug error for when PS only image.
 * Update flux_sersic_model for when obj NO. > 1
 
-0.2.1 (2024-xx-xx)
+0.2.1 (2024-09-06)
 ++++++++++++++++++
 
 * Match lenstronomy version 1.11.10.
 * Match photutils version 1.12.0 (new mask is used for estimating background light).
-* Improve generate_target_materials() by adding error to detect_threshold.
+* Improve generate_target_materials() by allow 'error' input to detect_threshold.
 * Improve linear_solver using '_imageModel'.
 * Improve the report value for Chisq.
+* Allow quick fit galaxy image to fits file with header
+
 
  
