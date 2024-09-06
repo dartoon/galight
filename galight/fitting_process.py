@@ -306,7 +306,7 @@ class FittingProcess(object):
             plt.close()
             
     def plot_final_qso_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None,
-                           cmap= None):
+                           cmap = None, q = None, phi_G = None):
         """
         Plot the compact fitting result, if a QSO is fitted.
         """ 
@@ -340,7 +340,7 @@ class FittingProcess(object):
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
                       target_ID = target_ID, cmap=cmap, center_pos= [-self.final_result_ps[0]['ra_image'][0]/self.fitting_specify_class.deltaPix, 
-                                                                     self.final_result_ps[0]['dec_image'][0]/self.fitting_specify_class.deltaPix] )
+                                                                     self.final_result_ps[0]['dec_image'][0]/self.fitting_specify_class.deltaPix], q = q , phi_G = phi_G)
         flux_dict_2d['data-point source'] = flux_dict_2d.pop('data$-$point source')
         self.flux_2d_out = flux_dict_2d
         self.flux_1d_out = flux_dict_1d
@@ -353,7 +353,7 @@ class FittingProcess(object):
             plt.close()
     
     def plot_final_galaxy_fit(self, if_annuli=False, show_plot = True, arrows=False, save_plot = False, target_ID = None,
-                              cmap= None):
+                              cmap= None, q = None, phi_G = None):
         """
         Plot the compact fitting result, if galaxies is fitted (i.e., no point source).
         """         
@@ -374,7 +374,7 @@ class FittingProcess(object):
         fig = total_compare(list(flux_dict_2d.values()), list(flux_dict_2d.keys()), list(flux_dict_1d.values()), list(flux_dict_1d.keys()), deltaPix = self.fitting_specify_class.deltaPix,
                       zp=self.zp, if_annuli=if_annuli, arrows= arrows, show_plot = show_plot,
                       mask_image = self.fitting_specify_class.kwargs_likelihood['image_likelihood_mask_list'][0],
-                      target_ID = target_ID, cmap=cmap)
+                      target_ID = target_ID, cmap=cmap, q = q , phi_G = phi_G)
         if save_plot == True:
             savename = self.savename
             fig.savefig(savename+"_galaxy_final_plot.pdf")   

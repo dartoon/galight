@@ -18,9 +18,10 @@ from matplotlib.colors import LogNorm
 from matplotlib.ticker import AutoMinorLocator
 import copy
 import matplotlib
-from photutils import make_source_mask
+# from photutils import make_source_mask
+from photutils.segmentation import detect_sources, deblend_sources
 from galight.tools.astro_tools import plt_fits 
-my_cmap = copy.copy(matplotlib.cm.get_cmap('gist_heat')) # copy the default cmap
+my_cmap = copy.copy(matplotlib.pyplot.get_cmap('gist_heat')) # copy the default cmap
 my_cmap.set_bad('black')
 import photutils
 from galight.tools.cutout_tools import stack_PSF  #!!! Will be removed in next version.
@@ -394,7 +395,7 @@ def profiles_compare(prf_list, prf_name_list = None, x_gridspace = None, radius 
     plt.show() 
     return fig
 
-def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
+def measure_bkg(img, if_plot=False, nsigma=2, npixels=25):
     """
     Estimate the 2D background of a image, based on photutils.Background2D, with SExtractorBackground.
     Checkout: https://photutils.readthedocs.io/en/stable/background.html
@@ -410,27 +411,17 @@ def measure_bkg(img, if_plot=False, nsigma=2, npixels=25, dilate_size=11):
     print("Estimating the background light ... ... ...")
     from astropy.stats import SigmaClip
     from photutils import Background2D, SExtractorBackground  
-    try:
-        sigma_clip = SigmaClip(sigma=3., maxiters=10)
-    except (TypeError):
-        sigma_clip = SigmaClip(sigma=3., iters=10)
-#    if version.parse(astropy.__version__) >= version.parse("0.4"):
-#       sigma_clip = SigmaClip(sigma=3., maxiters=10)
-#    else:
-#        sigma_clip = SigmaClip(sigma=3., iters=10)
     bkg_estimator = SExtractorBackground()
-    if version.parse(photutils.__version__) > version.parse("0.7"):
-        mask_0 = make_source_mask(img, nsigma=nsigma, npixels=npixels, dilate_size=dilate_size)
-    else:
-        mask_0 = make_source_mask(img, snr=nsigma, npixels=npixels, dilate_size=dilate_size)
     mask_1 = (np.isnan(img))
     mask_2 = (img==0)
-    mask = mask_0 + mask_1 + mask_2
+    mask = mask_1 + mask_2
+    mask = np.bool_(mask)
+    
     box_s = int(len(img)/40)
     if box_s < 10:
         box_s = 10
-    bkg = Background2D(img, (box_s, box_s), filter_size=(3, 3),
-                       sigma_clip=sigma_clip, bkg_estimator=bkg_estimator,
+    bkg = Background2D(img, (box_s, box_s), filter_size=(3, 3), bkg_estimator=bkg_estimator, 
+                       sigma_clip = SigmaClip(sigma=3., maxiters=10),
                        mask=mask)
     fig=plt.figure(figsize=(15,15))
     ax=fig.add_subplot(1,1,1)
@@ -608,16 +599,16 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
         # Filtering the image will smooth the noise and maximize detectability of 
         # objects with a shape similar to the kernel.
         
-        if version.parse(photutils.__version__) >= version.parse("1.2.0"):
-            segm = detect_sources(convolved_image, threshold, npixels=npixels, kernel=None)
-            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
-                                            kernel=None, nlevels=nlevels,
-                                            contrast=contrast)
-        else:
-            segm = detect_sources(convolved_image, threshold, npixels=npixels, filter_kernel=None)
-            segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
-                                            filter_kernel=None, nlevels=nlevels,
-                                            contrast=contrast)
+        # if version.parse(photutils.__version__) >= version.parse("1.2.0"):
+        segm = detect_sources(convolved_image, threshold, npixels=npixels)
+        segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+                                        nlevels=nlevels,
+                                        contrast=contrast)
+        # else:
+        #     segm = detect_sources(convolved_image, threshold, npixels=npixels, filter_kernel=None)
+        #     segm_deblend = deblend_sources(convolved_image, segm, npixels=npixels,
+        #                                     filter_kernel=None, nlevels=nlevels,
+        #                                     contrast=contrast)
         cat = SourceCatalog(image, segm_deblend)
         tbl = cat.to_table()
         segm_deblend_size = segm_deblend.areas
@@ -685,10 +676,11 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
     if use_moments == True:
         for i in range(np.max(segm_deblend)):
             moments = image_moments(image, segm_deblend, i+1)
-            apertures[i].positions = [moments['X'],moments['Y']]
-            apertures[i].a  = moments['Mrr']
-            apertures[i].b = apertures[i].a * moments['q']
-            apertures[i].theta = moments['phi_deg']*np.pi/180
+            if np.isnan(moments['M00'] ) == False:
+                apertures[i].positions = [moments['X'],moments['Y']]
+                apertures[i].a  = moments['Mrr']
+                apertures[i].b = apertures[i].a * moments['q']
+                apertures[i].theta = moments['phi_deg']*np.pi/180
 
     if if_plot == True:
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12.5, 10))
@@ -705,12 +697,12 @@ def detect_obj(image, detect_tool = 'phot', exp_sz= 1.2, if_plot=False, auto_sor
                      bbox={'facecolor': 'white', 'alpha': 0.5, 'pad': 1})
         for i in range(len(apertures)):
             aperture = apertures[i]
-            if version.parse(photutils.__version__) > version.parse("0.7"):
-                aperture.plot(color='white', lw=1.5, axes=ax1)
-                aperture.plot(color='white', lw=1.5, axes=ax2)           
-            else:
-                aperture.plot(color='white', lw=1.5, ax=ax1)
-                aperture.plot(color='white', lw=1.5, ax=ax2)                       
+            # if version.parse(photutils.__version__) > version.parse("0.7"):
+            aperture.plot(color='white', lw=1.5, ax=ax1)
+            aperture.plot(color='white', lw=1.5, ax=ax2)           
+            # else:
+            #     aperture.plot(color='white', lw=1.5, ax=ax1)
+            #     aperture.plot(color='white', lw=1.5, ax=ax2)                       
         ax2.set_title('Segmentation Image', fontsize=25)
         ax2.tick_params(labelsize=15)
         plt.show()    
@@ -747,7 +739,9 @@ def mask_obj(image, apertures, if_plot = False, sum_mask = False):
         reg = EllipsePixelRegion(center=center, width=aperture.a*2, height=aperture.b*2, angle=theta)
         patch = reg.as_artist(facecolor='none', edgecolor='red', lw=2)
         mask_set = reg.to_mask(mode='center')
-        mask = mask_set.to_image((len(image),len(image)))
+        mask = mask_set.to_image((len(image),len(image.T)))
+        if mask is None:
+            continue
         mask = 1- mask
         if if_plot:
             print( "plot mask for object {0}:".format(i) )

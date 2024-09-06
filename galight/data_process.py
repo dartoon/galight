@@ -22,7 +22,6 @@ import photutils
 import sys
 from packaging import version
 from galight.tools.measure_tools import search_local_max, measure_FWHM
-from galight.tools.measure_tools import detect_obj
 from galight.tools.astro_tools import plt_many_fits
 import lenstronomy 
 from galight.tools.measure_tools import detect_obj, mask_obj
