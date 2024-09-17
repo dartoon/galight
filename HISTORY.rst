@@ -119,12 +119,14 @@ History
 0.2.1 (2024-09-06)
 ++++++++++++++++++
 
-* Match lenstronomy version 1.11.10.
-* Match photutils version 1.12.0 (new mask is used for estimating background light).
+* Match lenstronomy version 1.12.0.
+* Match photutils version 1.13.0 (new mask is used for estimating background light).
 * Improve generate_target_materials() by allow 'error' input to detect_threshold.
 * Improve linear_solver using '_imageModel'.
 * Improve the report value for Chisq.
-* Allow quick fit galaxy image to fits file with header
+* Allow quick fit galaxy image to fits file with header.
+* Allow set the scale bar size in .plot_final_qso/galaxy_fit().
+
 
 
  

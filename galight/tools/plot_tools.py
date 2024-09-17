@@ -56,7 +56,8 @@ def scale_bar(ax, d, dist=1/0.13, text='1"', color='black', flipped=False, fonts
 def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
                   deltaPix = 1., zp=27.0, target_ID = 'target_ID',
                   mask_image=None, if_annuli=False, center_pos = None,
-                  arrows=False, show_plot = True, cmap=None, sum_rest = False, q = None, phi_G = None):
+                  arrows=False, show_plot = True, cmap=None, sum_rest = False, q = None, 
+                  phi_G = None, bar_scale=None):
     """
     Make quick plots to compare the flux profiles in a list and show the normalized residual.
     
@@ -94,6 +95,8 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     ax_rb = plt.subplot2grid((6,cl_num), (5,cl_num-1), rowspan=1)
     frame_size = len(flux_list_2d[0])
     mask = np.ones_like(flux_list_2d[0])
+    if bar_scale == None:
+        bar_scale = 1
     if cmap == None:
         cmap = my_cmap
     if mask_image is not None:
@@ -109,7 +112,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
             im_i = ax_l[i].imshow(flux_list_2d[i],origin='lower',cmap=cmap, norm=LogNorm(), clim=clim)
             ax_l[i].get_yaxis().set_visible(False)
         ax_l[i].get_xaxis().set_visible(False)
-        scale_bar(ax_l[i], frame_size, dist=1/deltaPix, text='1"', color = 'white', fontsize=25)
+        scale_bar(ax_l[i], frame_size, dist=bar_scale/deltaPix, text='{0}"'.format(bar_scale), color = 'white', fontsize=25)
         if arrows == True:
             coordinate_arrows(ax_l[i], frame_size, arrow_size=0.03, color = 'white')
         ticks= np.array([1.e-4, 1.e-3, 1.e-2,1.e-1,0, 10])
@@ -123,7 +126,7 @@ def total_compare(flux_list_2d, label_list_2d, flux_list_1d, label_list_1d,
     #Plot normalized residual map:
     norm_residual = flux_list_2d[-1]
     im_r = ax_r.imshow(norm_residual * mask, origin='lower',cmap='bwr', vmin=-6, vmax=6)
-    scale_bar(ax_r, frame_size, dist=1/deltaPix, text='1"', fontsize=25)
+    scale_bar(ax_r, frame_size, dist=bar_scale/deltaPix, text='{0}"'.format(bar_scale), fontsize=25)
     if arrows == True:
         coordinate_arrows(ax_r, frame_size, arrow_size=0.03)
     ax_r.get_xaxis().set_visible(False)
