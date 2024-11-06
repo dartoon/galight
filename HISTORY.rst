@@ -116,7 +116,7 @@ History
 * Debug error for when PS only image.
 * Update flux_sersic_model for when obj NO. > 1
 
-0.2.1 (2024-09-06)
+0.2.1 (2024-11-06)
 ++++++++++++++++++
 
 * Match lenstronomy version 1.12.0.
