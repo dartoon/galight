@@ -20,7 +20,7 @@ The [example notebook](https://github.com/dartoon/galight_notebooks/blob/master/
 Some other notebooks of demonstrating how to use ``galight`` with more features can be found in:
 https://github.com/dartoon/galight_notebooks
 
-The data used in the example notebook can be found [here](https://drive.google.com/file/d/1ZO9-HzV8K60ijYWK98jGoSoZHjIGW5Lc/view?usp=sharing).
+The data used in the example notebook can be found [here](https://drive.google.com/file/d/1Axwo-aD5yFrkuHIlYBsQ8ma1nHRpcAHg/view?usp=sharing).
 
 For more information, an online documentation can be found in ReadtheDocs:
 https://galight.readthedocs.io/
